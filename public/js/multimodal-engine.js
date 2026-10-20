@@ -367,7 +367,22 @@ window.MultimodalEngine = {
       this.sendCommandToJarvis(val);
     });
 
-    // Bottom 6 Action Orbs
+    // Bottom Action Orbs (including AI Studio 17-Modules Hub)
+    document.getElementById('orb-aistudio-hub')?.addEventListener('click', () => {
+      if (window.HUDWindowSpawner && window.HUDWindowSpawner.openAIStudioWindowByType) {
+        window.HUDWindowSpawner.openAIStudioWindowByType('AI_STUDIO_HUB');
+      } else {
+        this.sendCommandToJarvis('AI Studio 스튜디오 허브 열어줘');
+      }
+    });
+    document.querySelectorAll('[data-ais-win]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const winType = btn.dataset.aisWin;
+        if (window.HUDWindowSpawner && window.HUDWindowSpawner.openAIStudioWindowByType) {
+          window.HUDWindowSpawner.openAIStudioWindowByType(winType);
+        }
+      });
+    });
     document.getElementById('orb-manual')?.addEventListener('click', () => {
       this.sendCommandToJarvis('설명서 창 띄워줘');
     });
