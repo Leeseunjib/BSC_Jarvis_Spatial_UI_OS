@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI WORKSHOP OS — BSC J.A.R.V.I.S. EDITION (Coram Deo & Together)</title>
+  <link rel="stylesheet" href="/css/jarvis-hud.css" />
+</head>
+<body>
+  <!-- Background 3D/2D Obsidian Knowledge Galaxy Canvas -->
+  <canvas id="brain-canvas"></canvas>
+
+  <!-- Optional Mirrored Webcam Feed Overlay for HOLO / EYES Mode -->
+  <video id="webcam-video" autoplay playsinline muted></video>
+  <canvas id="holo-hand-canvas"></canvas>
+
+  <!-- Top Center View Switcher Pill (Matches Screenshot + MAPS 6 Brain Views) -->
+  <header id="top-view-bar">
+    <button class="view-pill active" data-view="3d" title="3D 입체 은하 포스 그래프 (Orbit & Fly-to)">🌌 3D Galaxy</button>
+    <button class="view-pill" data-view="2d" title="2D 포스 그래프">🕸️ 2D Force</button>
+    <button class="view-pill" data-view="rings" title="MAPS 계층별 동심원 (Core -> Memory -> Skills -> Apps)">⭕ Rings</button>
+    <button class="view-pill" data-view="areas" title="도메인 허브별 클러스터">🪐 Areas</button>
+    <button class="view-pill" data-view="timeline" title="수정 시간순 타임라인 분포">⏱️ Timeline</button>
+    <button class="view-pill" data-view="brain" title="해부학적 브레인 뉴런 형상">🧠 Brain</button>
+    <span class="divider-v"></span>
+    <button class="view-pill action-pill" id="btn-fit-graph" title="화면 중앙 맞춤 (Fit)">⊙ Fit</button>
+    <button class="view-pill action-pill" id="btn-replay-growth" title="지식 은하 생성 리플레이">⟲ Replay</button>
+  </header>
+
+  <!-- Top Stewardship Banner (Coram Deo & Together) -->
+  <div id="together-verse-banner">
+    <span class="verse-badge">✝️ CORAM DEO &amp; TOGETHER</span>
+    <span id="daily-steward-message">"이건우 대표님, 오늘도 주신 지혜로 함께(Together) 만들어 갑시다." — 전도서 4:9 (두 사람이 한 사람보다 나음은 그들이 수고함으로 좋은 상을 얻을 것임이라)</span>
+  </div>
+
+  <!-- LEFT RAIL: AI WORKSHOP OS Inspector, Top Hubs, Forces, Token Flow -->
+  <aside id="left-rail">
+    <div class="brand-header">
+      <div class="brand-title-row">
+        <h1>AI WORKSHOP OS</h1>
+        <span class="bsc-tag">BSC STEWARD</span>
+      </div>
+      <div class="vault-stats">
+        <span id="stat-nodes">523 notes</span> · <span id="stat-links">567 connections</span>
+      </div>
+      <button id="btn-toggle-2d3d" class="back-2d-link">← switch 2D / 3D</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="brain-search" placeholder="Search the brain... (Enter / Click)" autocomplete="off" />
+    </div>
+
+    <!-- INSPECTOR -->
+    <section class="rail-card">
+      <div class="card-label">INSPECTOR</div>
+      <div id="inspector-content" class="inspector-body">
+        Click a node to focus it — only that node and its connections light up, and you can read its note here. Double-click a node to spawn its full Holographic Report Window.
+      </div>
+      <div id="inspector-actions" class="inspector-actions" style="display:none;">
+        <button id="btn-open-node-report" class="hud-mini-btn primary">📊 보고서 창으로 열기</button>
+        <button id="btn-fly-node" class="hud-mini-btn">🎯 Fly-To</button>
+      </div>
+    </section>
+
+    <!-- TOP HUBS -->
+    <section class="rail-card">
+      <div class="card-label">TOP HUBS (SHOW, DON'T STORE)</div>
+      <div id="top-hubs-list" class="hubs-list">
+        <!-- Populated dynamically from brain.json -->
+      </div>
+    </section>
+
+    <!-- FORCES -->
+    <section class="rail-card">
+      <div class="card-label">FORCES &amp; SPREAD</div>
+      <div class="slider-row">
+        <label>Repel</label>
+        <input type="range" id="slider-repel" min="20" max="260" value="110" />
+      </div>
+      <div class="slider-row">
+        <label>Link length</label>
+        <input type="range" id="slider-link-len" min="20" max="200" value="75" />
+      </div>
+    </section>
+
+    <!-- TOKEN FLOW & BSC LEAN CORE -->
+    <section class="rail-card">
+      <div class="card-label">TOKEN FLOW &amp; STEWARDSHIP</div>
+      <div class="token-flow-box">
+        <div class="tf-row">
+          <span>2-Hop 절감률</span>
+          <strong id="tf-savings-pct" class="emerald-text">88.5% SAVED</strong>
+        </div>
+        <div class="tf-bar-track">
+          <div id="tf-bar-fill" class="tf-bar-fill" style="width: 88.5%;"></div>
+        </div>
+        <div class="tf-sub">
+          Actual: <b id="tf-actual">4.9k</b> / Raw: <span id="tf-raw">42.8k</span> tokens
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- RIGHT RAIL: Filter Legend + J.A.R.V.I.S. Holographic Reactor Core + 4 Sensors -->
+  <aside id="right-rail">
+    <!-- FILTER LEGEND -->
+    <section class="rail-card filter-card">
+      <div class="card-label">FILTER</div>
+      <div id="kind-filter-list" class="hubs-list compact">
+        <div class="hub-item active" data-kind="all"><span class="dot" style="background:#00f0ff"></span><span class="name">All Nodes</span><span class="cnt" id="cnt-all">523</span></div>
+        <div class="hub-item" data-kind="root"><span class="dot" style="background:#00f0ff"></span><span class="name">Router / Core</span><span class="cnt">1</span></div>
+        <div class="hub-item" data-kind="area"><span class="dot" style="background:#38bdf8"></span><span class="name">Top Hubs</span><span class="cnt">6</span></div>
+        <div class="hub-item" data-kind="skill"><span class="dot" style="background:#34d399"></span><span class="name">Agents &amp; Skills</span><span class="cnt" id="cnt-skill">90</span></div>
+        <div class="hub-item" data-kind="note"><span class="dot" style="background:#a855f7"></span><span class="name">Knowledge Wiki</span><span class="cnt" id="cnt-note">180</span></div>
+        <div class="hub-item" data-kind="project"><span class="dot" style="background:#f97316"></span><span class="name">112 Jarvis Sources</span><span class="cnt" id="cnt-project">120</span></div>
+        <div class="hub-item" data-kind="memory"><span class="dot" style="background:#fbbf24"></span><span class="name">Worldview &amp; Vault</span><span class="cnt" id="cnt-memory">10</span></div>
+        <div class="hub-item" data-kind="run"><span class="dot" style="background:#ec4899"></span><span class="name">Reports &amp; Logs</span><span class="cnt" id="cnt-run">90</span></div>
+      </div>
+    </section>
+
+    <!-- J.A.R.V.I.S. HOLOGRAPHIC REACTOR CORE -->
+    <section class="jarvis-reactor-widget">
+      <div class="reactor-canvas-wrap">
+        <canvas id="jarvis-core-canvas" width="230" height="230"></canvas>
+        <div class="reactor-center-label">J.A.R.V.I.S.</div>
+      </div>
+
+      <div class="reactor-status-pills">
+        <span class="status-pill online"><i class="pulse-dot"></i> ONLINE</span>
+        <span class="status-pill model-pill" id="active-model-pill">✦ TOGETHER OS</span>
+      </div>
+
+      <div class="core-shape-tabs">
+        <button class="core-tab active" data-shape="RING">RING</button>
+        <button class="core-tab" data-shape="CUBE">CUBE</button>
+        <button class="core-tab" data-shape="FACE">FACE</button>
+      </div>
+
+      <!-- 4 MULTIMODAL SENSOR SWITCHES (EYES / WATCH / HOLO / FOCUS) -->
+      <div class="sensor-switches">
+        <button class="sensor-btn" id="toggle-eyes" data-sensor="EYES">
+          <span class="s-name">EYES <small>(모션/재석)</small></span>
+          <span class="s-state">off</span>
+        </button>
+        <button class="sensor-btn" id="toggle-watch" data-sensor="WATCH">
+          <span class="s-name">WATCH <small>(화면인식)</small></span>
+          <span class="s-state">off</span>
+        </button>
+        <button class="sensor-btn" id="toggle-holo" data-sensor="HOLO">
+          <span class="s-name">HOLO <small>(에어터치)</small></span>
+          <span class="s-state">off</span>
+        </button>
+        <button class="sensor-btn" id="toggle-focus" data-sensor="FOCUS">
+          <span class="s-name">FOCUS <small>(집중모드)</small></span>
+          <span class="s-state">off</span>
+        </button>
+      </div>
+    </section>
+  </aside>
+
+  <!-- AUTONOMOUS FLOATING HUD WINDOW CONTAINER (Spawns Manual, Report, Live Console, Gen Studio) -->
+  <main id="floating-windows-layer"></main>
+
+  <!-- CEO HUMAN-IN-THE-LOOP APPROVAL MODAL FOR COMPUTER USE -->
+  <div id="pc-approval-modal" class="approval-modal" style="display:none;">
+    <div class="approval-card">
+      <div class="approval-header">🛡️ [BSC Harness Gate] 컴퓨터 제어(Computer Use) 승인 요청</div>
+      <div class="approval-title" id="pc-approval-title">작업 명칭</div>
+      <div class="approval-desc" id="pc-approval-desc">상세 설명</div>
+      <code class="approval-cmd" id="pc-approval-cmd">Command</code>
+      <div class="approval-actions">
+        <button id="btn-approve-pc" class="hud-btn approve">✅ 대표님 승인 (실행)</button>
+        <button id="btn-deny-pc" class="hud-btn deny">✕ 취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Voice & Gesture Subtitle Toast -->
+  <div id="live-dialogue-toast">
+    <span class="speaker-tag" id="toast-speaker">J.A.R.V.I.S.</span>
+    <span class="speech-text" id="toast-text">이건우 대표님, 오늘도 주신 지혜로 함께 만들어 갑시다. 무엇을 도와드릴까요?</span>
+  </div>
+
+  <!-- BOTTOM MULTIMODAL COMMAND DOCK (Matches Screenshot Prompt Bar + 6 Action Orbs) -->
+  <footer id="bottom-command-dock">
+    <form id="jarvis-chat-form" class="command-input-wrap">
+      <input
+        type="text"
+        id="jarvis-prompt-input"
+        placeholder="자비스에게 말씀하시거나 입력해 주세요 (예: '설명서 창 띄워줘', '112개 오픈소스 보고서 보여줘', '제작 콘솔 열어줘', '생성 스튜디오 열어줘')"
+        autocomplete="off"
+      />
+      <button type="submit" class="send-prompt-btn" title="자비스에게 전송">↵</button>
+    </form>
+
+    <div class="dock-action-orbs">
+      <button class="orb-btn" id="orb-manual" title="📘 설명서(Manual) 창 즉시 소환">
+        <span>📘</span>
+      </button>
+      <button class="orb-btn" id="orb-report" title="📊 심층 보고서(Report) 창 즉시 소환">
+        <span>📊</span>
+      </button>
+      <button class="orb-btn" id="orb-console" title="💻 실시간 제작/토큰 콘솔(Live Console) 창 소환">
+        <span>💻</span>
+      </button>
+      <button class="orb-btn" id="orb-studio" title="🎨 통합 생성 도구 & 3D 홀로그램 스튜디오(Gen Studio) 소환">
+        <span>🎨</span>
+      </button>
+      <button class="orb-btn" id="orb-pc-ctrl" title="🖥️ 안전 컴퓨터 제어(Computer Use) 메뉴">
+        <span>🖥️</span>
+      </button>
+      <button class="orb-btn voice-orb" id="orb-voice-mic" title="🎙️ 음성 인식 대화 (클릭 또는 스페이스바)">
+        <span>🎙️</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Core Scripts -->
+  <script src="/js/worldview-together.js"></script>
+  <script src="/js/window-spawner.js"></script>
+  <script src="/js/graph-engine.js"></script>
+  <script src="/js/jarvis-core-3d.js"></script>
+  <script src="/js/multimodal-engine.js"></script>
+</body>
+</html>

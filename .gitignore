@@ -1,0 +1,10 @@
+# 🛡️ BSC_Javis_OS Security & Git Ignore Rules
+.env
+.env.*
+!.env.example
+node_modules/
+research/docx_build/
+research/opensource_sources/
+*.log
+.DS_Store
+Thumbs.db

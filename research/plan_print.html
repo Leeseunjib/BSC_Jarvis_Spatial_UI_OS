@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>BSC J.A.R.V.I.S. (Autonomous Agent OS) 통합 설계 및 구축 계획서</title>
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 14mm 14mm 14mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    color: #0f172a;
+    background: #ffffff;
+    line-height: 1.62;
+    font-size: 10.2pt;
+    margin: 0;
+    padding: 0;
+  }
+  /* Header Cover Banner */
+  .cover-banner {
+    background: linear-gradient(135deg, #070b14 0%, #0f172a 55%, #1e293b 100%);
+    color: #f8fafc;
+    padding: 28px 30px;
+    border-radius: 14px;
+    border-left: 6px solid #00f0ff;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+  }
+  .cover-badge {
+    display: inline-block;
+    background: rgba(0, 240, 255, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    font-size: 8.5pt;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .cover-banner h1 {
+    margin: 0 0 10px 0;
+    font-size: 19pt;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+  }
+  .cover-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-size: 9pt;
+    color: #94a3b8;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  .cover-meta span strong {
+    color: #e2e8f0;
+  }
+
+  /* Headings */
+  h2 {
+    font-size: 13.5pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 22px 0 10px 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #0284c7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.2pt;
+    font-weight: 700;
+    color: #0369a1;
+    margin: 16px 0 8px 0;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 6px 0 10px 0;
+  }
+  ul, ol {
+    margin: 6px 0 12px 0;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 8.8pt;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 1.5px 5px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+  }
+
+  /* Alert Callouts */
+  .callout {
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+  .callout-important {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-left: 5px solid #0284c7;
+  }
+  .callout-note {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 5px solid #16a34a;
+  }
+  .callout-title {
+    font-weight: 800;
+    font-size: 10pt;
+    margin-bottom: 6px;
+    color: #0369a1;
+  }
+  .callout-note .callout-title {
+    color: #15803d;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 9.2pt;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  th {
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid #1e293b;
+  }
+  td {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  /* Architecture Diagram Box */
+  .arch-diagram {
+    background: #0b1120;
+    color: #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0 18px 0;
+    border: 1px solid #1e293b;
+    page-break-inside: avoid;
+  }
+  .arch-layer {
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .arch-layer:last-child {
+    margin-bottom: 0;
+  }
+  .arch-layer-title {
+    font-size: 9.5pt;
+    font-weight: 800;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    letter-spacing: 0.03em;
+  }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .arch-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .arch-card {
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 8.6pt;
+  }
+  .arch-card strong {
+    color: #34d399;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .arch-arrow {
+    text-align: center;
+    color: #38bdf8;
+    font-weight: 800;
+    font-size: 10pt;
+    margin: 4px 0;
+  }
+
+  /* Component Cards */
+  .comp-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    page-break-inside: avoid;
+  }
+  .comp-box h3 {
+    margin-top: 0;
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 8.5pt;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+  <div class="cover-banner">
+    <div class="cover-badge">BEAUSCREATORS (BSC) · MASTER ARCHITECTURE PLAN</div>
+    <h1>🛡️ BSC J.A.R.V.I.S. (Autonomous Agent OS)<br/>통합 설계 및 구축 계획서 (/plan)</h1>
+    <div style="font-size: 10pt; color: #cbd5e1;">
+      해외 오픈소스 112개 딥리서치 & 10대 레포지토리 로컬 클론 기반 · 3D 옵시디언 지식 은하 · 5대 멀티모달(음성/에어터치/모션/PC제어/생성도구) · 자율 윈도우 스폰 · 장로교 청지기 세계관 & 『함께(Together)』 헌장
+    </div>
+    <div class="cover-meta">
+      <span><strong>최고 의사결정권자(CEO):</strong> 이건우 대표님</span>
+      <span><strong>설계 책임:</strong> CTO 거누 & AI 연구원 우진</span>
+      <span><strong>기준 일자:</strong> 2026-10-20</span>
+      <span><strong>대상 워크스페이스:</strong> c:\BSC_Javis_OS</span>
+    </div>
+  </div>
+
+  <h2>1. 프로젝트 비전 및 배경 (Goal Description)</h2>
+  <p>
+    이건우 대표님께서 제시하신 비전과 레퍼런스 이미지(<strong>Zubair Trabzada의 <code>AI Workshop OS / Zubair OS</code></strong>), 그리고 추가 지정해주신 <strong>Pav(Automation Orbit)의 <code>MAPS Framework</code> (<code>pavrus117/ai-os-maps-guide</code> &amp; YouTube <code>Zs3faMCDYNs</code>)</strong>를 포함해 총 <strong>112개의 해외 오픈소스 J.A.R.V.I.S. 생태계를 전수 조사</strong>하고, 그중 가장 핵심적인 <strong>10대 플래그십 오픈소스 소스코드를 <code>c:\BSC_Javis_OS\research\opensource_sources\</code>에 전량 클론</strong> 완료했습니다.
+  </p>
+  <p>
+    본 설계서는 해외 오픈소스들의 최고 장점만을 결합하고, 그 위에 <strong>BeausCreators(BSC)의 CHL(Context-Harness-Loop) 에이전트 헌장</strong>과 <strong>기독교(개혁주의 장로교) 청지기 세계관</strong>, 그리고 인간과 AI가 <strong>"함께(Together)"</strong> 일하며 창조적 사명을 완수하는 <strong>『BSC J.A.R.V.I.S. OS』</strong>의 마스터 아키텍처입니다.
+  </p>
+
+  <div class="callout callout-important">
+    <div class="callout-title">📌 딥리서치 원문 및 로컬 클론 완료된 10대 오픈소스 레포지토리</div>
+    <ul>
+      <li><strong>112개 해외 링크 마스터 인덱스:</strong> <code>c:\BSC_Javis_OS\research\JARVIS_110_Sources_Master_Index.md</code></li>
+      <li><strong>클론 완료된 10대 오픈소스 원본 폴더 (<code>c:\BSC_Javis_OS\research\opensource_sources\</code>):</strong>
+        <ol>
+          <li><code>pavrus117_ai-os-maps-guide</code> — MAPS 4계층(Memory, Agent, Pulse, Screen) &amp; 6종 Brain Views 설계도</li>
+          <li><code>zubair-trabzada_holo-gestures</code> — MediaPipe + Three.js 에어 터치(Pinch/Stretch/Throw) &amp; 3D 모델 분해·조립</li>
+          <li><code>zubair-trabzada_brain-map</code> — 옵시디언 마크다운 폴더 → 인터랙티브 Force Graph 변환기</li>
+          <li><code>ctskool_agentic-os-starter-v2</code> — Jarvis V2 HUD + ReportOverlay / ArtifactOverlay / TerminalTabs 콘솔</li>
+          <li><code>Prompt-Surfer_obsidian-jarvis-ui</code> — 3D WebGL 볼트 그래프 6대 형상 + 마크다운 리더/에디터</li>
+          <li><code>eadmin2_jarvis_ai</code> — 16kHz 실시간 음성 Barge-in + <code>/api/summon</code> 자율 홀로그램 창 소환 프로토콜</li>
+          <li><code>LeoSasion_Jarvis3D</code> — Windows 10/11 3D 뉴런/성운 데스크탑 HUD 쉘</li>
+          <li><code>matthewyuart_gesturewatcher</code> — 인브라우저 카메라 제스처 노드 제어 &amp; Liquid Glass UI</li>
+          <li><code>SanjayKumaran2805_JARVIS</code> — 화면 비전 인식 + PC 자동화 20여 개 모듈 통합 HUD</li>
+          <li><code>AndrewKochulab_jarvis-dashboard</code> — 에이전트 플릿 &amp; 토큰/세션 실시간 관제 대시보드</li>
+        </ol>
+      </li>
+    </ul>
+  </div>
+
+  <h2>2. 세계관 및 철학적 코어: 『코람 데오(Coram Deo) &amp; 함께(Together)』</h2>
+  <p>
+    대표님의 지시에 따라 자비스는 단순한 도구가 아니라, <strong>개혁주의 장로교(Presbyterian / Reformed Theology) 세계관</strong>과 <strong>BSC 헌장</strong>을 영혼(SOUL)에 새긴 자율 에이전트 관제탑으로 설계됩니다.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 22%;">핵심 축</th>
+        <th style="width: 38%;">설계 원칙 (Theological &amp; System Principle)</th>
+        <th style="width: 40%;">시스템 작동 방식 (Implementation in J.A.R.V.I.S.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. 창조 질서와 청지기 정신<br/>(Stewardship)</strong></td>
+        <td>하나님께서 사람에게 맡기신 문화명령(창 1:28)을 수행함에 있어, AI는 인간(이건우 대표님)을 대체하거나 지배하는 존재가 아니라 <strong>대표님의 사명과 시간을 가장 선하고 지혜롭게 보좌하는 충성된 청지기 도구</strong>입니다.</td>
+        <td>
+          • <strong>Human-in-the-Loop 절대 주권 (MAPS 제1원칙 + BSC 헌장):</strong> 자비스는 스스로 최종 결정(<code>Done</code>)이나 파일 삭제를 감행하지 않으며, 모든 중요 실행 전 대표님께 투명한 근거를 보고하고 승인을 구합니다.<br/>
+          • <strong>Zero Data Loss (Append-Only):</strong> 기존 지식을 파괴하거나 덮어쓰지 않고 역사와 맥락을 정직하게 보존합니다.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>2. 진리와 정직<br/>(Truth &amp; Zero-Hallucination)</strong></td>
+        <td>"거짓 증거하지 말라"는 말씀과 장로교의 신실함(Integrity)에 기반하여, 모르는 것을 아는 척하거나 경로/데이터를 날조(Hallucination)하는 것을 철저히 배격합니다.</td>
+        <td>
+          • <strong>Fact-Grounded 2-Hop Memory:</strong> 반드시 실제 파일과 검증된 로그만 인용하며, 안 되는 부분은 억지로 우회하지 않고 즉시 검증된 원인을 보고합니다.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>3. 『함께 (Together / 코이노니아)』 최우선 가치</strong></td>
+        <td>사람이 홀로 일하는 고단함을 덜고, <strong>사람(대표님의 영감·결단·믿음)과 AI(자비스 및 28인 에이전트 군단의 연산·실행·기억)가 '함께' 동역할 때 가장 아름다운 열매가 맺힌다</strong>는 철학입니다.</td>
+        <td>
+          • <strong>Co-Creation Engine:</strong> 자비스의 기본 인사말(<em>"이건우 대표님, 오늘도 주신 지혜로 함께 만들어 갑시다"</em>), 상태 표시줄, 자율 제안 루프의 핵심 키워드는 항상 <strong>"함께(Together)"</strong>입니다.<br/>
+          • 매일 아침 모닝 브리핑(<code>Pulse</code>)에서 오늘 대표님과 자비스가 <strong>함께</strong> 완수할 핵심 사명과 묵상을 브리핑합니다.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>4. 절제와 최적화<br/>(Temperance &amp; Token Flow)</strong></td>
+        <td>자원을 낭비하지 않는 청지기적 절제 정신으로, 최소한의 토큰과 연산으로 최대의 성능을 도출합니다.</td>
+        <td>
+          • <strong>Deterministic Code First:</strong> LLM 호출 전 결정론적 스크립트가 먼저 0.1초 만에 데이터를 정제합니다.<br/>
+          • <strong>2-Hop Signpost + Micro-Knowledge Query:</strong> 토큰 소모를 40~90% 절감하고 실시간 토큰 유량(Token Flow Gauge)을 HUD에 시각화합니다.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. 전체 시스템 아키텍처 (MAPS + Multimodal + Dynamic HUD)</h2>
+  <div class="arch-diagram">
+    <div class="arch-layer">
+      <div class="arch-layer-title">LAYER 4: SCREEN — AI WORKSHOP OS HUD &amp; AUTONOMOUS WINDOW SPAWNER ("Show, Don't Store")</div>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <strong>좌측 레일 (Inspector / Top Hubs / Forces)</strong>
+          노드 상세 프리뷰, BSC 28인 에이전트 &amp; 도메인 허브 필터, 물리 엔진 조절, 실시간 토큰 흐름(Token Flow) 게이지
+        </div>
+        <div class="arch-card">
+          <strong>중앙 캔버스 (Living 3D Obsidian Knowledge Galaxy)</strong>
+          6대 뷰 실시간 전환: 3D Galaxy / 2D Force / Rings / Areas / Timeline / Brain Shape
+        </div>
+        <div class="arch-card">
+          <strong>우측 코어 (J.A.R.V.I.S. Holographic Reactor)</strong>
+          RING / CUBE / FACE 3D 코어 + 4대 센서 스위치 (EYES / WATCH / HOLO / FOCUS)
+        </div>
+        <div class="arch-card">
+          <strong>자율 스폰 윈도우 매니저 (Floating HUD Windows)</strong>
+          ① 📘 설명서(Manual) ② 📊 심층 보고서(Report) ③ 💻 실시간 제작 콘솔(Live Console) ④ 🎨 생성도구 스튜디오(Gen Studio)
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow">▲ ▼ WebSocket 16kHz Audio Stream &amp; /api/summon Window Event Bus</div>
+    <div class="arch-layer">
+      <div class="arch-layer-title">MULTIMODAL PERCEPTION &amp; ACTION ENGINE (5대 감각 및 실행 모듈)</div>
+      <div class="arch-grid-3">
+        <div class="arch-card">
+          <strong>🎙️ 양방향 음성 &amp; Barge-in</strong>
+          웨이크워드("자비스"), 실시간 자막, 청지기 음성 브리핑, 끼어들기 즉시 반응
+        </div>
+        <div class="arch-card">
+          <strong>✋ 카메라 에어터치(HOLO) &amp; 모션(EYES)</strong>
+          로컬 MediaPipe WASM: 손가락 Pinch(집기), Stretch(확대/요약), Throw, Peace(정렬)
+        </div>
+        <div class="arch-card">
+          <strong>🖥️ 안전 PC 제어 &amp; 생성 도구</strong>
+          화면 캡처 인식(WATCH), 승인 기반 OS/앱/브라우저 제어, 실시간 다이어그램/문서/3D 생성
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow">▲ ▼ Deterministic Pre-Processor &amp; 2-Hop Signpost Lookup</div>
+    <div class="arch-layer">
+      <div class="arch-layer-title">LAYER 1~3: MEMORY · AGENT · PULSE (BSC_HQ SSOT + Local Obsidian Vault)</div>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <strong>🗺️ 2-Hop Signpost Memory (MAPS Card 1)</strong>
+          <code>01_MEMORY_MAP.md</code> → 영역별 Signpost → <code>BSC_HQ (6.Knowledge_Index, 0.Guidelines, 2.Agents)</code> &amp; <code>c:\BSC_Javis_OS\vault</code> 읽기 전용 실시간 연결
+        </div>
+        <div class="arch-card">
+          <strong>⏱️ Pulse Routine &amp; BSC 28인 에이전트 오케스트레이터</strong>
+          모닝 브리핑, Nightly Signpost 무결성 체크, 일일 토큰 상한(Cap) 방어, <code>agent_status.json</code> 실시간 관제
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>4. 대표님 요구사항별 핵심 구현 설계 (Proposed Changes)</h2>
+
+  <div class="comp-box">
+    <h3>Component 1: 『AI Workshop OS』 UI 완벽 구현 + 6대 지식 그래프 뷰 (BSC 본사 + 로컬 볼트 연동)</h3>
+    <ul>
+      <li><strong>좌측 레일 (<code>AI WORKSHOP OS — BSC EDITION</code>):</strong>
+        <ul>
+          <li>상단 노트/지식 노드 수 및 연결(Connections) 카운터, <code>3D / 2D / Rings / Areas / Timeline / Brain</code> 6대 뷰 스위처, 실시간 퍼지 검색(<code>Search the brain...</code>).</li>
+          <li><code>INSPECTOR</code>: 선택 노드의 마크다운 요약, 원본 경로, 담당 에이전트 표시 및 <code>[보고서 창으로 열기]</code> 버튼.</li>
+          <li><code>TOP HUBS</code>: BSC 핵심 클러스터(<code>00.Guidelines</code>, <code>01.BSC_HQ Agents</code>, <code>06.Knowledge_Index</code>, <code>07.Deep_Research</code>, <code>Together_Missions</code> 등) 필터.</li>
+          <li><code>FORCES &amp; TOKEN FLOW</code>: 그래프 물리 슬라이더(<code>Repel</code>, <code>Link Length</code>) 및 <strong>실시간 토큰 흐름 모니터(Session Tokens, 2-Hop 절감률, 일일 Cap 게이지)</strong>.</li>
+        </ul>
+      </li>
+      <li><strong>중앙 캔버스 (<code>Living 3D Obsidian Knowledge Galaxy</code>):</strong>
+        <ul>
+          <li>BSC 본사(<code>C:\BeausCreators\01.BSC_HQ\6.Knowledge_Index</code>, <code>0.Guidelines</code>, <code>2.Agents</code>)와 로컬 <code>vault/</code>를 읽기 전용(<strong>"Show, Don't Store"</strong>)으로 스캔하여 실시간 은하 그래프로 시각화.</li>
+        </ul>
+      </li>
+      <li><strong>우측 코어 (<code>J.A.R.V.I.S. Holographic Core &amp; Sensor Deck</code>):</strong>
+        <ul>
+          <li>회전하는 시안/골드 아크 리액터 <strong>J.A.R.V.I.S. 링</strong> (<code>RING / CUBE / FACE</code> 3D 전환 지원).</li>
+          <li>4대 실시간 센서 토글: <code>EYES</code> (웹캠 모션/재석 인지), <code>WATCH</code> (PC 화면 인식), <code>HOLO</code> (손가락 에어 터치 조작), <code>FOCUS</code> (대화 문맥 집중 모드).</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="comp-box">
+    <h3>Component 2: 자비스 자율 윈도우 스폰 엔진 (Autonomous HUD Window Spawner)</h3>
+    <p>대화 중 자비스가 문맥에 따라 스스로 판단하여 화면 위에 다중 홀로그램 플로팅 윈도우(드래그·리사이즈·최소화·에어터치 이동 가능)를 즉시 띄우고 제어합니다.</p>
+    <ol>
+      <li><strong>📘 설명서/가이드 창 (<code>WindowType: "MANUAL"</code>):</strong> 기능 안내나 워크플로우 설명 시 단계별 매뉴얼, 단축키, 아키텍처 가이드가 담긴 설명서 창 자동 팝업.</li>
+      <li><strong>📊 심층 보고서/기획서 창 (<code>WindowType: "REPORT"</code>):</strong> 리서치 결과, 기획안, 모닝 브리핑 등을 마크다운/표/차트로 렌더링하여 중앙에 소환하며 원클릭 본사/볼트 저장 지원.</li>
+      <li><strong>💻 실시간 제작/에이전트 콘솔 창 (<code>WindowType: "LIVE_CONSOLE"</code>):</strong> 코드 제작이나 에이전트 업무 수행 시 실시간 실행 로그, 파일 생성 진행률, 토큰 유량, Harness 검증 상태를 스트리밍.</li>
+      <li><strong>🎨 생성 도구 &amp; 3D 홀로그램 스튜디오 창 (<code>WindowType: "GEN_STUDIO"</code>):</strong> 다이어그램(Mermaid), UI 와이어프레임 프리뷰, <code>.glb</code> 3D 홀로그램 모델(손으로 회전·분해 가능)을 띄워 대표님과 <strong>함께</strong> 제작.</li>
+    </ol>
+  </div>
+
+  <div class="comp-box">
+    <h3>Component 3: 5대 멀티모달 감각 및 안전 컴퓨터 제어 (Voice · Air-Touch · Motion · PC Control · Gen Tools)</h3>
+    <ul>
+      <li><strong>🎙️ 음성인식 &amp; 양방향 대화:</strong> 웨이크워드(<code>"자비스"</code>) 및 마이크/스페이스바 Push-to-Talk, 실시간 음성 합성 브리핑 및 끼어들기(Barge-in) 지원.</li>
+      <li><strong>✋ 카메라 에어 터치(HOLO) &amp; 모션 인지(EYES):</strong> 로컬 MediaPipe WASM 내장으로 외부 전송 없이 웹캠 손가락 Pinch(집기/클릭), Two-hand Stretch(창 확대/요약), Peace Sign(화면 정렬) 및 대표님 재석/손인사 모션 인지.</li>
+      <li><strong>🖥️ 안전 컴퓨터 제어 (Safe-Guarded Computer Use):</strong> 화면 캡처 분석, 앱/폴더/브라우저 제어 수행. <strong>[Harness 안전장치]</strong> 파일 삭제/덮어쓰기 명령은 원천 차단되며, 컴퓨터 제어 시 HUD에 <code>[승인 요청 카드]</code>를 띄워 대표님 승인 시에만 작동.</li>
+    </ul>
+  </div>
+
+  <h2>5. 구축 디렉토리 구조 및 대표님 확정 의사결정 (Approved Decisions)</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 28%;">구축 파일 경로 (<code>c:\BSC_Javis_OS</code>)</th>
+        <th style="width: 72%;">핵심 역할 및 상세 기능</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>server.js</code> &amp;<br/><code>Start-BSC-Jarvis.bat</code></td>
+        <td>로컬 통합 관제 서버 (HTTP + WebSocket, <code>/api/brain</code>, <code>/api/summon</code>, <code>/api/agent</code>, <code>/api/pc-control</code>, <code>/api/token-flow</code>) 및 원클릭 데스크탑 런처</td>
+      </tr>
+      <tr>
+        <td><code>scripts/build-brain-map.js</code></td>
+        <td>MAPS 규격 2-Hop Signpost 및 BSC 본사(<code>6.Knowledge_Index</code>, <code>0.Guidelines</code>, <code>2.Agents</code>) + 로컬 <code>vault/</code> 읽기 전용 초고속 인덱서</td>
+      </tr>
+      <tr>
+        <td><code>public/index.html</code> &amp;<br/><code>public/css/jarvis-hud.css</code></td>
+        <td>AI Workshop OS 스타일 풀스크린 다크 홀로그램 HUD 인터페이스 및 글래스모피즘/스캔라인 스타일시트</td>
+      </tr>
+      <tr>
+        <td><code>public/js/graph-engine.js</code> &amp;<br/><code>public/js/jarvis-core-3d.js</code></td>
+        <td>6대 지식 그래프 뷰(3D Galaxy, 2D Force, Rings, Areas, Timeline, Brain) 및 우측 J.A.R.V.I.S. <code>RING / CUBE / FACE</code> 3D 반응형 코어</td>
+      </tr>
+      <tr>
+        <td><code>public/js/window-spawner.js</code> &amp;<br/><code>public/js/multimodal-engine.js</code></td>
+        <td>4대 자율 스폰 윈도우(설명서/보고서/제작콘솔/생성스튜디오) 매니저 + 음성(STT/TTS)/카메라 에어터치(MediaPipe HOLO)/모션(EYES)/PC제어 엔진</td>
+      </tr>
+      <tr>
+        <td><code>vault/00_SOUL_and_Worldview.md</code> &amp;<br/><code>vault/01_MEMORY_MAP.md</code></td>
+        <td>개혁주의 장로교 청지기 세계관, 『함께(Together)』 헌장, BSC 절대 금지 헌장(0-1조) 정본 및 2-Hop 마스터 메모리 맵</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-note">
+    <div class="callout-title">✅ 이건우 대표님 확정 의사결정 반영 사항 (2026-10-20 15:34 승인)</div>
+    <ol>
+      <li><strong>페르소나 &amp; 세계관:</strong> 정중하고 지혜로운 <strong>'청지기 파트너'</strong> 톤 (<em>"이건우 대표님, 오늘도 주신 지혜로 함께 만들어 갑시다"</em>) 및 장로교 청지기 세계관 100% 반영.</li>
+      <li><strong>3D 옵시디언 지식 그래프 범위:</strong> <strong>BSC 본사(<code>6.Knowledge_Index</code>, <code>0.Guidelines</code>, <code>2.Agents</code>) + 로컬 볼트(<code>c:\BSC_Javis_OS\vault</code>)</strong> 전체를 읽기 전용(Show, Don't Store)으로 실시간 3D 지식 그래프에 통합 연동.</li>
+      <li><strong>자율 스폰 HUD 창(Window Spawner):</strong> <strong>① 설명서(Manual) &amp; 심층 보고서(Report) 창, ② 실시간 제작/에이전트 콘솔(Live Console) &amp; 토큰 흐름 모니터 창, ③ 생성 도구(다이어그램/UI 프리뷰/3D 홀로그램) 스튜디오 창 &amp; 카메라 에어터치(HOLO) 제어</strong> 전 모듈 기본 탑재.</li>
+    </ol>
+  </div>
+
+  <div class="footer">
+    <span>BeausCreators (BSC) · CEO 이건우 대표님 전용 마스터 설계서</span>
+    <span>Generated by CTO Geonu · Coram Deo &amp; Together with AI</span>
+  </div>
+
+</body>
+</html>
