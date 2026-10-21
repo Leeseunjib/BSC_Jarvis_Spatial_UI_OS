@@ -36,6 +36,8 @@
 
   <!-- UNIFIED GOOGLE AI STUDIO × BSC J.A.R.V.I.S. WORKSPACE BAR (All 18 Studios + Queue + Theme + Settings) -->
   <nav id="unified-workspace-bar" aria-label="통합 자비스 스튜디오 및 환경설정 바">
+    <button class="uni-tab-btn resp-rail-toggle" id="btn-resp-left-rail" title="좌측 지식 인스펙터 & 허브 서랍 열기/닫기 (PC/태블릿/모바일)">📂 좌측패널</button>
+    <button class="uni-tab-btn primary" id="btn-toggle-agent-chat" title="실시간 에이전트 멀티턴 대화창 & ADE·IDE 양방향 브릿지 열기">💬 에이전트 대화·ADE/IDE</button>
     <button class="uni-tab-btn primary" data-ais-win="AI_STUDIO_HUB" title="18대 스튜디오 & 9대 오픈모델 통합 관제 허브">⚡ 18대 통합 허브</button>
     <a class="uni-tab-btn emerald" href="http://192.168.219.239:7777/mobile-cam" target="_blank" style="text-decoration:none;border-color:#34d399;color:#34d399;" title="모바일/Wi-Fi 카메라 & 시야공유 브릿지 (http://192.168.219.239:7777/mobile-cam)">📱 모바일창(192.168.219.239) ↗</a>
     <a class="uni-tab-btn emerald" href="http://localhost:7777/mobile-cam" target="_blank" style="text-decoration:none;border-color:#00f0ff;color:#00f0ff;" title="PC 로컬 카메라 & 시야공유 컨트롤러 (http://localhost:7777/mobile-cam)">💻 로컬카메라창(localhost) ↗</a>
@@ -55,6 +57,7 @@
     </button>
     <button class="uni-tab-btn" id="btn-cycle-theme" title="4대 디자인 테마 (Cyber HUD Dark / Emerald Light / Aurora / Slate) 즉시 전환">🌓 테마</button>
     <button class="uni-tab-btn settings-btn btn-open-master-settings" title="11대 통합 설정 페이지 (언어·테마·프리셋·STT/LLM/TTS·보이스·폴더·매크로)">⚙️ 설정 페이지</button>
+    <button class="uni-tab-btn resp-rail-toggle" id="btn-resp-right-rail" title="우측 자비스 코어 & 센서 서랍 열기/닫기 (PC/태블릿/모바일)">⚛️ 우측코어</button>
   </nav>
 
   <!-- LEFT RAIL: AI WORKSHOP OS Inspector, Top Hubs, Forces, Token Flow -->
@@ -289,38 +292,87 @@
     </div>
   </div>
 
+  <!-- 💬 NATURAL MULTI-TURN AGENT CHAT & ADE/IDE LIVE BRIDGE DRAWER -->
+  <aside id="agent-chat-drawer" class="agent-chat-drawer open" aria-label="에이전트 실시간 대화 및 ADE/IDE 브릿지">
+    <div class="chat-drawer-header">
+      <div>
+        <div class="chat-drawer-title">💬 BSC 에이전트 실시간 대화 &amp; ADE·IDE 직결 브릿지</div>
+        <div class="chat-drawer-sub" id="ade-ide-live-badges">
+          <span class="bridge-pill ade">🟢 ADE: C:\BeausCreators</span>
+          <span class="bridge-pill ide">🟢 IDE: c:\BSC_Javis_OS</span>
+          <span class="bridge-pill drive">🟢 Google Drive 연동</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;">
+        <button id="btn-export-chat-6formats" class="win-ctrl-btn" title="현재 대화와 시야를 6종 문서(MD/Word/PPT/PDF/PNG/영상)로 즉시 변환·저장" style="border-color:#fbbf24;color:#fbbf24;">📄 6종 문서화</button>
+        <button id="btn-close-agent-chat" class="win-ctrl-btn" title="대화창 접기">✕</button>
+      </div>
+    </div>
+
+    <!-- Quick Agent Call Chips -->
+    <div class="agent-chip-bar" id="agent-quick-chips">
+      <button class="agent-chip active" data-agent-call="cowork">🤖 자비스+소하</button>
+      <button class="agent-chip" data-agent-call="geonu">💻 거누(ADE·IDE)</button>
+      <button class="agent-chip" data-agent-call="jaeho">🎨 재호(반응형UI)</button>
+      <button class="agent-chip" data-agent-call="yuna">⚡ 유나(프론트)</button>
+      <button class="agent-chip" data-agent-call="soha">👩‍💼 소하(수석비서)</button>
+      <button class="agent-chip" data-agent-call="taejun">👔 태준(비서실장)</button>
+      <button class="agent-chip" data-agent-call="woojin">🧠 우진(AI연구)</button>
+    </div>
+
+    <!-- Scrollable Multi-Turn Conversation Stream -->
+    <div class="chat-drawer-feed" id="agent-chat-feed">
+      <div class="chat-bubble assistant">
+        <div class="bubble-meta">🤖 J.A.R.V.I.S. · 실시간 ADE/IDE 브릿지</div>
+        <div class="bubble-text">이건우 대표님, 이제 설정된 고정 문구가 아닌 <b>실시간 멀티턴 기억 + ADE(C:\BeausCreators) &amp; Antigravity IDE(c:\BSC_Javis_OS) 양방향 문맥</b>으로 에이전트들과 자연스럽게 대화하실 수 있습니다. 모든 대화는 본사 작업일지와 IDE 브릿지에 자동 기록됩니다.</div>
+      </div>
+    </div>
+
+    <!-- Direct Drawer Input Form -->
+    <form id="drawer-chat-form" class="chat-drawer-input-row">
+      <input type="text" id="drawer-chat-input" placeholder="자비스·거누·재호·소하에게 자연스럽게 말씀하세요..." autocomplete="off" />
+      <button type="submit" class="send-prompt-btn">↵</button>
+    </form>
+  </aside>
+
   <!-- Live Voice & Gesture Subtitle Toast (with Agent Portrait & Neural Voice Indicator) -->
   <div id="live-dialogue-toast">
     <img id="toast-avatar" class="toast-avatar" src="/agent_images/geonu/analyze.png" alt="Agent Avatar" onerror="this.style.display='none'" />
     <div class="toast-body-col">
       <div class="toast-meta-row">
-        <span class="speaker-tag" id="toast-speaker">🤖 J.A.R.V.I.S. (영화 속 자비스 간결 모드)</span>
-        <span class="voice-engine-badge" id="toast-voice-badge">🎙️ Chatterbox Multilingual · Edge Neural HD · Gemma 4</span>
+        <span class="speaker-tag" id="toast-speaker">🤖 J.A.R.V.I.S. (실시간 에이전트 대화 모드)</span>
+        <span class="voice-engine-badge" id="toast-voice-badge">🎙️ ADE·IDE 실시간 동기화 · Gemma 4</span>
       </div>
-      <span class="speech-text" id="toast-text">대표님, 전 시스템 정상 가동 중입니다. 18대 통합 스튜디오와 오픈소스 보이스 엔진 준비를 완료했습니다.</span>
+      <span class="speech-text" id="toast-text">대표님, 전 시스템 및 ADE·IDE 양방향 브릿지가 정상 가동 중입니다.</span>
     </div>
   </div>
 
   <!-- BOTTOM MULTIMODAL COMMAND DOCK (Matches Screenshot Prompt Bar + Persona Selector + Action Orbs) -->
   <footer id="bottom-command-dock">
     <select id="jarvis-persona-select" class="persona-dock-select" title="대화 파트너 및 신경망 성우 모드 선택">
-      <option value="jarvis" selected>🤖 영화 속 자비스 간결 모드 (현수 성우)</option>
-      <option value="cowork">🤖 자비스 + 👩‍💼 소하 동역</option>
+      <option value="cowork" selected>🤖 자비스 + 👩‍💼 소하 동역 (자연 대화)</option>
+      <option value="jarvis">🤖 자비스 단독 (현수 성우)</option>
+      <option value="geonu">💻 CTO 거누 (ADE·IDE·백엔드)</option>
+      <option value="jaeho">🎨 디자이너 재호 (반응형 UI/UX)</option>
+      <option value="yuna">⚡ 프론트 유나 (모바일·웹)</option>
       <option value="soha">👩‍💼 수석비서 소하 (선희 성우)</option>
       <option value="taejun">👔 비서실장 태준 (인준 성우)</option>
-      <option value="geonu">💻 CTO 거누 (인준 성우)</option>
+      <option value="woojin">🧠 AI연구원 우진 (Gemma 4·RAG)</option>
     </select>
     <form id="jarvis-chat-form" class="command-input-wrap">
       <input
         type="text"
         id="jarvis-prompt-input"
-        placeholder="자비스에게 명령하십시오 (예: '설정 열어줘', '오픈소스 TTS 열어줘', '18대 통합 허브 띄워줘', '역공학 스튜디오 열어줘')"
+        placeholder="에이전트와 자연스럽게 대화하세요 (예: '거누야 ADE랑 IDE 어떻게 연결돼 있어?', '재호야 태블릿/모바일 반응형 점검해줘')"
         autocomplete="off"
       />
-      <button type="submit" class="send-prompt-btn" title="자비스에게 전송">↵</button>
+      <button type="submit" class="send-prompt-btn" title="전송">↵</button>
     </form>
 
     <div class="dock-action-orbs">
+      <button class="orb-btn" id="orb-chat-drawer" title="💬 실시간 에이전트 대화창 & ADE·IDE 브릿지 열기/닫기" style="border-color:#34d399;box-shadow:0 0 12px rgba(52,211,153,0.35);">
+        <span>💬</span>
+      </button>
       <button class="orb-btn" id="orb-aistudio-hub" title="⚡ Google AI Studio 18대 스튜디오 & 9대 오픈모델 라우터 통합 허브" style="border-color:#00f0ff;box-shadow:0 0 12px rgba(0,240,255,0.35);">
         <span>⚡</span>
       </button>

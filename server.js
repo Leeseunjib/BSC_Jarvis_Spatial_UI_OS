@@ -18,6 +18,11 @@ const { exec } = require('child_process');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const { buildBrainGraph } = require('./scripts/build-brain-map');
 const { processCoVisionAndExport, loadHistory } = require('./scripts/co-vision-exporter');
+const {
+  loadChatHistory,
+  getAdeIdeBridgeStatus,
+  generateNaturalAgentConversation
+} = require('./scripts/live-agent-chat-engine');
 
 const PORT = process.env.JARVIS_PORT ? Number(process.env.JARVIS_PORT) : 7777;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
@@ -601,18 +606,74 @@ async function processJarvisTurn(message, contextState = {}) {
     reply = `대표님, 지식 은하 뷰(${graphCommand || '유지'})와 코어 형태(${coreMode || '유지'})를 즉시 전환했습니다.`;
     sohaAddon = '523개 지식 노드 재배치 완료했습니다!';
   }
-  // 7. Open-ended conversation / Questions -> Live Local Ollama Gemma 4 (Movie J.A.R.V.I.S. concise style)
-  else {
-    const ollamaModel = /31b/i.test(selectedModel) ? 'gemma4:31b' : (/e4b/i.test(selectedModel) ? 'gemma4:e4b' : 'gemma4:e2b');
-    const gemmaRes = await queryLocalOllamaGemma(q, personaMode, ollamaModel);
-    if (gemmaRes && gemmaRes.jarvisText) {
-      reply = gemmaRes.jarvisText;
-      sohaAddon = gemmaRes.sohaText || '대표님, 관련 데이터와 실행 옵션도 즉시 준비해 두었습니다!';
-      delegatedAgent = `🤖 J.A.R.V.I.S. (${gemmaRes.modelUsed})`;
-    } else {
-      reply = '대표님, 로컬 Gemma 4 코어로 요청 사안을 분석 완료했습니다. 즉시 실행 가능한 최적 경로로 준비했습니다.';
-      sohaAddon = '필요하신 스튜디오 창이 있으시면 바로 띄워 드릴게요!';
-      delegatedAgent = '🤖 J.A.R.V.I.S.';
+
+  // Always generate a genuinely natural, multi-turn, ADE/IDE context-aware agent conversation
+  // (replaces rigid preset strings while keeping any summoned window / action side-effects intact!)
+  let chatHistory = [];
+  let bridgeStatus = getAdeIdeBridgeStatus();
+
+  if (!contextState.skipLiveLlm) {
+    const liveConv = await generateNaturalAgentConversation(q, contextState);
+    if (liveConv && liveConv.primaryText) {
+      reply = liveConv.primaryText;
+      sohaAddon = liveConv.secondaryText || sohaAddon;
+      delegatedAgent = liveConv.primaryAgent
+        ? `${liveConv.primaryAgent.speakerTitle} (${liveConv.modelUsed})`
+        : `🤖 J.A.R.V.I.S. (${liveConv.modelUsed})`;
+      primaryPersona = liveConv.primaryAgent?.voicePersona || primaryPersona;
+      chatHistory = liveConv.chatHistory || [];
+      bridgeStatus = liveConv.bridgeStatus || bridgeStatus;
+
+      const dialogueTurnsLive = [
+        {
+          persona: liveConv.primaryAgent?.voicePersona || 'jarvis',
+          speaker: liveConv.primaryAgent?.speakerTitle || NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
+          avatar: liveConv.primaryAgent?.avatar || NEURAL_VOICE_PROFILES.jarvis.avatar,
+          text: liveConv.primaryText
+        }
+      ];
+      if (liveConv.secondaryAgent && liveConv.secondaryText) {
+        dialogueTurnsLive.push({
+          persona: liveConv.secondaryAgent.voicePersona || 'soha',
+          speaker: liveConv.secondaryAgent.speakerTitle,
+          avatar: liveConv.secondaryAgent.avatar,
+          text: liveConv.secondaryText
+        });
+      }
+
+      const fullDisplayReplyLive = dialogueTurnsLive.map(t => `[${t.speaker}] ${t.text}`).join('\n');
+      logConsoleStream(delegatedAgent, `Natural Agent Turn: "${q.slice(0, 44)}" -> ADE/IDE Synced`, 165, 2250);
+
+      if (summonedWindows.length > 0) {
+        for (const w of summonedWindows) {
+          broadcastEvent('summon_window', w);
+        }
+      }
+      broadcastEvent('agent_chat_update', {
+        chatHistory,
+        bridgeStatus,
+        dialogueTurns: dialogueTurnsLive
+      });
+
+      return {
+        ok: true,
+        reply: fullDisplayReplyLive,
+        jarvisReply: liveConv.primaryText,
+        sohaReply: liveConv.secondaryText || '',
+        dialogueTurns: dialogueTurnsLive,
+        primaryPersona,
+        delegatedAgent,
+        summonedWindows,
+        spawnedWindows: summonedWindows,
+        openSettingsModal,
+        activateHoloGesture,
+        graphCommand,
+        coreMode,
+        pcProposal,
+        chatHistory,
+        bridgeStatus,
+        telemetry: tokenTelemetry
+      };
     }
   }
 
@@ -1241,6 +1302,19 @@ const server = http.createServer(async (req, res) => {
   // 10-J. Co-Vision Shared Sight History & 6-Format Exporter (Image/Video/MD/Word/PPT/PDF -> ADE/IDE/Google Drive)
   if (req.method === 'GET' && pathname === '/api/jarvis/covision-history') {
     return sendJson(res, 200, { ok: true, ...loadHistory() });
+  }
+
+  // 10-K. Natural Multi-Turn Agent Chat History & Live ADE/IDE Connection Status
+  if (req.method === 'GET' && pathname === '/api/jarvis/chat-history') {
+    return sendJson(res, 200, {
+      ok: true,
+      ...loadChatHistory(),
+      bridgeStatus: getAdeIdeBridgeStatus()
+    });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/jarvis/ade-ide-status') {
+    return sendJson(res, 200, getAdeIdeBridgeStatus());
   }
 
   if (req.method === 'POST' && pathname === '/api/jarvis/covision-export') {

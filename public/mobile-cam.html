@@ -142,35 +142,66 @@
       color: #fff;
       font-size: 13px;
     }
+    /* Responsive Layout for Mobile (<768px) / Tablet (768~1149px) / PC (1150px+) */
+    .resp-dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+    .hdr, .url-selector-card {
+      width: 100%;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      body { padding: 18px 24px; }
+      .resp-dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .cam-stage { height: 300px; }
+      .span-tablet-2 { grid-column: span 2; }
+    }
+    @media (min-width: 1150px) {
+      .resp-dashboard-grid {
+        grid-template-columns: 1.15fr 0.95fr 1.2fr;
+      }
+      .cam-stage { height: 320px; }
+      .span-tablet-2 { grid-column: span 1; }
+    }
   </style>
 </head>
 <body>
   <header class="hdr">
     <div>
-      <h1>📱 J.A.R.V.I.S. 카메라·손동작·시야공유(Co-Vision) 통합 컨트롤러</h1>
-      <div style="font-size:10.5px;color:#94a3b8;">이건우 대표님 전용 · PC 로컬 &amp; 스마트폰 Wi-Fi 무선 브릿지</div>
+      <h1>📱💻 J.A.R.V.I.S. 카메라·손동작·시야공유(Co-Vision) &amp; 에이전트 대화 컨트롤러</h1>
+      <div style="font-size:10.5px;color:#94a3b8;">이건우 대표님 전용 · PC / 태블릿 / 모바일 자동 반응형 · ADE(C:\BeausCreators) &amp; IDE 실시간 직결</div>
     </div>
-    <span class="status-pill" id="conn-pill">● PC 연결됨</span>
+    <span class="status-pill" id="conn-pill">● ADE·IDE·PC 직결됨</span>
   </header>
 
   <!-- 🔗 1-Click URL & Mode Selector Bar -->
-  <section class="card" style="padding:10px 12px;border-color:#fbbf24;background:rgba(15,23,42,0.95);">
-    <div style="font-size:11.5px;font-weight:800;color:#fbbf24;margin-bottom:6px;">🔗 접속 주소 선택 (원하시는 모드를 클릭하세요)</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+  <section class="card url-selector-card" style="padding:10px 12px;border-color:#fbbf24;background:rgba(15,23,42,0.95);">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+      <span style="font-size:11.5px;font-weight:800;color:#fbbf24;">🔗 접속 주소 선택 (원하시는 모드를 클릭하세요)</span>
+      <span style="font-size:10px;color:#34d399;font-family:monospace;">🟢 ADE: C:\BeausCreators | 🟢 IDE: c:\BSC_Javis_OS | 🟢 Drive 연동</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:6px;">
       <a href="http://192.168.219.239:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(52,211,153,0.18);border:1px solid #34d399;color:#34d399;font-size:11.5px;font-weight:800;text-align:center;">
         📱 모바일 Wi-Fi 브릿지 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">192.168.219.239:7777/mobile-cam</span>
       </a>
       <a href="http://localhost:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(0,240,255,0.18);border:1px solid #00f0ff;color:#00f0ff;font-size:11.5px;font-weight:800;text-align:center;">
         💻 PC 로컬 컨트롤러 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">localhost:7777/mobile-cam</span>
       </a>
-    </div>
-    <div style="margin-top:6px;">
-      <a href="http://localhost:7777" target="_blank" style="display:block;text-decoration:none;padding:6px 10px;border-radius:8px;background:rgba(168,85,247,0.18);border:1px solid #c084fc;color:#c084fc;font-size:11px;font-weight:800;text-align:center;">
-        🌌 PC 메인 3D 자비스 HUD 전체 관제 화면 열기 (http://localhost:7777) ↗
+      <a href="http://localhost:7777" target="_blank" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(168,85,247,0.18);border:1px solid #c084fc;color:#c084fc;font-size:11.5px;font-weight:800;text-align:center;">
+        🌌 PC 메인 3D 자비스 HUD 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">localhost:7777 (전체 화면) ↗</span>
       </a>
     </div>
   </section>
 
+  <main class="resp-dashboard-grid">
   <section class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
       <span style="font-size:12px;font-weight:800;color:#00f0ff;">1. 카메라 시야 공유 &amp; 21관절 손동작 인식</span>
@@ -224,17 +255,37 @@
     </div>
   </section>
 
-  <section class="card">
-    <div style="font-size:12px;font-weight:800;color:#00f0ff;margin-bottom:6px;">3. 시야 공유(Co-Vision) 대화 &amp; 6종 문서(MD·Word·PPT·PDF·PNG·영상) 제작</div>
+  <section class="card span-tablet-2" style="display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
+      <span style="font-size:12px;font-weight:800;color:#00f0ff;">3. 💬 에이전트 자연 대화 (ADE·IDE 직결) &amp; 6종 문서(MD·Word·PPT·PDF·PNG·영상) 제작</span>
+      <select id="mob-persona-select" style="background:#050811;border:1px solid #00f0ff;color:#f8fafc;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;">
+        <option value="cowork" selected>🤖 자비스 + 👩‍💼 소하 동역</option>
+        <option value="geonu">💻 CTO 거누 (ADE·IDE·백엔드)</option>
+        <option value="jaeho">🎨 디자이너 재호 (반응형 UI/UX)</option>
+        <option value="yuna">⚡ 프론트 유나 (모바일·웹)</option>
+        <option value="soha">👩‍💼 수석비서 소하</option>
+        <option value="taejun">👔 비서실장 태준</option>
+        <option value="woojin">🧠 AI연구원 우진</option>
+      </select>
+    </div>
+
+    <div id="mob-live-chat-feed" style="flex:1;min-height:175px;max-height:260px;overflow-y:auto;background:#030712;border:1px solid rgba(0,240,255,0.28);border-radius:10px;padding:8px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px;font-size:11.5px;line-height:1.45;">
+      <div style="padding:7px 9px;background:rgba(15,23,42,0.9);border-left:3px solid #34d399;border-radius:6px;">
+        <div style="color:#34d399;font-weight:800;font-size:10.5px;">🤖 J.A.R.V.I.S. · ADE/IDE 실시간 브릿지</div>
+        <div>이건우 대표님, 고정된 설정 문구가 아닌 <b>실시간 멀티턴 에이전트 대화</b>가 연결되었습니다. 궁금하신 점이나 지시사항을 아래에 편하게 입력해 주십시오!</div>
+      </div>
+    </div>
+
     <form class="cmd-bar" id="mob-cmd-form">
-      <input type="text" id="mob-cmd-input" placeholder="자비스와 지금 보는 시야 대화 (예: 이 화면 정리해서 워드·PPT로 만들어줘)" autocomplete="off" />
-      <button type="submit" class="btn emerald" style="flex:0 0 76px;min-width:76px;">대화 ↵</button>
+      <input type="text" id="mob-cmd-input" placeholder="에이전트와 자연스럽게 대화하세요 (예: 거누야 ADE랑 IDE 연결 상태 알려줘)" autocomplete="off" />
+      <button type="submit" class="btn emerald" style="flex:0 0 82px;min-width:82px;">대화 ↵</button>
     </form>
     <button type="button" class="btn gold" id="btn-mob-covision-export" style="width:100%;margin-top:8px;">
-      🚀 현재 시야 분석 &amp; 6종 문서(PNG·영상·MD·Word·PPT·PDF) 제작 + ADE/IDE/Drive 저장
+      🚀 현재 시야·대화 분석 &amp; 6종 문서(PNG·영상·MD·Word·PPT·PDF) 제작 + ADE/IDE/Drive 저장
     </button>
     <div id="mob-covision-result" style="margin-top:8px;font-size:11px;color:#cbd5e1;"></div>
   </section>
+  </main>
 
   <script>
     const video = document.getElementById('mob-video');
@@ -490,14 +541,71 @@
       } catch (e) {}
     }
 
-    // Remote Voice/Text Command + Co-Vision Conversation
+    const mobChatFeed = document.getElementById('mob-live-chat-feed');
+
+    function renderMobChatHistory(messages = []) {
+      if (!mobChatFeed || !Array.isArray(messages) || messages.length === 0) return;
+      mobChatFeed.innerHTML = messages.map(m => {
+        const isUser = m.role === 'user';
+        return `
+          <div style="padding:7px 9px;background:${isUser ? 'rgba(0,240,255,0.14)' : 'rgba(15,23,42,0.92)'};border-left:3px solid ${isUser ? '#00f0ff' : '#34d399'};border-radius:6px;">
+            <div style="color:${isUser ? '#fde68a' : '#34d399'};font-weight:800;font-size:10.5px;margin-bottom:2px;">${m.speaker || (isUser ? '👑 이건우 대표님' : '🤖 J.A.R.V.I.S.')} <span style="color:#64748b;font-weight:400;">${m.timestamp || ''}</span></div>
+            <div style="color:#f1f5f9;">${(m.text || '').replace(/\n/g, '<br/>')}</div>
+          </div>
+        `;
+      }).join('');
+      mobChatFeed.scrollTop = mobChatFeed.scrollHeight;
+    }
+
+    fetch('/api/jarvis/chat-history')
+      .then(r => r.json())
+      .then(d => { if (d && Array.isArray(d.messages)) renderMobChatHistory(d.messages); })
+      .catch(() => {});
+
+    async function sendNaturalChatFromMobile(text) {
+      const personaSel = document.getElementById('mob-persona-select');
+      const personaMode = personaSel ? personaSel.value : 'cowork';
+      if (mobChatFeed) {
+        const uDiv = document.createElement('div');
+        uDiv.style.cssText = 'padding:7px 9px;background:rgba(0,240,255,0.14);border-left:3px solid #00f0ff;border-radius:6px;';
+        uDiv.innerHTML = `<div style="color:#fde68a;font-weight:800;font-size:10.5px;">👑 이건우 대표님</div><div>${text}</div>`;
+        mobChatFeed.appendChild(uDiv);
+
+        const tDiv = document.createElement('div');
+        tDiv.style.cssText = 'padding:7px 9px;background:rgba(15,23,42,0.9);border-left:3px solid #fbbf24;border-radius:6px;color:#fbbf24;';
+        tDiv.textContent = '⚡ 에이전트가 ADE·IDE 실시간 문맥을 확인하며 답변 중입니다...';
+        mobChatFeed.appendChild(tDiv);
+        mobChatFeed.scrollTop = mobChatFeed.scrollHeight;
+      }
+
+      try {
+        const res = await fetch('/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            context: { personaMode, llmEngine: 'gemma4:e2b' }
+          })
+        });
+        const data = await res.json();
+        if (data && Array.isArray(data.chatHistory)) {
+          renderMobChatHistory(data.chatHistory);
+        }
+      } catch (e) {}
+    }
+
+    // Remote Voice/Text Command -> Natural Multi-Turn Agent Chat (+ Co-Vision if requested)
     document.getElementById('mob-cmd-form').addEventListener('submit', async e => {
       e.preventDefault();
       const inp = document.getElementById('mob-cmd-input');
       const val = inp.value.trim();
       if (!val) return;
-      poseTag.textContent = `💬 시야 대화: "${val}"`;
-      await executeCoVisionSession(val);
+      inp.value = '';
+      poseTag.textContent = `💬 에이전트 대화: "${val}"`;
+      await sendNaturalChatFromMobile(val);
+      if (/워드|docx|ppt|피티|pdf|문서로|6종|저장해/i.test(val)) {
+        await executeCoVisionSession(val);
+      }
     });
 
     // Mobile Co-Vision 6-Format Export Button

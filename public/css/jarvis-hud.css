@@ -1164,3 +1164,397 @@ body.theme-minimal-slate {
   --cyan: #94a3b8;
   --sky: #cbd5e1;
 }
+
+/* =========================================================================
+   💬 NATURAL MULTI-TURN AGENT CHAT & ADE/IDE LIVE BRIDGE DRAWER
+   ========================================================================= */
+.agent-chat-drawer {
+  position: fixed;
+  right: 268px;
+  bottom: 82px;
+  width: 430px;
+  height: min(510px, calc(100dvh - 185px));
+  z-index: 42;
+  background: rgba(6, 11, 22, 0.95);
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.8), 0 0 26px rgba(0, 240, 255, 0.2);
+  backdrop-filter: blur(18px);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.agent-chat-drawer.open {
+  display: flex;
+  animation: windowSpawn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-drawer-header {
+  padding: 10px 12px;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.16), rgba(52, 211, 153, 0.1));
+  border-bottom: 1px solid rgba(0, 240, 255, 0.28);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.chat-drawer-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.chat-drawer-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bridge-pill {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  color: #34d399;
+}
+
+.bridge-pill.ide {
+  background: rgba(0, 240, 255, 0.14);
+  border-color: rgba(0, 240, 255, 0.45);
+  color: #00f0ff;
+}
+
+.bridge-pill.drive {
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fbbf24;
+}
+
+.agent-chip-bar {
+  display: flex;
+  gap: 5px;
+  padding: 7px 10px;
+  background: rgba(9, 15, 28, 0.9);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.agent-chip {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #cbd5e1;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.agent-chip:hover,
+.agent-chip.active {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--cyan);
+  color: #fff;
+}
+
+.chat-drawer-feed {
+  flex: 1;
+  padding: 10px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  user-select: text;
+}
+
+.chat-bubble {
+  padding: 8px 11px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 94%;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background: rgba(0, 240, 255, 0.16);
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  color: #f8fafc;
+}
+
+.chat-bubble.assistant {
+  align-self: flex-start;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: #e2e8f0;
+}
+
+.bubble-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--cyan);
+  margin-bottom: 4px;
+}
+
+.chat-bubble.user .bubble-meta {
+  color: #fde68a;
+  justify-content: flex-end;
+}
+
+.bubble-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--cyan);
+}
+
+.bubble-time {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+.chat-drawer-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(4, 8, 17, 0.95);
+  border-top: 1px solid rgba(0, 240, 255, 0.25);
+}
+
+.chat-drawer-input-row input {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+}
+
+.chat-drawer-input-row input:focus {
+  border-color: var(--cyan);
+}
+
+/* =========================================================================
+   📱💻🖥️ 3-TIER RESPONSIVE DESIGN SYSTEM (PC / TABLET / MOBILE)
+   Designed by Jaeho (UI/UX) · Sian (Design Token) · Yuna (Frontend)
+   ========================================================================= */
+
+/* 1. Tablet & Split-Screen Breakpoint (768px ~ 1279px) */
+@media (max-width: 1279px) {
+  #left-rail {
+    position: fixed;
+    top: 90px;
+    bottom: 84px;
+    left: 10px;
+    width: 280px;
+    z-index: 95;
+    background: rgba(5, 9, 18, 0.97);
+    border: 1px solid var(--cyan);
+    border-radius: 14px;
+    padding: 10px;
+    transform: translateX(-115%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.85);
+  }
+  #left-rail.resp-open {
+    transform: translateX(0);
+  }
+
+  #right-rail {
+    position: fixed;
+    top: 90px;
+    bottom: 84px;
+    right: 10px;
+    width: 265px;
+    z-index: 95;
+    background: rgba(5, 9, 18, 0.97);
+    border: 1px solid var(--cyan);
+    border-radius: 14px;
+    padding: 10px;
+    transform: translateX(115%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.85);
+    overflow-y: auto;
+  }
+  #right-rail.resp-open {
+    transform: translateX(0);
+  }
+
+  #top-view-bar {
+    top: 8px;
+    width: 96vw;
+    max-width: 96vw;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  #together-verse-banner {
+    display: none;
+  }
+
+  #unified-workspace-bar {
+    top: 48px;
+    width: 96vw;
+    max-width: 96vw;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hud-window {
+    width: min(94vw, 860px) !important;
+    left: 3vw !important;
+    top: 94px !important;
+    max-height: calc(100dvh - 184px) !important;
+  }
+
+  .ais-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .agent-chat-drawer {
+    right: 14px;
+    bottom: 78px;
+    width: min(420px, 92vw);
+    height: min(460px, calc(100dvh - 180px));
+  }
+
+  #bottom-command-dock {
+    width: 96vw;
+    max-width: 96vw;
+    bottom: 10px;
+    justify-content: space-between;
+  }
+
+  .command-input-wrap {
+    flex: 1;
+    width: auto;
+    min-width: 180px;
+  }
+
+  #live-dialogue-toast {
+    width: 92vw;
+    max-width: 92vw;
+    bottom: 70px;
+  }
+}
+
+/* 2. Mobile Breakpoint (< 768px — Smartphone Portrait & Landscape) */
+@media (max-width: 767px) {
+  #top-view-bar {
+    top: 6px;
+    width: 96vw;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .view-pill {
+    font-size: 11px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+  }
+
+  #unified-workspace-bar {
+    top: 42px;
+    width: 96vw;
+    max-width: 96vw;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .uni-tab-btn {
+    font-size: 10.5px;
+    padding: 5px 9px;
+    flex-shrink: 0;
+  }
+
+  .hud-window {
+    width: 96vw !important;
+    left: 2vw !important;
+    top: 84px !important;
+    height: calc(100dvh - 190px) !important;
+    max-height: calc(100dvh - 190px) !important;
+    border-radius: 12px;
+  }
+
+  .ais-grid-3,
+  .ais-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ais-top-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  #holo-gesture-hud-panel {
+    width: 96vw !important;
+    left: 2vw !important;
+    right: 2vw !important;
+    bottom: 105px !important;
+    max-height: 62dvh;
+    overflow-y: auto;
+  }
+
+  .agent-chat-drawer {
+    left: 2vw;
+    right: 2vw;
+    width: 96vw;
+    bottom: 104px;
+    height: calc(100dvh - 195px);
+  }
+
+  #live-dialogue-toast {
+    display: none !important;
+  }
+
+  #bottom-command-dock {
+    width: 96vw;
+    max-width: 96vw;
+    bottom: 8px;
+    padding: 6px 8px;
+    border-radius: 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .persona-dock-select {
+    width: 100%;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+
+  .command-input-wrap {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .dock-action-orbs {
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .orb-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+}

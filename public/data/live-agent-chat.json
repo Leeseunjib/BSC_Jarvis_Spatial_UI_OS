@@ -1,0 +1,39 @@
+{
+  "updatedAt": "2026-10-21T07:19:39.843Z",
+  "messages": [
+    {
+      "id": "msg-welcome",
+      "timestamp": "오후 4:19:36",
+      "role": "assistant",
+      "agentId": "jarvis",
+      "speaker": "🤖 J.A.R.V.I.S. (자율 에이전트 OS)",
+      "avatar": "/agent_images/geonu/analyze.png",
+      "text": "이건우 대표님, 자비스와 본사 에이전트 팀(소하·태준·거누·재호·유나·우진)이 실시간 대화 채널에 연결되었습니다. 현재 ADE(C:\\BeausCreators) 및 Antigravity IDE(c:\\BSC_Javis_OS)와 양방향 동기화 중입니다. 편하게 말씀해 주십시오."
+    },
+    {
+      "id": "msg-1792567176416-u",
+      "timestamp": "오후 4:19:36",
+      "role": "user",
+      "speaker": "👑 이건우 대표님 (CEO)",
+      "text": "거누야, 지금 자비스랑 ADE, IDE가 어떻게 실시간으로 연결되어 있고 반응형 디자인은 어떻게 바뀌었는지 자연스럽게 설명해줘."
+    },
+    {
+      "id": "msg-1792567179839-a1",
+      "timestamp": "오후 4:19:39",
+      "role": "assistant",
+      "agentId": "jaeho",
+      "speaker": "🎨 UI/UX 디자이너 재호 (Responsive UI Lead)",
+      "avatar": "/agent_images/sian/explain.png",
+      "text": "대표님, 지금 저희 시스템은 ADE(C:\\BeausCreators\\01.BSC_HQ)와 Antigravity IDE(c:\\BSC_Javis_OS)를 통해 실시간으로 연결되어 모든 작업의 맥락을 공유하고 있습니다. 특히 디자인 시스템과 관련된 지식 노드 523개가 실시간으로 공유되고 있으며, 이는 반응형 디자인의 모든 레이아웃과 컴포넌트 변화를 즉각적으로 반영하고 있습니다."
+    },
+    {
+      "id": "msg-1792567179841-a2",
+      "timestamp": "오후 4:19:39",
+      "role": "assistant",
+      "agentId": "yuna",
+      "speaker": "⚡ 프론트엔드 유나 (Frontend & Mobile Lead)",
+      "avatar": "/agent_images/soha/greet.png",
+      "text": "유나도 이 연결을 통해 프론트엔드 구현 단계에서 시각적 변화에 맞춰 인터랙션 로직을 즉시 조정할 수 있도록 준비하고 있습니다."
+    }
+  ]
+}
