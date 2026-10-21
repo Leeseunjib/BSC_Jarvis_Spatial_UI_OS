@@ -90,6 +90,21 @@ window.JarvisDesignViews = {
       this.openWorkspace('TYCOON_OFFICE_WORKSPACE');
     });
 
+    // Left Dock Menu Toggle & Thumbnail Toggle
+    document.getElementById('btn-dock-toggle-left-menu')?.addEventListener('click', () => {
+      const card = document.getElementById('node-preview-card');
+      if (card) {
+        const isHidden = card.style.display === 'none';
+        card.style.display = isHidden ? 'block' : 'none';
+      }
+    });
+    document.getElementById('btn-toggle-thumb-preview')?.addEventListener('click', () => {
+      const thumb = document.getElementById('np-thumb-container');
+      if (thumb) {
+        thumb.style.display = thumb.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+
     // Left Dock AI Studio Hub & Brain Inspector Toggle
     document.getElementById('btn-dock-ai-studio-hub')?.addEventListener('click', () => {
       this.closeWorkspace();
@@ -157,6 +172,8 @@ window.JarvisDesignViews = {
       stage.style.display = 'none';
       stage.innerHTML = '';
     }
+    const floatLayer = document.getElementById('floating-windows-layer');
+    if (floatLayer) floatLayer.innerHTML = '';
     document.querySelectorAll('.slim-dock-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.dockTarget === 'HOME_GALAXY');
     });
@@ -166,12 +183,17 @@ window.JarvisDesignViews = {
     this.ensureOverlayContainer();
     this.activeWorkspace = type;
 
+    // Clear any floating studio windows that might obscure the workspace view
+    const floatLayer = document.getElementById('floating-windows-layer');
+    if (floatLayer) floatLayer.innerHTML = '';
+
     document.querySelectorAll('.slim-dock-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.dockTarget === type);
     });
 
     const stage = document.getElementById('design-workspace-stage');
     stage.style.display = 'flex';
+    stage.style.zIndex = '9100';
 
     if (type === 'DOC_WORKSPACE') {
       stage.innerHTML = this.renderDocWorkspaceHTML(nodeContext);

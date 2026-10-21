@@ -15,24 +15,13 @@
   <video id="webcam-video" autoplay playsinline muted></video>
   <canvas id="holo-hand-canvas"></canvas>
 
-  <!-- 🔝 2. Master Design Top Header Bar (Brand + 6 Brain Views + Search + Camera Links + Date/Theme/Queue) -->
+  <!-- 🔝 2. Master Design Single-Row Top Header Bar (Clean Brand + Center Search + Status/Theme) -->
   <header id="minimal-top-bar">
     <div class="mtb-left">
-      <div class="mtb-brand-click" id="btn-brand-home" title="BSC JARVIS 홈 은하로 이동">
+      <div class="mtb-brand-click" id="btn-brand-home" title="BSC JARVIS 지식 뉴런 홈으로 이동">
         <span class="mtb-logo-orb"></span>
         <span class="mtb-brand-name">BSC JARVIS</span>
-      </div>
-
-      <!-- Existing 6 Brain Views Integrated into New Sleek Header -->
-      <div id="top-view-bar" class="mtb-view-switcher">
-        <button class="view-pill active" data-view="3d" title="3D 입체 성운 은하">🌌 3D</button>
-        <button class="view-pill" data-view="2d" title="2D 포스 그래프">🕸️ 2D</button>
-        <button class="view-pill" data-view="rings" title="MAPS 4계층 동심원">⭕ Rings</button>
-        <button class="view-pill" data-view="areas" title="도메인 허브 클러스터">🪐 Areas</button>
-        <button class="view-pill" data-view="timeline" title="시간순 타임라인">⏱️ Time</button>
-        <button class="view-pill" data-view="brain" title="해부학적 브레인 뉴런">🧠 Brain</button>
-        <button class="view-pill action-pill" id="btn-fit-graph" title="화면 중앙 맞춤 (Fit)">⊙ Fit</button>
-        <button class="view-pill action-pill" id="btn-replay-growth" title="은하 생성 리플레이">⟲</button>
+        <span class="mtb-sub-pill">OBSIDIAN NEURAL OS · ANTIGRAVITY 2.0 LIVE</span>
       </div>
     </div>
 
@@ -42,7 +31,7 @@
         <input
           type="text"
           id="top-galaxy-search"
-          placeholder="지식, 문서, 프로젝트, 아이디어를 검색하세요..."
+          placeholder="프로젝트(52), 스킬(90+), 안티그래비티 2.0 대화, 문서를 뉴런에서 검색..."
           autocomplete="off"
         />
         <kbd class="mtb-kbd">⌘K</kbd>
@@ -50,9 +39,6 @@
     </div>
 
     <div class="mtb-right">
-      <!-- Direct Mobile & PC Camera Links (Always 1-Click Accessible) -->
-      <a class="mtb-cam-pill mobile" href="http://192.168.219.239:7777/mobile-cam" target="_blank" title="모바일 Wi-Fi 카메라 & 시야공유 브릿지 열기">📱 모바일캠 ↗</a>
-      <a class="mtb-cam-pill pc" href="http://localhost:7777/mobile-cam" target="_blank" title="PC 로컬 카메라 & 시야공유 컨트롤러 열기">💻 로컬캠 ↗</a>
       <button class="mtb-cam-pill queue btn-toggle-os-queue" title="OS 실행 승인 대기열 서랍 열기">
         📋 승인큐 <span id="queue-count-badge" class="queue-badge">3</span>
       </button>
@@ -62,42 +48,25 @@
     </div>
   </header>
 
-  <!-- ⚡ 2-B. Sleek Second-Row System Ribbon (All 18 AI Studios, REA, Co-Vision, Open-TTS, Bio/IDE, Verification Preserved in New Design Style!) -->
-  <nav id="system-command-ribbon" aria-label="전사 자비스 핵심 시스템 리본 바">
-    <button class="sys-rib-btn cyan" id="btn-toggle-agent-chat" title="자비스(J.A.R.V.I.S.) 단독 1:1 티키타카 대화창">🤖 자비스 1:1 대화</button>
-    <button class="sys-rib-btn gold" id="btn-open-bsc-council" title="BeausCreators 에이전트(소하·거누·우진·태준) 의논·회의·보고서 워룸">🏛️ 의논·회의·보고서</button>
-    <button class="sys-rib-btn sky" id="btn-rib-tycoon-office" title="SD 캐릭터 타이쿤 에이전트 사무실 (BSC AI OFFICE)">🕹️ SD 타이쿤 오피스</button>
-    <span class="sys-rib-div"></span>
-    <button class="sys-rib-btn primary" data-ais-win="AI_STUDIO_HUB" title="18대 스튜디오 & 9대 오픈모델 라우터 통합 허브">⚡ 18대 스튜디오 허브</button>
-    <button class="sys-rib-btn emerald" data-ais-win="VISION_FACE" title="카메라·화면 시야 공유(Co-Vision) & 6종 문서(MD/Word/PPT/PDF/이미지/영상) 자동 생성">👁️ 시야공유·6종문서</button>
-    <button class="sys-rib-btn emerald" data-ais-win="OPEN_TTS_STUDIO" title="Chatterbox & Qwen3-TTS 오픈소스 보이스 스튜디오">🎙️ 오픈소스 TTS·보이스</button>
-    <button class="sys-rib-btn" data-ais-win="MAPS_REA_STUDIO" title="MAPS 4계층 메모리/펄스 & REA(Ghidra/ILSpy/Unity) 역공학 워크벤치">🗺️ MAPS·REA 역공학</button>
-    <button class="sys-rib-btn" data-ais-win="MAPS_REA_STUDIO" data-ais-subtab="HQ_SKILLS" title="BeausCreators 본사 5대 핵심 스킬 파이프라인 직결 실행기">🏢 본사 5대 스킬</button>
-    <button class="sys-rib-btn" data-ais-win="AGENT_REGISTRY" title="SRP 6대 에이전트 레지스트리 & 페르소나 슬라이더">👥 에이전트·페르소나</button>
-    <button class="sys-rib-btn" data-ais-win="CREATIVE_BLENDER" title="캐릭터 360° SVG/OBJ 도면 & Blender 3D VFX">🎨 캐릭터360°·블렌더</button>
-    <button class="sys-rib-btn" data-ais-win="RL_BENCHMARK" title="9대 로컬 SLM 벤치마크 & Unsloth GRPO 강화학습">🧠 9모델·GRPO 강화학습</button>
-    <button class="sys-rib-btn" data-ais-win="SIM_BIO_IDE" title="AlphaFold 단백질 분석 & 모의훈련 & Antigravity IDE">🧬 바이오·모의훈련·IDE</button>
-    <span class="sys-rib-div"></span>
-    <button class="sys-rib-btn emerald" id="btn-exec-briefing" title="본사 보고서·작업일지·에이전트 현황 15초 음성 브리핑">📢 15초 브리핑</button>
-    <button class="sys-rib-btn emerald" id="btn-holo-gesture-hud" title="MediaPipe 21관절 웹캠 에어터치 손동작 제어">✋ HOLO 손동작</button>
-    <button class="sys-rib-btn emerald" id="btn-run-full-verify" title="전 시스템 검토·검수·검증 및 Google Harness² 재귀 성장 진단">🛡️ 시스템 검증(100점)</button>
-  </nav>
-
-  <!-- 🧭 3. Slim Left Vertical Navigation Dock (Mockup #1 Dock + System Drawers) -->
+  <!-- 🧭 3. Slim Left Vertical Navigation Dock (Main Workspace Switcher) -->
   <nav id="slim-left-dock" aria-label="핵심 워크스페이스 내비게이션">
-    <button class="slim-dock-btn active" data-dock-target="HOME_GALAXY" title="홈 · 성운 지식 은하 (Star-Cluster Galaxy)">
-      <span class="sd-icon">🏠</span>
-      <span class="sd-label">은하</span>
+    <button class="slim-dock-btn active" data-dock-target="HOME_GALAXY" title="홈 · 옵시디언 지식 뉴런 그래프 (Obsidian Neural Graph)">
+      <span class="sd-icon">🧠</span>
+      <span class="sd-label">뉴런홈</span>
+    </button>
+    <button class="slim-dock-btn" id="btn-dock-toggle-left-menu" title="좌측 통합 메뉴 시스템 패널 접기/펼치기">
+      <span class="sd-icon">🧭</span>
+      <span class="sd-label">메뉴창</span>
     </button>
     <button class="slim-dock-btn" data-dock-target="TYCOON_OFFICE_WORKSPACE" title="BSC AI OFFICE · SD 캐릭터 타이쿤 에이전트 사무실 (4대 씬)">
-      <span class="sd-icon">🕸️</span>
+      <span class="sd-icon">🕹️</span>
       <span class="sd-label">오피스</span>
     </button>
     <button class="slim-dock-btn" data-dock-target="DOC_WORKSPACE" title="문서 작업 공간 (BSC 자비스 기획안 v1.0 & 문서 라이브러리)">
       <span class="sd-icon">📄</span>
       <span class="sd-label">문서</span>
     </button>
-    <button class="slim-dock-btn" data-dock-target="BSC_OS_WORKSPACE" title="BeausCreators BSC_OS (전사 프로젝트 · ERP · 승인 대시보드)">
+    <button class="slim-dock-btn" data-dock-target="BSC_OS_WORKSPACE" title="BeausCreators BSC_OS (전사 프로젝트 · 안티그래비티 2.0 · 승인 대시보드)">
       <span class="sd-icon">🏢</span>
       <span class="sd-label">BSC_OS</span>
     </button>
@@ -116,35 +85,104 @@
     </button>
   </nav>
 
-  <!-- 🖼️ 4. Top-Left Floating Node Preview Card + Expandable Brain Inspector & Forces/Token-Flow System -->
-  <aside id="node-preview-card" aria-label="선택된 노드 요약 및 브레인 인스펙터">
+  <!-- 🗂️ 4. Left-Side Integrated Menu System & Selected Neuron Card (All Top Tabs Moved Here Cleanly!) -->
+  <aside id="node-preview-card" aria-label="좌측 통합 메뉴 시스템 및 선택된 뉴런 카드">
+    <!-- 4-A. Compact Selected Neuron Preview Header -->
     <div class="np-card-header">
-      <div>
-        <div class="np-badge" id="np-card-badge">PROJECT · 60% 완료</div>
+      <div style="min-width:0;flex:1;">
+        <div class="np-badge" id="np-card-badge">NEURON · PROJECT · 60%</div>
         <h2 class="np-title" id="np-card-title">소풍 홈페이지</h2>
         <p class="np-sub" id="np-card-sub">바다를 더 가까이, 소풍 FISHING</p>
       </div>
-      <button type="button" id="btn-toggle-brain-details" class="np-expand-btn" title="노드 인스펙터 · 허브 목록 · 물리엔진 · 토큰절감 상세 열기/접기">🎛️ 상세</button>
+      <div style="display:flex;gap:4px;">
+        <button type="button" id="btn-toggle-thumb-preview" class="np-expand-btn" title="미리보기 썸네일 접기/펼치기">🖼️</button>
+        <button type="button" id="btn-toggle-brain-details" class="np-expand-btn" title="노드 인스펙터 · 허브 목록 · 물리엔진 · 토큰절감 상세 열기/접기">🎛️ 상세</button>
+      </div>
     </div>
 
-    <div class="np-thumb-wrap">
+    <div class="np-thumb-wrap" id="np-thumb-container">
       <img id="np-card-img" src="/props/sopoong-boat.jpg" alt="소풍 홈페이지 미리보기" />
     </div>
 
     <div class="np-secondary-actions">
       <button class="np-sec-btn" id="btn-np-open-doc">📄 문서 보기</button>
       <button class="np-sec-btn" id="btn-np-start-research">🔍 조사 시작</button>
+      <button class="np-sec-btn primary-inline" id="btn-np-open-workspace">작업 공간 →</button>
     </div>
 
-    <button class="np-primary-cta" id="btn-np-open-workspace">
-      작업 공간 열기 →
-    </button>
+    <!-- 4-B. Left-Side Integrated System Menu (Replaces Top Horizontal Tab Ribbon!) -->
+    <nav id="system-command-ribbon" class="left-vertical-menu-system" aria-label="전사 자비스 좌측 통합 메뉴 시스템">
+      <!-- Category 1: Obsidian Neuron View Switcher -->
+      <div class="lvm-section">
+        <div class="lvm-sec-header">
+          <span>🕸️ 지식 뉴런 그래프 뷰 (6모드)</span>
+          <span class="lvm-live-tag">800+ 뉴런</span>
+        </div>
+        <div id="top-view-bar" class="lvm-view-grid">
+          <button class="view-pill active" data-view="3d" title="3D 옵시디언 입체 지식 뉴런">🌌 3D 뉴런</button>
+          <button class="view-pill" data-view="2d" title="2D 옵시디언 포스 그래프">🕸️ 2D 시냅스</button>
+          <button class="view-pill" data-view="rings" title="MAPS 4계층 동심원">⭕ Rings</button>
+          <button class="view-pill" data-view="areas" title="도메인 허브 클러스터">🪐 Areas</button>
+          <button class="view-pill" data-view="timeline" title="시간순 타임라인">⏱️ Time</button>
+          <button class="view-pill" data-view="brain" title="해부학적 브레인 뉴런">🧠 Brain</button>
+          <button class="view-pill action-pill" id="btn-fit-graph" title="화면 중앙 맞춤 (Fit)">⊙ 중앙맞춤</button>
+          <button class="view-pill action-pill" id="btn-replay-growth" title="뉴런 시냅스 생성 리플레이">⟲ 리플레이</button>
+        </div>
+      </div>
 
-    <!-- Existing Brain Inspector, Top Hubs, Forces Sliders, and Token Flow (Integrated cleanly inside the card!) -->
+      <!-- Category 2: Core Conversation, Council & Tycoon Office -->
+      <div class="lvm-section">
+        <div class="lvm-sec-header">
+          <span>💬 대화 · 회의 · 에이전트 오피스</span>
+          <span class="lvm-live-tag cyan">핵심</span>
+        </div>
+        <div class="lvm-btn-grid">
+          <button class="sys-rib-btn cyan" id="btn-toggle-agent-chat" title="자비스(J.A.R.V.I.S.) 단독 1:1 티키타카 대화창">🤖 자비스 1:1 대화</button>
+          <button class="sys-rib-btn gold" id="btn-open-bsc-council" title="BeausCreators 에이전트(소하·거누·우진·태준) 의논·회의·보고서 워룸">🏛️ 의논·회의·보고서</button>
+          <button class="sys-rib-btn sky" id="btn-rib-tycoon-office" title="SD 캐릭터 타이쿤 에이전트 사무실 (BSC AI OFFICE)">🕹️ SD 타이쿤 오피스</button>
+          <button class="sys-rib-btn emerald" id="btn-exec-briefing" title="본사 보고서·작업일지·에이전트 현황 15초 음성 브리핑">📢 15초 음성 브리핑</button>
+        </div>
+      </div>
+
+      <!-- Category 3: 18 AI Studios, HQ Skills & Reverse Engineering -->
+      <div class="lvm-section">
+        <div class="lvm-sec-header">
+          <span>⚡ 스튜디오 · 본사 스킬 · 역공학</span>
+          <span class="lvm-live-tag purple">18 모듈</span>
+        </div>
+        <div class="lvm-btn-grid">
+          <button class="sys-rib-btn primary" data-ais-win="AI_STUDIO_HUB" title="18대 스튜디오 & 9대 오픈모델 라우터 통합 허브">⚡ 18대 스튜디오 허브</button>
+          <button class="sys-rib-btn emerald" data-ais-win="MAPS_REA_STUDIO" data-ais-subtab="HQ_SKILLS" title="BeausCreators 본사 5대 핵심 스킬 파이프라인 직결 실행기">🏢 본사 5대 스킬</button>
+          <button class="sys-rib-btn emerald" data-ais-win="VISION_FACE" title="카메라·화면 시야 공유(Co-Vision) & 6종 문서(MD/Word/PPT/PDF/이미지/영상) 자동 생성">👁️ 시야공유·6종문서</button>
+          <button class="sys-rib-btn emerald" data-ais-win="OPEN_TTS_STUDIO" title="Chatterbox & Qwen3-TTS 오픈소스 보이스 스튜디오">🎙️ 오픈소스 TTS</button>
+          <button class="sys-rib-btn" data-ais-win="MAPS_REA_STUDIO" title="MAPS 4계층 메모리/펄스 & REA(Ghidra/ILSpy/Unity) 역공학 워크벤치">🗺️ MAPS·REA 역공학</button>
+          <button class="sys-rib-btn" data-ais-win="AGENT_REGISTRY" title="SRP 6대 에이전트 레지스트리 & 페르소나 슬라이더">👥 에이전트·페르소나</button>
+          <button class="sys-rib-btn" data-ais-win="CREATIVE_BLENDER" title="캐릭터 360° SVG/OBJ 도면 & Blender 3D VFX">🎨 캐릭터360°·블렌더</button>
+          <button class="sys-rib-btn" data-ais-win="RL_BENCHMARK" title="9대 로컬 SLM 벤치마크 & Unsloth GRPO 강화학습">🧠 9모델·GRPO 학습</button>
+          <button class="sys-rib-btn span-2" data-ais-win="SIM_BIO_IDE" title="AlphaFold 단백질 분석 & 모의훈련 & Antigravity 2.0 IDE 실시간 동기화">🧬 바이오 · 모의훈련 · Antigravity 2.0 IDE</button>
+        </div>
+      </div>
+
+      <!-- Category 4: Camera, HOLO Gesture & Full Verification -->
+      <div class="lvm-section">
+        <div class="lvm-sec-header">
+          <span>📷 카메라 · 손동작 · 시스템 검증</span>
+          <span class="lvm-live-tag emerald">100점</span>
+        </div>
+        <div class="lvm-btn-grid">
+          <button class="sys-rib-btn emerald" id="btn-holo-gesture-hud" title="MediaPipe 21관절 웹캠 에어터치 손동작 제어">✋ HOLO 손동작</button>
+          <button class="sys-rib-btn emerald" id="btn-run-full-verify" title="전 시스템 검토·검수·검증 및 Google Harness² 재귀 성장 진단">🛡️ 시스템 검증(100점)</button>
+          <a class="sys-rib-btn link-btn emerald" href="http://192.168.219.239:7777/mobile-cam" target="_blank" title="모바일 Wi-Fi 카메라 & 시야공유 브릿지 열기">📱 모바일캠 ↗</a>
+          <a class="sys-rib-btn link-btn sky" href="http://localhost:7777/mobile-cam" target="_blank" title="PC 로컬 카메라 & 시야공유 컨트롤러 열기">💻 로컬캠 ↗</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 4-C. Existing Brain Inspector, Top Hubs, Forces Sliders, and Token Flow -->
     <div id="brain-inspector-drawer" class="np-inspector-drawer" style="display:none;">
       <div class="np-div"></div>
       <div class="np-stat-bar">
-        <span id="stat-nodes">580 notes</span> · <span id="stat-links">638 connections</span> · <span id="tf-savings-pct" style="color:#34d399;font-weight:800;">88.5% SAVED</span>
+        <span id="stat-nodes">798 neurons</span> · <span id="stat-links">848 synapses</span> · <span id="tf-savings-pct" style="color:#34d399;font-weight:800;">88.5% SAVED</span>
       </div>
       <div class="tf-bar-track" style="margin:5px 0 8px 0;">
         <div id="tf-bar-fill" class="tf-bar-fill" style="width:88.5%;"></div>
@@ -155,23 +193,23 @@
 
       <div class="card-label" style="font-size:10px;color:#38bdf8;font-weight:800;margin-bottom:4px;">INSPECTOR 상세</div>
       <div id="inspector-content" style="font-size:11px;color:#cbd5e1;max-height:90px;overflow-y:auto;margin-bottom:6px;">
-        노드를 클릭하면 연결 정보와 원본 경로가 표시됩니다.
+        뉴런 노드를 클릭하면 연결 시냅스와 원본 경로가 표시됩니다.
       </div>
       <div id="inspector-actions" style="display:flex;gap:5px;margin-bottom:8px;">
         <button id="btn-open-node-report" class="np-sec-btn" style="flex:1;padding:4px;">📊 원본 노트 열기</button>
         <button id="btn-fly-node" class="np-sec-btn" style="flex:1;padding:4px;">🎯 Fly-To</button>
       </div>
 
-      <div class="card-label" style="font-size:10px;color:#38bdf8;font-weight:800;margin-bottom:4px;">8대 성단 허브 (TOP HUBS)</div>
+      <div class="card-label" style="font-size:10px;color:#38bdf8;font-weight:800;margin-bottom:4px;">8대 뉴런 성단 허브 (TOP HUBS)</div>
       <div id="top-hubs-list" class="hubs-list compact" style="max-height:110px;overflow-y:auto;margin-bottom:8px;"></div>
 
-      <div class="card-label" style="font-size:10px;color:#38bdf8;font-weight:800;margin-bottom:4px;">물리 엔진 제어 (FORCES)</div>
+      <div class="card-label" style="font-size:10px;color:#38bdf8;font-weight:800;margin-bottom:4px;">뉴런 물리 엔진 제어 (FORCES)</div>
       <div class="slider-row" style="font-size:10.5px;">
-        <label>성단 간격 (Repel)</label>
+        <label>뉴런 간격 (Repel)</label>
         <input type="range" id="slider-repel" min="40" max="260" value="155" />
       </div>
       <div class="slider-row" style="font-size:10.5px;">
-        <label>연결선 길이 (Link)</label>
+        <label>시냅스 길이 (Link)</label>
         <input type="range" id="slider-link-len" min="20" max="200" value="75" />
       </div>
     </div>
