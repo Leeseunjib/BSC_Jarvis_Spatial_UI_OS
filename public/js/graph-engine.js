@@ -32,8 +32,8 @@ window.BrainGraphEngine = {
   rotY: 0.3,
   rotX: 0.18,
   autoRotate: true,
-  repelStrength: 110,
-  linkDistance: 75,
+  repelStrength: 155,
+  linkDistance: 95,
   replayProgress: 1.0,
 
   async init() {
@@ -304,6 +304,7 @@ window.BrainGraphEngine = {
     }
 
     // Draw Nodes sorted back-to-front
+    this._placedLabelBoxes = [];
     const sorted = [...this.nodes].sort((a, b) => b.depth - a.depth);
     for (const n of sorted) {
       if (!this.isNodeVisible(n)) continue;
@@ -326,11 +327,36 @@ window.BrainGraphEngine = {
       ctx.fillStyle = n.color || '#38bdf8';
       ctx.fill();
 
-      // Label for hubs, root, or focused nodes
-      if (n.kind === 'root' || n.kind === 'area' || n.kind === 'project' || (focusSet && inFocus)) {
-        ctx.font = `${n.kind === 'area' || n.kind === 'root' ? '700 11.5px' : '500 10.2px'} Pretendard, sans-serif`;
-        ctx.fillStyle = n === focusTarget ? '#ffffff' : '#cbd5e1';
-        ctx.fillText(n.label.slice(0, 26), n.sx + radius + 5, n.sy + 3.5);
+      // Clean LOD Label Rendering (Prevents overlapping text clutter; shows hubs, hovered/selected, and spaced neighbors)
+      const isCoreOrHub = n.kind === 'root' || n.kind === 'area';
+      const isDirectTarget = n === focusTarget || n === this.hoveredNode;
+      const shouldTryLabel = isCoreOrHub || isDirectTarget || (focusSet && inFocus && this.zoom > 0.9) || (this.zoom > 1.65 && n.kind === 'project');
+
+      if (shouldTryLabel) {
+        if (!this._placedLabelBoxes) this._placedLabelBoxes = [];
+        const labelText = n.label.slice(0, 26);
+        const estW = labelText.length * 6.8 + 12;
+        const estH = 18;
+        const lx = n.sx + radius + 5;
+        const ly = n.sy - 8;
+
+        // Always draw core/hub/target labels; for secondary nodes, skip if overlapping an already drawn label
+        let overlaps = false;
+        if (!isCoreOrHub && !isDirectTarget) {
+          for (const box of this._placedLabelBoxes) {
+            if (lx < box.x + box.w && lx + estW > box.x && ly < box.y + box.h && ly + estH > box.y) {
+              overlaps = true;
+              break;
+            }
+          }
+        }
+
+        if (!overlaps) {
+          this._placedLabelBoxes.push({ x: lx, y: ly, w: estW, h: estH });
+          ctx.font = `${isCoreOrHub || isDirectTarget ? '700 11.5px' : '500 10.2px'} Pretendard, sans-serif`;
+          ctx.fillStyle = isDirectTarget ? '#ffffff' : isCoreOrHub ? '#00f0ff' : '#cbd5e1';
+          ctx.fillText(labelText, n.sx + radius + 5, n.sy + 3.5);
+        }
       }
     }
     ctx.globalAlpha = 1.0;

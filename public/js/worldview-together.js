@@ -60,11 +60,20 @@ window.BSC_WORLDVIEW = {
     }
   },
 
-  showToast(speaker, text) {
+  showToast(speaker, text, avatarUrl = null, voiceBadge = null) {
     const spEl = document.getElementById('toast-speaker');
     const txEl = document.getElementById('toast-text');
+    const avEl = document.getElementById('toast-avatar');
+    const vbEl = document.getElementById('toast-voice-badge');
     if (spEl) spEl.textContent = speaker;
     if (txEl) txEl.textContent = text;
+    if (avEl && avatarUrl) {
+      avEl.style.display = 'block';
+      avEl.src = avatarUrl;
+    }
+    if (vbEl && voiceBadge) {
+      vbEl.textContent = voiceBadge;
+    }
   }
 };
 

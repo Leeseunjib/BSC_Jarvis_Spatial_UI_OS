@@ -12,17 +12,18 @@
  */
 
 window.AIStudioData = {
-  // 현재 활성화된 멀티모델 라우터 설정 상태
+  // 현재 활성화된 멀티모델 라우터 설정 상태 (대표님 PC 로컬 Ollama gemma4:e4b & Neural TTS 기본 활성화)
   routerConfig: {
     sttEngine: 'whisper-large-v3',
-    llmEngine: 'laya-421m-rlcd',
-    ttsEngine: 'gemini-3.8-flash-lite-tts',
-    ttsVoice: 'Charon',
+    llmEngine: 'gemma4:e4b',
+    ttsEngine: 'edge-neural-korean-tts',
+    ttsVoice: 'Jarvis_Hyunsu_Soha_SunHi',
+    activePersonaMode: 'JARVIS_AND_SOHA', // 'JARVIS', 'SOHA', 'TAEJUN', 'GEONU', 'JARVIS_AND_SOHA'
     layaRouterEnabled: true,
     autoRouting: true,
     wakeWordEnabled: false,
     autoSpeakReply: true,
-    speechRate: 1.04,
+    speechRate: 1.05,
     vadSensitivity: 60,
     temperature: 0.7,
     freeEnginePriority: true,
@@ -62,6 +63,48 @@ window.AIStudioData = {
   ],
 
   LLM_ENGINE_OPTIONS: [
+    {
+      id: 'gemma4:e4b',
+      name: '🟢 Gemma 4 E4B (대표님 PC 로컬 Ollama 설치됨 · 9.6GB)',
+      provider: '내 PC 로컬 Ollama (localhost:11434 · 100% 무료)',
+      latencyBadge: '165 토큰/초',
+      costBadge: '$0 완전 무료 로컬',
+      categoryTag: '대표님 PC 설치 주력 두뇌',
+      baseTtftMs: 42,
+      baseTps: 165,
+      baseVramGb: 6.4,
+      baseWatts: 38,
+      taskScores: { 'os-voice-routing': 98, 'code-blender-bpy': 95, 'reasoning-rl-math': 96, 'rag-vision-multimodal': 98 },
+      description: '현재 이건우 대표님 PC의 Ollama에 실제 설치되어 구동 중인 주력 Gemma 4 (e4b / latest, 9.6GB) 로컬 두뇌입니다.'
+    },
+    {
+      id: 'gemma4:e2b',
+      name: '🟢 Gemma 4 E2B (대표님 PC 로컬 초고속 SLM · 7.2GB)',
+      provider: '내 PC 로컬 Ollama (localhost:11434 · 100% 무료)',
+      latencyBadge: '240 토큰/초',
+      costBadge: '$0 완전 무료 로컬',
+      categoryTag: '대표님 PC 초고속 SLM',
+      baseTtftMs: 28,
+      baseTps: 240,
+      baseVramGb: 4.8,
+      baseWatts: 25,
+      taskScores: { 'os-voice-routing': 99, 'code-blender-bpy': 91, 'reasoning-rl-math': 90, 'rag-vision-multimodal': 94 },
+      description: '현재 대표님 PC의 Ollama에 설치된 초저지연 Gemma 4 E2B 모델로, 음성 대화 시 즉각적인 응답을 제공합니다.'
+    },
+    {
+      id: 'gemma4:31b',
+      name: '🟢 Gemma 4 31B (대표님 PC 로컬 대형 추론 두뇌 · 19.8GB)',
+      provider: '내 PC 로컬 Ollama (localhost:11434 · 100% 무료)',
+      latencyBadge: '85 토큰/초',
+      costBadge: '$0 완전 무료 로컬',
+      categoryTag: '대표님 PC 심층 추론',
+      baseTtftMs: 95,
+      baseTps: 85,
+      baseVramGb: 19.0,
+      baseWatts: 95,
+      taskScores: { 'os-voice-routing': 94, 'code-blender-bpy': 99, 'reasoning-rl-math': 99, 'rag-vision-multimodal': 98 },
+      description: '현재 대표님 PC의 Ollama에 설치된 31B 대형 모델로, 고난도 아키텍처 설계와 심층 추론을 수행합니다.'
+    },
     {
       id: 'laya-421m-rlcd',
       name: 'Laya-421M-RLCD + Llama 3 하이브리드',

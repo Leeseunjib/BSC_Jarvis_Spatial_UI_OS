@@ -94,10 +94,8 @@ window.MultimodalEngine = {
       window.BSC_WORLDVIEW.showToast('J.A.R.V.I.S.', '현재 브라우저에서 음성 인식을 지원하지 않아 하단 텍스트 입력창을 사용해 주십시오.');
       return;
     }
-    // Barge-in: stop ongoing TTS immediately
-    if (window.speechSynthesis && window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-    }
+    // Barge-in: stop ongoing Neural TTS or browser speech immediately
+    this.stopAllSpeech();
     if (this.isListening) {
       this.recognition.stop();
     } else {
@@ -107,25 +105,105 @@ window.MultimodalEngine = {
     }
   },
 
-  speakStewardReply(text) {
-    if (!window.speechSynthesis || !text) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'ko-KR';
-    utter.rate = 1.04;
-    utter.pitch = 0.98;
-    utter.onboundary = () => {
-      if (window.JarvisReactorCore) window.JarvisReactorCore.pulseSpeech(1.1);
-    };
-    utter.onstart = () => {
-      if (window.JarvisReactorCore) window.JarvisReactorCore.pulseSpeech(1.3);
-    };
-    window.speechSynthesis.speak(utter);
+  stopAllSpeech() {
+    this.speechQueueToken = (this.speechQueueToken || 0) + 1;
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.pause();
+        this.currentAudio.src = '';
+      } catch (e) {}
+      this.currentAudio = null;
+    }
+    if (this.speechPulseInterval) {
+      clearInterval(this.speechPulseInterval);
+      this.speechPulseInterval = null;
+    }
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+  },
+
+  async playSingleNeuralTurn(turn, myToken) {
+    if (myToken !== this.speechQueueToken) return;
+    const text = (turn && turn.text ? turn.text : '').trim();
+    if (!text) return;
+    const persona = turn.persona || 'jarvis';
+    const speaker = turn.speaker || '🤖 J.A.R.V.I.S.';
+    const avatar = turn.avatar || (persona === 'soha' ? '/agent_images/soha/explain.png' : '/agent_images/geonu/analyze.png');
+    const voiceBadge = persona === 'soha'
+      ? '🎙️ 선희 신경망 성우 (SunHiNeural · 수석비서 소하)'
+      : (persona === 'taejun' || persona === 'geonu'
+        ? '🎙️ 인준 신경망 성우 (InJoonNeural · BSC 리더)'
+        : '🎙️ 현수 멀티링구얼 신경망 성우 (HyunsuNeural · J.A.R.V.I.S.)');
+
+    window.BSC_WORLDVIEW.showToast(speaker, text, avatar, voiceBadge);
+
+    try {
+      const res = await fetch('/api/jarvis/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, persona })
+      });
+      if (myToken !== this.speechQueueToken) return;
+      const data = await res.json();
+      if (data && data.ok && data.audioBase64) {
+        await new Promise((resolve) => {
+          const audio = new Audio(`data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`);
+          this.currentAudio = audio;
+          this.speechPulseInterval = setInterval(() => {
+            if (window.JarvisReactorCore) {
+              window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
+            }
+          }, 110);
+          const cleanup = () => {
+            if (this.speechPulseInterval) {
+              clearInterval(this.speechPulseInterval);
+              this.speechPulseInterval = null;
+            }
+            resolve();
+          };
+          audio.onended = cleanup;
+          audio.onerror = cleanup;
+          audio.play().catch(cleanup);
+        });
+        return;
+      }
+    } catch (e) {}
+
+    // Fallback to browser Web Speech only if network/offline
+    if (window.speechSynthesis && myToken === this.speechQueueToken) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'ko-KR';
+      utter.rate = 1.05;
+      window.speechSynthesis.speak(utter);
+    }
+  },
+
+  async speakNeuralTurns(dialogueTurns, fallbackText = '') {
+    this.stopAllSpeech();
+    const myToken = this.speechQueueToken;
+    const turns = Array.isArray(dialogueTurns) && dialogueTurns.length > 0
+      ? dialogueTurns
+      : [{ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', avatar: '/agent_images/geonu/analyze.png', text: fallbackText }];
+
+    for (const turn of turns) {
+      if (myToken !== this.speechQueueToken) break;
+      await this.playSingleNeuralTurn(turn, myToken);
+    }
+  },
+
+  speakStewardReply(text, persona = 'jarvis') {
+    if (!text) return;
+    const speaker = persona === 'soha' ? '👩‍💼 수석비서 소하' : '🤖 J.A.R.V.I.S.';
+    const avatar = persona === 'soha' ? '/agent_images/soha/explain.png' : '/agent_images/geonu/analyze.png';
+    this.speakNeuralTurns([{ persona, speaker, avatar, text }], text);
   },
 
   async sendCommandToJarvis(message) {
     if (!message) return;
-    window.BSC_WORLDVIEW.showToast('CEO 이건우 대표님', message);
+    const personaSelect = document.getElementById('jarvis-persona-select');
+    const personaMode = personaSelect ? personaSelect.value : 'cowork';
+    window.BSC_WORLDVIEW.showToast('👑 이건우 대표님 (CEO)', message, null, '⚡ 로컬 Gemma 4 추론 및 신경망 성우 합성 중...');
 
     // Check if user said "승인해" for a pending PC action
     if (this.pendingPcActionKey && /승인|실행해|허락|오케이|ok|yes/i.test(message)) {
@@ -137,7 +215,13 @@ window.MultimodalEngine = {
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({
+          message,
+          context: {
+            personaMode,
+            llmEngine: (window.AIStudioWindows && window.AIStudioWindows.state && window.AIStudioWindows.state.llmEngine) || 'gemma4:e4b'
+          }
+        })
       });
       const data = await res.json();
 
@@ -153,8 +237,9 @@ window.MultimodalEngine = {
       if (data.telemetry) {
         window.BSC_WORLDVIEW.updateTelemetryUI(data.telemetry);
       }
-      if (data.reply) {
-        window.BSC_WORLDVIEW.showToast(data.delegatedAgent || 'J.A.R.V.I.S.', data.reply);
+      if (data.dialogueTurns && data.dialogueTurns.length > 0) {
+        this.speakNeuralTurns(data.dialogueTurns, data.reply);
+      } else if (data.reply) {
         this.speakStewardReply(data.reply);
       }
     } catch (e) {

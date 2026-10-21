@@ -75,7 +75,7 @@
       <div class="card-label">FORCES &amp; SPREAD</div>
       <div class="slider-row">
         <label>Repel</label>
-        <input type="range" id="slider-repel" min="20" max="260" value="110" />
+        <input type="range" id="slider-repel" min="20" max="260" value="155" />
       </div>
       <div class="slider-row">
         <label>Link length</label>
@@ -141,7 +141,7 @@
 
       <div class="reactor-status-pills">
         <span class="status-pill online"><i class="pulse-dot"></i> ONLINE</span>
-        <span class="status-pill model-pill" id="active-model-pill">✦ TOGETHER OS</span>
+        <span class="status-pill model-pill" id="active-model-pill">✦ GEMMA 4 · NEURAL</span>
       </div>
 
       <div class="core-shape-tabs">
@@ -189,14 +189,27 @@
     </div>
   </div>
 
-  <!-- Live Voice & Gesture Subtitle Toast -->
+  <!-- Live Voice & Gesture Subtitle Toast (with Agent Portrait & Neural Voice Indicator) -->
   <div id="live-dialogue-toast">
-    <span class="speaker-tag" id="toast-speaker">J.A.R.V.I.S.</span>
-    <span class="speech-text" id="toast-text">이건우 대표님, 오늘도 주신 지혜로 함께 만들어 갑시다. 무엇을 도와드릴까요?</span>
+    <img id="toast-avatar" class="toast-avatar" src="/agent_images/soha/explain.png" alt="Agent Avatar" onerror="this.style.display='none'" />
+    <div class="toast-body-col">
+      <div class="toast-meta-row">
+        <span class="speaker-tag" id="toast-speaker">🤖 J.A.R.V.I.S. &amp; 👩‍💼 수석비서 소하</span>
+        <span class="voice-engine-badge" id="toast-voice-badge">🎙️ Edge Neural HD (현수 &amp; 선희 성우 · Gemma 4)</span>
+      </div>
+      <span class="speech-text" id="toast-text">이건우 대표님, 로컬 Gemma 4(e4b/e2b/31b) 두뇌와 신경망 한국어 성우(현수·선희)가 연결되었습니다. 무엇이든 편하게 말씀해 주십시오!</span>
+    </div>
   </div>
 
-  <!-- BOTTOM MULTIMODAL COMMAND DOCK (Matches Screenshot Prompt Bar + 6 Action Orbs) -->
+  <!-- BOTTOM MULTIMODAL COMMAND DOCK (Matches Screenshot Prompt Bar + Persona Selector + Action Orbs) -->
   <footer id="bottom-command-dock">
+    <select id="jarvis-persona-select" class="persona-dock-select" title="대화 파트너 및 신경망 성우 모드 선택">
+      <option value="cowork" selected>🤖 자비스 + 👩‍💼 소하 동역</option>
+      <option value="soha">👩‍💼 수석비서 소하 (선희 성우)</option>
+      <option value="jarvis">🤖 자비스 단독 (현수 성우)</option>
+      <option value="taejun">👔 비서실장 태준 (인준 성우)</option>
+      <option value="geonu">💻 CTO 거누 (인준 성우)</option>
+    </select>
     <form id="jarvis-chat-form" class="command-input-wrap">
       <input
         type="text"
