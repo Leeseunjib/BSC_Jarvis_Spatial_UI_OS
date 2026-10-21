@@ -1,0 +1,14 @@
+# Google Research Harness² Manifest for BeausCreators (BSC HQ & J.A.R.V.I.S. OS)
+name: bsc_jarvis_harness2_v1
+version: harness2-1
+components:
+  system_prompt: systemprompt.md
+  context_policy: context_policy.md
+  long_term_memory: LongTermMEMORY.md
+  tool_guidance: tool_guidance.md
+  sub_agents_dir: sub_agents/
+  guardrails: guardrails.md
+  skills_dir: skills/
+  scripts_dir: scripts/
+  plugins_dir: plugin/
+compose_order: [system_prompt, guardrails, long_term_memory, tool_guidance]

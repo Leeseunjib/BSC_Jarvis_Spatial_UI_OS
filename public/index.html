@@ -37,7 +37,9 @@
   <!-- UNIFIED GOOGLE AI STUDIO × BSC J.A.R.V.I.S. WORKSPACE BAR (All 18 Studios + Queue + Theme + Settings) -->
   <nav id="unified-workspace-bar" aria-label="통합 자비스 스튜디오 및 환경설정 바">
     <button class="uni-tab-btn resp-rail-toggle" id="btn-resp-left-rail" title="좌측 지식 인스펙터 & 허브 서랍 열기/닫기 (PC/태블릿/모바일)">📂 좌측패널</button>
-    <button class="uni-tab-btn primary" id="btn-toggle-agent-chat" title="실시간 에이전트 멀티턴 대화창 & ADE·IDE 양방향 브릿지 열기">💬 에이전트 대화·ADE/IDE</button>
+    <button class="uni-tab-btn primary" id="btn-toggle-agent-chat" title="자비스(J.A.R.V.I.S.) 단독 1:1 티키타카 대화창 열기">🤖 자비스 1:1 대화창</button>
+    <button class="uni-tab-btn primary" id="btn-open-bsc-council" style="border-color:#fbbf24;color:#fbbf24;" title="별도 분리된 BeausCreators 에이전트(소하·거누·우진·태준) 의논·회의·보고서 전용 채팅창 열기">🏛️ BeausCreators 의논·회의·보고서 창</button>
+    <button class="uni-tab-btn emerald" id="btn-run-full-verify" style="border-color:#34d399;color:#34d399;" title="전 시스템 검토·검수·검증 및 Google Harness² 재귀 성장 진단 실행">🛡️ 시스템 검토·검수·검증</button>
     <button class="uni-tab-btn primary" data-ais-win="AI_STUDIO_HUB" title="18대 스튜디오 & 9대 오픈모델 통합 관제 허브">⚡ 18대 통합 허브</button>
     <a class="uni-tab-btn emerald" href="http://192.168.219.239:7777/mobile-cam" target="_blank" style="text-decoration:none;border-color:#34d399;color:#34d399;" title="모바일/Wi-Fi 카메라 & 시야공유 브릿지 (http://192.168.219.239:7777/mobile-cam)">📱 모바일창(192.168.219.239) ↗</a>
     <a class="uni-tab-btn emerald" href="http://localhost:7777/mobile-cam" target="_blank" style="text-decoration:none;border-color:#00f0ff;color:#00f0ff;" title="PC 로컬 카메라 & 시야공유 컨트롤러 (http://localhost:7777/mobile-cam)">💻 로컬카메라창(localhost) ↗</a>
@@ -292,86 +294,121 @@
     </div>
   </div>
 
-  <!-- 💬 NATURAL MULTI-TURN AGENT CHAT & ADE/IDE LIVE BRIDGE DRAWER -->
-  <aside id="agent-chat-drawer" class="agent-chat-drawer open" aria-label="에이전트 실시간 대화 및 ADE/IDE 브릿지">
+  <!-- 🤖 PURE J.A.R.V.I.S. 1:1 TIKI-TAKA CONVERSATION DRAWER (J.A.R.V.I.S. Voice ONLY) -->
+  <aside id="agent-chat-drawer" class="agent-chat-drawer" aria-label="자비스 단독 1:1 티키타카 대화창">
     <div class="chat-drawer-header">
       <div>
-        <div class="chat-drawer-title">💬 BSC 에이전트 실시간 대화 &amp; ADE·IDE 직결 브릿지</div>
+        <div class="chat-drawer-title">🤖 J.A.R.V.I.S. 1:1 실시간 티키타카 대화창 (자비스 단독 음성)</div>
         <div class="chat-drawer-sub" id="ade-ide-live-badges">
-          <span class="bridge-pill ade">🟢 ADE: C:\BeausCreators</span>
-          <span class="bridge-pill ide">🟢 IDE: c:\BSC_Javis_OS</span>
-          <span class="bridge-pill drive">🟢 Google Drive 연동</span>
+          <span class="bridge-pill ade">🟢 Harness² (gemma4:e4b)</span>
+          <span class="bridge-pill ide">🟢 문장 단위 음성</span>
+          <span class="bridge-pill drive">🟢 ADE·IDE 실시간 동기화</span>
         </div>
       </div>
       <div style="display:flex;gap:5px;">
-        <button id="btn-export-chat-6formats" class="win-ctrl-btn" title="현재 대화와 시야를 6종 문서(MD/Word/PPT/PDF/PNG/영상)로 즉시 변환·저장" style="border-color:#fbbf24;color:#fbbf24;">📄 6종 문서화</button>
+        <button id="btn-open-council-from-drawer" class="win-ctrl-btn" title="타 에이전트(소하·거누·우진·태준) 의논·회의·보고서 전용 창 열기" style="border-color:#fbbf24;color:#fbbf24;">🏛️ 에이전트 회의창</button>
+        <button id="btn-export-chat-6formats" class="win-ctrl-btn" title="현재 대화와 시야를 6종 문서(MD/Word/PPT/PDF/PNG/영상)로 즉시 변환·저장" style="border-color:#34d399;color:#34d399;">📄 6종 문서화</button>
         <button id="btn-close-agent-chat" class="win-ctrl-btn" title="대화창 접기">✕</button>
       </div>
     </div>
 
-    <!-- Quick Agent Call Chips -->
-    <div class="agent-chip-bar" id="agent-quick-chips">
-      <button class="agent-chip active" data-agent-call="cowork">🤖 자비스+소하</button>
-      <button class="agent-chip" data-agent-call="geonu">💻 거누(ADE·IDE)</button>
-      <button class="agent-chip" data-agent-call="jaeho">🎨 재호(반응형UI)</button>
-      <button class="agent-chip" data-agent-call="yuna">⚡ 유나(프론트)</button>
-      <button class="agent-chip" data-agent-call="soha">👩‍💼 소하(수석비서)</button>
-      <button class="agent-chip" data-agent-call="taejun">👔 태준(비서실장)</button>
-      <button class="agent-chip" data-agent-call="woojin">🧠 우진(AI연구)</button>
-    </div>
-
-    <!-- Scrollable Multi-Turn Conversation Stream -->
+    <!-- Scrollable J.A.R.V.I.S. 1:1 Tiki-Taka Stream -->
     <div class="chat-drawer-feed" id="agent-chat-feed">
       <div class="chat-bubble assistant">
-        <div class="bubble-meta">🤖 J.A.R.V.I.S. · 실시간 ADE/IDE 브릿지</div>
-        <div class="bubble-text">이건우 대표님, 이제 설정된 고정 문구가 아닌 <b>실시간 멀티턴 기억 + ADE(C:\BeausCreators) &amp; Antigravity IDE(c:\BSC_Javis_OS) 양방향 문맥</b>으로 에이전트들과 자연스럽게 대화하실 수 있습니다. 모든 대화는 본사 작업일지와 IDE 브릿지에 자동 기록됩니다.</div>
+        <div class="bubble-meta">🤖 J.A.R.V.I.S. · Harness² 1:1 티키타카 파트너</div>
+        <div class="bubble-text">이건우 대표님, 자비스 메인 시스템은 이제 오직 <b>자비스 단독 목소리(현수 성우)</b>로만 대표님과 1:1 티키타카를 나누며, 창에 있는 모든 문장을 중간 끊김 없이 끝까지 읽어드립니다. 본사 에이전트들과의 의논·회의·보고서는 별도로 분리된 <b>[🏛️ BeausCreators 의논·회의·보고서 창]</b>에서 진행하실 수 있습니다.</div>
       </div>
     </div>
 
-    <!-- Direct Drawer Input Form -->
+    <!-- Direct J.A.R.V.I.S. 1:1 Input Form -->
     <form id="drawer-chat-form" class="chat-drawer-input-row">
-      <input type="text" id="drawer-chat-input" placeholder="자비스·거누·재호·소하에게 자연스럽게 말씀하세요..." autocomplete="off" />
+      <input type="text" id="drawer-chat-input" placeholder="자비스와 1:1로 자연스럽게 티키타카 대화하세요..." autocomplete="off" />
       <button type="submit" class="send-prompt-btn">↵</button>
     </form>
   </aside>
 
-  <!-- Live Voice & Gesture Subtitle Toast (with Agent Portrait & Neural Voice Indicator) -->
-  <div id="live-dialogue-toast">
-    <img id="toast-avatar" class="toast-avatar" src="/agent_images/geonu/analyze.png" alt="Agent Avatar" onerror="this.style.display='none'" />
-    <div class="toast-body-col">
-      <div class="toast-meta-row">
-        <span class="speaker-tag" id="toast-speaker">🤖 J.A.R.V.I.S. (실시간 에이전트 대화 모드)</span>
-        <span class="voice-engine-badge" id="toast-voice-badge">🎙️ ADE·IDE 실시간 동기화 · Gemma 4</span>
+  <!-- 🏛️ SEPARATE DEDICATED UI WINDOW: BEAUSCREATORS AGENT SYSTEM (💬 의논 · 🏛️ 회의 · 📋 보고서 전용 채팅창) -->
+  <section id="bsc-council-window" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);width:min(860px, 95vw);height:min(640px, 80vh);background:rgba(5,9,20,0.97);border:1.5px solid #fbbf24;border-radius:16px;z-index:9650;box-shadow:0 24px 70px rgba(0,0,0,0.88), 0 0 32px rgba(251,191,36,0.22);backdrop-filter:blur(22px);flex-direction:column;overflow:hidden;color:#f1f5f9;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(90deg, rgba(251,191,36,0.16), rgba(15,23,42,0.92));border-bottom:1px solid rgba(251,191,36,0.35);">
+      <div>
+        <div style="font-size:14px;font-weight:900;color:#fbbf24;display:flex;align-items:center;gap:8px;">
+          <span>🏛️ BeausCreators 에이전트 전용 협업 창 (C:\BeausCreators 방식 — 의논 · 회의 · 보고서)</span>
+          <span style="font-size:10.5px;padding:2px 8px;border-radius:999px;background:rgba(52,211,153,0.16);border:1px solid #34d399;color:#34d399;">자비스 음성과 100% 분리된 텍스트/문서 워룸</span>
+        </div>
+        <div style="font-size:11px;color:#cbd5e1;margin-top:2px;">
+          참여 코어 요원: 👩‍💼 <b>수석비서 소하</b>(기획) · 💻 <b>CTO 거누</b>(아키텍처/REA) · 🧠 <b>AI연구원 우진</b>(Harness² 재귀) · 👔 <b>비서실장 태준</b>(총괄 의결/보고서)
+        </div>
       </div>
-      <span class="speech-text" id="toast-text">대표님, 전 시스템 및 ADE·IDE 양방향 브릿지가 정상 가동 중입니다.</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button id="btn-council-verify-system" class="win-ctrl-btn" style="border-color:#34d399;color:#34d399;padding:4px 10px;font-weight:800;">🛡️ 전 시스템 검토·검수·검증 실행</button>
+        <button id="btn-close-bsc-council" class="win-ctrl-btn" style="padding:4px 10px;">✕ 닫기</button>
+      </div>
+    </div>
+
+    <!-- Mode Selector Bar: 💬 의논 | 🏛️ 회의 | 📋 보고서 -->
+    <div style="display:flex;gap:8px;padding:10px 16px;background:rgba(10,16,31,0.9);border-bottom:1px solid rgba(148,163,184,0.2);align-items:center;flex-wrap:wrap;">
+      <span style="font-size:11.5px;font-weight:800;color:#94a3b8;">협업 형식 선택:</span>
+      <button type="button" class="agent-chip active bsc-council-mode-btn" data-council-mode="DISCUSS" style="padding:5px 12px;font-size:11.5px;">💬 의논 (자유 실무 의견 교환)</button>
+      <button type="button" class="agent-chip bsc-council-mode-btn" data-council-mode="MEETING" style="padding:5px 12px;font-size:11.5px;">🏛️ 회의 (부서별 릴레이 발언 &amp; 의결)</button>
+      <button type="button" class="agent-chip bsc-council-mode-btn" data-council-mode="REPORT" style="padding:5px 12px;font-size:11.5px;">📋 보고서 (본사 01.보고서 정식 기안·저장)</button>
+      <span style="margin-left:auto;font-size:10.5px;color:#38bdf8;font-family:monospace;" id="bsc-council-saved-path">📁 C:\BeausCreators\01.BSC_HQ\1.Documents\01.보고서 자동 동기화</span>
+    </div>
+
+    <!-- Scrollable Council Discussion / Meeting / Report Feed -->
+    <div id="bsc-council-feed" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;"></div>
+
+    <!-- Council Topic Input Form -->
+    <form id="bsc-council-form" style="display:flex;gap:8px;padding:12px 16px;background:rgba(8,13,26,0.96);border-top:1px solid rgba(251,191,36,0.3);">
+      <input
+        type="text"
+        id="bsc-council-input"
+        placeholder="BeausCreators 에이전트들과 의논·회의하거나 보고서로 만들 주제를 입력하세요..."
+        autocomplete="off"
+        style="flex:1;background:rgba(15,23,42,0.9);border:1px solid rgba(251,191,36,0.45);border-radius:10px;padding:9px 14px;color:#f8fafc;font-size:12.5px;"
+      />
+      <button type="submit" class="hud-mini-btn primary" style="padding:9px 18px;font-weight:800;border-color:#fbbf24;color:#fbbf24;">🏛️ 안건 상정 ↵</button>
+    </form>
+  </section>
+
+  <!-- Live J.A.R.V.I.S. Exclusive Voice Subtitle Toast (Hidden until J.A.R.V.I.S. speaks; includes Full-Read button) -->
+  <div id="live-dialogue-toast" style="display:none;">
+    <img id="toast-avatar" class="toast-avatar" src="/agent_images/geonu/analyze.png" alt="J.A.R.V.I.S." onerror="this.style.display='none'" />
+    <div class="toast-body-col" style="flex:1;">
+      <div class="toast-meta-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="speaker-tag" id="toast-speaker">🤖 J.A.R.V.I.S.</span>
+          <span class="voice-engine-badge" id="toast-voice-badge">🎙️ 현수 멀티링구얼 HD (끝까지 100% 완독)</span>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button type="button" id="btn-toast-read-full" class="win-ctrl-btn" style="font-size:10px;padding:2px 8px;border-color:#00f0ff;color:#00f0ff;" title="창에 있는 모든 내용을 처음부터 끝까지 다시 읽어줍니다">🔊 끝까지 다시 읽기</button>
+          <button type="button" id="btn-toast-stop-voice" class="win-ctrl-btn" style="font-size:10px;padding:2px 7px;border-color:#fb7185;color:#fb7185;" title="음성 읽기 정지">⏹ 정지</button>
+        </div>
+      </div>
+      <span class="speech-text" id="toast-text"></span>
     </div>
   </div>
 
-  <!-- BOTTOM MULTIMODAL COMMAND DOCK (Matches Screenshot Prompt Bar + Persona Selector + Action Orbs) -->
+  <!-- BOTTOM MULTIMODAL COMMAND DOCK (Pure J.A.R.V.I.S. Single Voice + Action Orbs) -->
   <footer id="bottom-command-dock">
-    <select id="jarvis-persona-select" class="persona-dock-select" title="대화 파트너 및 신경망 성우 모드 선택">
-      <option value="cowork" selected>🤖 자비스 + 👩‍💼 소하 동역 (자연 대화)</option>
-      <option value="jarvis">🤖 자비스 단독 (현수 성우)</option>
-      <option value="geonu">💻 CTO 거누 (ADE·IDE·백엔드)</option>
-      <option value="jaeho">🎨 디자이너 재호 (반응형 UI/UX)</option>
-      <option value="yuna">⚡ 프론트 유나 (모바일·웹)</option>
-      <option value="soha">👩‍💼 수석비서 소하 (선희 성우)</option>
-      <option value="taejun">👔 비서실장 태준 (인준 성우)</option>
-      <option value="woojin">🧠 AI연구원 우진 (Gemma 4·RAG)</option>
+    <select id="jarvis-persona-select" class="persona-dock-select" title="자비스 시스템은 오직 자비스 단독 보이스만 사용합니다">
+      <option value="jarvis" selected>🤖 J.A.R.V.I.S. 단독 음성 (현수 성우 · 끝까지 완독)</option>
     </select>
     <form id="jarvis-chat-form" class="command-input-wrap">
       <input
         type="text"
         id="jarvis-prompt-input"
-        placeholder="에이전트와 자연스럽게 대화하세요 (예: '거누야 ADE랑 IDE 어떻게 연결돼 있어?', '재호야 태블릿/모바일 반응형 점검해줘')"
+        placeholder="자비스와 1:1 티키타카 대화하세요 (타 에이전트 의논·회의·보고서는 우측 🏛️ 버튼 클릭)"
         autocomplete="off"
       />
       <button type="submit" class="send-prompt-btn" title="전송">↵</button>
     </form>
 
     <div class="dock-action-orbs">
-      <button class="orb-btn" id="orb-chat-drawer" title="💬 실시간 에이전트 대화창 & ADE·IDE 브릿지 열기/닫기" style="border-color:#34d399;box-shadow:0 0 12px rgba(52,211,153,0.35);">
-        <span>💬</span>
+      <button class="orb-btn" id="orb-chat-drawer" title="🤖 자비스 1:1 티키타카 대화창 열기/닫기" style="border-color:#00f0ff;box-shadow:0 0 12px rgba(0,240,255,0.35);">
+        <span>🤖</span>
+      </button>
+      <button class="orb-btn" id="orb-bsc-council" title="🏛️ BeausCreators 에이전트 의논·회의·보고서 전용 창 열기" style="border-color:#fbbf24;box-shadow:0 0 12px rgba(251,191,36,0.35);">
+        <span>🏛️</span>
       </button>
       <button class="orb-btn" id="orb-aistudio-hub" title="⚡ Google AI Studio 18대 스튜디오 & 9대 오픈모델 라우터 통합 허브" style="border-color:#00f0ff;box-shadow:0 0 12px rgba(0,240,255,0.35);">
         <span>⚡</span>

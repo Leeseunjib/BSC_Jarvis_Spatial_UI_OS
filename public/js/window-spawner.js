@@ -93,6 +93,7 @@ window.HUDWindowSpawner = {
           <span class="win-subtitle">${config.subtitle || 'Autonomous HUD Spawner · Coram Deo & Together'}</span>
         </div>
         <div class="win-controls">
+          <button class="win-ctrl-btn btn-read-win-full" style="border-color:#00f0ff;color:#00f0ff;" title="현재 창에 있는 모든 내용을 자비스 음성으로 처음부터 끝까지 읽어줍니다">🔊 창 내용 끝까지 읽기</button>
           <button class="win-ctrl-btn btn-save-vault" title="로컬 Vault에 Append 저장">💾 Vault 저장</button>
           <button class="win-ctrl-btn btn-close-win" title="창 닫기">✕</button>
         </div>
@@ -107,6 +108,13 @@ window.HUDWindowSpawner = {
 
     win.addEventListener('mousedown', () => {
       win.style.zIndex = ++this.zIndexCounter;
+    });
+
+    win.querySelector('.btn-read-win-full')?.addEventListener('click', () => {
+      const bodyText = (win.querySelector('.hud-window-body')?.innerText || '').trim();
+      if (bodyText && window.MultimodalEngine) {
+        window.MultimodalEngine.speakStewardReply(bodyText, 'jarvis');
+      }
     });
 
     win.querySelector('.btn-close-win').addEventListener('click', () => {

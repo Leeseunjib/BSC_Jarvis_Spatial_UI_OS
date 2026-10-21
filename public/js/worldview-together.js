@@ -61,12 +61,19 @@ window.BSC_WORLDVIEW = {
   },
 
   showToast(speaker, text, avatarUrl = null, voiceBadge = null) {
+    const toastEl = document.getElementById('live-dialogue-toast');
     const spEl = document.getElementById('toast-speaker');
     const txEl = document.getElementById('toast-text');
     const avEl = document.getElementById('toast-avatar');
     const vbEl = document.getElementById('toast-voice-badge');
+    const cleanDisplay = String(text || '').replace(/\*\*/g, '').trim();
+    if (!cleanDisplay) return;
+    if (toastEl) toastEl.style.display = 'flex';
+    if (!/대표님\s*\(CEO\)/i.test(speaker || '')) {
+      this.lastSpokenText = cleanDisplay;
+    }
     if (spEl) spEl.textContent = speaker;
-    if (txEl) txEl.textContent = text;
+    if (txEl) txEl.textContent = cleanDisplay;
     if (avEl && avatarUrl) {
       avEl.style.display = 'block';
       avEl.src = avatarUrl;

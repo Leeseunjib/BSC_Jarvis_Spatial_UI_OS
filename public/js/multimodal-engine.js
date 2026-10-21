@@ -23,6 +23,14 @@ window.MultimodalEngine = {
   handDetector: null,
   holoCursor: { x: window.innerWidth / 2, y: window.innerHeight / 2, pinching: false },
 
+  escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  },
+
   init() {
     this.initSSE();
     this.initVoiceEngine();
@@ -141,6 +149,12 @@ window.MultimodalEngine = {
           this.renderChatDrawerFeed(payload.chatHistory, payload.bridgeStatus);
         }
       });
+      evtSource.addEventListener('bsc_council_update', e => {
+        const payload = JSON.parse(e.data);
+        if (payload && Array.isArray(payload.sessions)) {
+          this.renderBscCouncilFeed(payload.sessions, payload.reportPath);
+        }
+      });
     } catch (e) {}
   },
 
@@ -152,37 +166,173 @@ window.MultimodalEngine = {
         this.renderChatDrawerFeed(data.messages || [], data.bridgeStatus);
       }
     } catch (e) {}
+    try {
+      const cRes = await fetch('/api/jarvis/bsc-council');
+      const cData = await cRes.json();
+      if (cData && cData.ok) {
+        this.renderBscCouncilFeed(cData.sessions || []);
+      }
+    } catch (e) {}
   },
 
   renderChatDrawerFeed(messages = [], bridgeStatus = null) {
     const feed = document.getElementById('agent-chat-feed');
     const badgeWrap = document.getElementById('ade-ide-live-badges');
     if (badgeWrap && bridgeStatus) {
-      const adeCnt = bridgeStatus.ade?.activeAgentsCount || 8;
-      const totCnt = bridgeStatus.ade?.totalAgentsCount || 28;
       const nodesCnt = bridgeStatus.ide?.brainNodesCount || 523;
+      const harnessOn = Boolean(bridgeStatus.harness2?.enabled);
+      const driveOn = Boolean(bridgeStatus.googleDrive?.connected);
       badgeWrap.innerHTML = `
-        <span class="bridge-pill ade" title="${bridgeStatus.ade?.rootPath || 'C:\\BeausCreators\\01.BSC_HQ'}">🟢 ADE 직결 (${adeCnt}/${totCnt} 에이전트 · 작업일지 동기화)</span>
-        <span class="bridge-pill ide" title="${bridgeStatus.ide?.workspacePath || 'c:\\BSC_Javis_OS'}">🟢 IDE 직결 (${nodesCnt} 지식노드 · 브릿지 활성)</span>
-        <span class="bridge-pill drive">🟢 Drive 자동보존</span>
+        <span class="bridge-pill ade">${harnessOn ? '🟢 Harness² 연결' : '⚪ Harness² 없음'}</span>
+        <span class="bridge-pill ide">🟢 자비스 단독 보이스</span>
+        <span class="bridge-pill drive">${driveOn ? '🟢 Drive 연결' : '⚪ Drive 경로 없음'} · IDE ${nodesCnt}노드</span>
       `;
     }
     if (!feed || !Array.isArray(messages) || messages.length === 0) return;
 
-    feed.innerHTML = messages.map(m => {
+    feed.innerHTML = messages.map((m, idx) => {
       const isUser = m.role === 'user';
+      const avatar = !isUser && typeof m.avatar === 'string' && m.avatar.startsWith('/')
+        ? this.escapeHtml(m.avatar)
+        : '';
+      const cleanTxt = this.escapeHtml(String(m.text || '').replace(/\*\*/g, '')).replace(/\n/g, '<br/>');
       return `
         <div class="chat-bubble ${isUser ? 'user' : 'assistant'}">
-          <div class="bubble-meta">
-            ${!isUser && m.avatar ? `<img src="${m.avatar}" class="bubble-avatar" onerror="this.style.display='none'" />` : ''}
-            <span>${m.speaker || (isUser ? '👑 이건우 대표님' : '🤖 J.A.R.V.I.S.')}</span>
-            <span class="bubble-time">${m.timestamp || ''}</span>
+          <div class="bubble-meta" style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${avatar ? `<img src="${avatar}" class="bubble-avatar" onerror="this.style.display='none'" />` : ''}
+              <span>${isUser ? '👑 이건우 대표님' : '🤖 J.A.R.V.I.S.'}</span>
+              <span class="bubble-time">${this.escapeHtml(m.timestamp || '')}</span>
+            </div>
+            ${!isUser ? `<button type="button" class="win-ctrl-btn btn-read-bubble" data-msg-idx="${idx}" style="font-size:9.5px;padding:1px 6px;border-color:#00f0ff;color:#00f0ff;">🔊 끝까지 읽기</button>` : ''}
           </div>
-          <div class="bubble-text">${(m.text || '').replace(/\n/g, '<br/>')}</div>
+          <div class="bubble-text">${cleanTxt}</div>
         </div>
       `;
     }).join('');
+
+    feed.querySelectorAll('.btn-read-bubble').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.msgIdx);
+        const msg = messages[idx];
+        if (msg && msg.text) {
+          this.speakStewardReply(msg.text, 'jarvis');
+        }
+      });
+    });
+
     feed.scrollTop = feed.scrollHeight;
+  },
+
+  renderBscCouncilFeed(sessions = [], latestReportPath = '') {
+    const feed = document.getElementById('bsc-council-feed');
+    const pathEl = document.getElementById('bsc-council-saved-path');
+    if (pathEl && latestReportPath) {
+      pathEl.textContent = `✅ 정식 보고서 저장됨: ${latestReportPath}`;
+    }
+    if (!feed || !Array.isArray(sessions) || sessions.length === 0) return;
+
+    feed.innerHTML = sessions.map(s => {
+      const modeBadge = s.mode === 'DISCUSS'
+        ? '<span style="background:rgba(56,189,248,0.18);border:1px solid #38bdf8;color:#38bdf8;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;">💬 의논 (Discussion)</span>'
+        : (s.mode === 'REPORT'
+          ? '<span style="background:rgba(52,211,153,0.18);border:1px solid #34d399;color:#34d399;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;">📋 정식 보고서 (Report)</span>'
+          : '<span style="background:rgba(251,191,36,0.18);border:1px solid #fbbf24;color:#fbbf24;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;">🏛️ 전사 회의 (Council Meeting)</span>');
+
+      const entriesHtml = (s.entries || []).map(e => `
+        <div style="padding:10px 12px;background:rgba(15,23,42,0.86);border:1px solid rgba(148,163,184,0.22);border-radius:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <img src="${e.avatar || '/agent_images/taejun/tactics.png'}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid #fbbf24;" onerror="this.style.display='none'" />
+            <b style="color:#f8fafc;font-size:12px;">${e.speaker}</b>
+            <span style="font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(251,191,36,0.15);color:#fbbf24;">${e.roleTag || '발언'}</span>
+          </div>
+          <div style="font-size:12.5px;line-height:1.58;color:#e2e8f0;">${String(e.text || '').replace(/\*\*/g, '').replace(/\n/g, '<br/>')}</div>
+        </div>
+      `).join('');
+
+      return `
+        <div style="padding:12px 14px;background:rgba(8,14,28,0.92);border:1px solid rgba(251,191,36,0.35);border-radius:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;border-bottom:1px solid rgba(251,191,36,0.2);padding-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${modeBadge}
+              <strong style="color:#fbbf24;font-size:13px;">안건: ${s.topic || ''}</strong>
+            </div>
+            <span style="font-size:10.5px;color:#94a3b8;">${s.timestamp || ''}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            ${entriesHtml}
+          </div>
+          ${s.reportPath ? `<div style="font-size:10.5px;color:#34d399;font-family:monospace;margin-top:2px;">📄 본사 01.보고서 아카이빙 완료: ${s.reportPath}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    feed.scrollTop = feed.scrollHeight;
+  },
+
+  toggleBscCouncilWindow(forceOpen) {
+    const win = document.getElementById('bsc-council-window');
+    if (!win) return;
+    const isVisible = win.style.display === 'flex';
+    const nextState = typeof forceOpen === 'boolean' ? forceOpen : !isVisible;
+    win.style.display = nextState ? 'flex' : 'none';
+  },
+
+  async submitBscCouncilTopic(topic, mode = 'MEETING') {
+    if (!topic) return;
+    this.toggleBscCouncilWindow(true);
+    const feed = document.getElementById('bsc-council-feed');
+    if (feed) {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.style.cssText = 'padding:12px;background:rgba(251,191,36,0.12);border:1px solid #fbbf24;border-radius:10px;color:#fbbf24;font-size:12px;font-weight:700;';
+      loadingDiv.textContent = `⏳ [BeausCreators 워룸] 소하·거누·우진·태준 요원이 "${topic}" 안건에 대해 [${mode}] 협업을 진행하고 본사 보고서를 작성 중입니다...`;
+      feed.appendChild(loadingDiv);
+      feed.scrollTop = feed.scrollHeight;
+    }
+    try {
+      const res = await fetch('/api/jarvis/bsc-council', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, mode })
+      });
+      const data = await res.json();
+      if (data && data.ok && Array.isArray(data.sessions)) {
+        this.renderBscCouncilFeed(data.sessions, data.reportPath);
+      }
+    } catch (e) {}
+  },
+
+  async runFullSystemVerificationUI() {
+    window.BSC_WORLDVIEW.showToast('🛡️ J.A.R.V.I.S. 시스템 감사', '이건우 대표님, 전 시스템 검토·검수·검증 및 Google Harness² 재귀 진화 진단을 실행 중입니다...', '/agent_images/geonu/analyze.png');
+    try {
+      const res = await fetch('/api/jarvis/full-verify', { method: 'POST' });
+      const data = await res.json();
+      const checks = Array.isArray(data?.checks) ? data.checks : [];
+      const failed = checks.filter(c => !c.passed);
+      const mdLines = [
+        `# 🛡️ [전 시스템 검토·검수·검증] 종합 점수 ${data.score}/100점 (${data.durationMs}ms)`,
+        `판정은 ${data.ok ? '통과' : '미통과'}입니다. 통과하지 못한 항목은 ${failed.length}건입니다.`,
+        `## 1. 실시간 검증 결과`,
+        ...checks.map(c => `- **${c.passed ? 'PASS' : 'FAIL'} [${c.category}] ${c.item}**. ${c.detail}`),
+        `---`,
+        `## 2. 이전 수정 기록`,
+        ...(data.fixedDefects || []).map(d => `- **[${d.id}] ${d.title}**. ${d.solution}`)
+      ];
+      if (window.HUDWindowSpawner) {
+        window.HUDWindowSpawner.spawn({
+          windowType: 'REPORT',
+          title: `🛡️ 시스템 검증 ${data.ok ? '통과' : '미통과'} (${data.score}점)`,
+          subtitle: '통과하지 못한 항목만 보고서에서 확인합니다.',
+          content: mdLines.join('\n')
+        });
+      }
+      const summarySpeech = data.ok
+        ? `대표님, 검증 ${checks.length}항목이 모두 통과했습니다. 점수는 ${data.score}점입니다.`
+        : `대표님, 검증 ${failed.length}항목이 통과하지 못했습니다. 점수는 ${data.score}점입니다.`;
+      this.speakStewardReply(summarySpeech);
+    } catch (e) {
+      window.BSC_WORLDVIEW.showToast('🛡️ J.A.R.V.I.S. 시스템 감사', '대표님, 검증 서버에 닿지 못했습니다.');
+    }
   },
 
   toggleChatDrawer(forceOpen) {
@@ -235,7 +385,6 @@ window.MultimodalEngine = {
       window.BSC_WORLDVIEW.showToast('J.A.R.V.I.S.', '현재 브라우저에서 음성 인식을 지원하지 않아 하단 텍스트 입력창을 사용해 주십시오.');
       return;
     }
-    // Barge-in: stop ongoing Neural TTS or browser speech immediately
     this.stopAllSpeech();
     if (this.isListening) {
       this.recognition.stop();
@@ -266,18 +415,13 @@ window.MultimodalEngine = {
 
   async playSingleNeuralTurn(turn, myToken) {
     if (myToken !== this.speechQueueToken) return;
-    const text = (turn && turn.text ? turn.text : '').trim();
+    const text = String(turn && turn.text ? turn.text : '').replace(/\*\*/g, '').trim();
     if (!text) return;
     const cfg = (window.AIStudioData && window.AIStudioData.routerConfig) || {};
-    const persona = turn.persona || 'jarvis';
-    const speaker = turn.speaker || '🤖 J.A.R.V.I.S.';
-    const avatar = turn.avatar || (persona === 'soha' ? '/agent_images/soha/explain.png' : '/agent_images/geonu/analyze.png');
-    const customVoiceId = turn.voiceId || (persona === 'jarvis' ? cfg.voiceId : undefined);
-    const voiceBadge = persona === 'soha'
-      ? '🎙️ 선희 신경망 성우 (SunHiNeural · 수석비서 소하)'
-      : (persona === 'taejun' || persona === 'geonu'
-        ? '🎙️ 인준 신경망 성우 (InJoonNeural · BSC 리더)'
-        : `🎙️ ${cfg.ttsEngine === 'LOCAL_CHATTERBOX_MULTILINGUAL' ? 'Chatterbox Multilingual (MIT)' : '현수 신경망 성우 (HyunsuNeural · 영화 자비스 톤)'}`);
+    const persona = 'jarvis'; // Locked to J.A.R.V.I.S. Single Voice per CEO directive
+    const speaker = '🤖 J.A.R.V.I.S.';
+    const avatar = '/agent_images/geonu/analyze.png';
+    const voiceBadge = '🎙️ 현수 성우 · 자비스 단독 음성';
 
     window.BSC_WORLDVIEW.showToast(speaker, text, avatar, voiceBadge);
 
@@ -289,20 +433,16 @@ window.MultimodalEngine = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
-          persona,
-          voiceId: customVoiceId,
-          speechRate: cfg.speechRate || 1.05,
-          pitchHz: cfg.pitchHz || '-2Hz',
-          ttsEngine: cfg.ttsEngine || 'LOCAL_CHATTERBOX_MULTILINGUAL',
-          exaggeration: cfg.ttsExaggeration || 0.45,
-          cfgWeight: cfg.ttsCfgWeight || 0.5,
-          localTtsUrl: cfg.localTtsServerUrl || 'http://127.0.0.1:7860/tts'
+          persona: 'jarvis',
+          voiceId: 'ko-KR-HyunsuMultilingualNeural',
+          speechRate: cfg.speechRate || 1.06,
+          pitchHz: cfg.pitchHz || '-2Hz'
         })
       });
       if (myToken !== this.speechQueueToken) return;
       const data = await res.json();
       if (data && data.ok && data.audioBase64) {
-        await new Promise((resolve) => {
+        const played = await new Promise((resolve) => {
           const audio = new Audio(`data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`);
           this.currentAudio = audio;
           this.speechPulseInterval = setInterval(() => {
@@ -310,77 +450,91 @@ window.MultimodalEngine = {
               window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
             }
           }, 110);
-          const cleanup = () => {
+          const cleanup = (ok) => {
             if (this.speechPulseInterval) {
               clearInterval(this.speechPulseInterval);
               this.speechPulseInterval = null;
             }
-            resolve();
+            resolve(ok);
           };
-          audio.onended = cleanup;
-          audio.onerror = cleanup;
-          audio.play().catch(cleanup);
+          audio.onended = () => cleanup(true);
+          audio.onerror = () => cleanup(false);
+          audio.play().catch(() => cleanup(false));
         });
-        return;
+        if (played) return;
       }
     } catch (e) {}
 
-    // Fallback to browser Web Speech only if network/offline
+    // Fallback to browser Web Speech (Sentence-chunked so Chrome never stops after 15 seconds!)
     if (window.speechSynthesis && myToken === this.speechQueueToken) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'ko-KR';
-      utter.rate = cfg.speechRate || 1.05;
-      window.speechSynthesis.speak(utter);
+      const sentences = text.split(/(?<=[.?!。]|다\.|요\.|죠\.|까\?)\s+/).filter(Boolean);
+      for (const s of sentences) {
+        if (myToken !== this.speechQueueToken) break;
+        await new Promise(resolve => {
+          const utter = new SpeechSynthesisUtterance(s);
+          utter.lang = 'ko-KR';
+          utter.rate = cfg.speechRate || 1.06;
+          utter.onend = resolve;
+          utter.onerror = resolve;
+          window.speechSynthesis.speak(utter);
+        });
+      }
     }
   },
 
   async speakNeuralTurns(dialogueTurns, fallbackText = '') {
     this.stopAllSpeech();
     const myToken = this.speechQueueToken;
-    const turns = Array.isArray(dialogueTurns) && dialogueTurns.length > 0
-      ? dialogueTurns
-      : [{ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', avatar: '/agent_images/geonu/analyze.png', text: fallbackText }];
+    // Combine all turns into a single seamless J.A.R.V.I.S. speech turn so only J.A.R.V.I.S. speaks and reads 100% to the end
+    const fullText = Array.isArray(dialogueTurns) && dialogueTurns.length > 0
+      ? dialogueTurns.map(t => t.text).filter(Boolean).join(' ')
+      : fallbackText;
 
-    for (const turn of turns) {
-      if (myToken !== this.speechQueueToken) break;
-      await this.playSingleNeuralTurn(turn, myToken);
-    }
+    await this.playSingleNeuralTurn({ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text: fullText }, myToken);
   },
 
-  speakStewardReply(text, persona = 'jarvis') {
+  speakStewardReply(text) {
     if (!text) return;
-    const speaker = persona === 'soha' ? '👩‍💼 수석비서 소하' : '🤖 J.A.R.V.I.S.';
-    const avatar = persona === 'soha' ? '/agent_images/soha/explain.png' : '/agent_images/geonu/analyze.png';
-    this.speakNeuralTurns([{ persona, speaker, avatar, text }], text);
+    this.speakNeuralTurns([{ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text }], text);
+  },
+
+  clearThinkingBubble() {
+    document.getElementById('chat-thinking-bubble')?.remove();
   },
 
   async sendCommandToJarvis(message) {
     if (!message) return;
-    const personaSelect = document.getElementById('jarvis-persona-select');
-    const personaMode = personaSelect ? personaSelect.value : 'cowork';
-    window.BSC_WORLDVIEW.showToast('👑 이건우 대표님 (CEO)', message, null, '⚡ 실시간 멀티턴 문맥 & ADE·IDE 브릿지 추론 중...');
+    if (this.pendingPcActionKey && /^(승인(해(요|주세요)?)?|실행\s*승인|허락(해(요)?)?|오케이|ok|yes)\s*[.!]?\s*$/i.test(message.trim())) {
+      this.executeApprovedPcAction(this.pendingPcActionKey);
+      return;
+    }
+    const personaMode = 'jarvis';
+    window.BSC_WORLDVIEW.showToast('👑 이건우 대표님 (CEO)', message, null, '자비스가 말씀을 처리하는 중입니다.');
 
-    // Ensure Live Agent Chat Drawer is visible and show optimistic user bubble
     this.toggleChatDrawer(true);
     const feed = document.getElementById('agent-chat-feed');
     if (feed) {
       const tempDiv = document.createElement('div');
       tempDiv.className = 'chat-bubble user';
-      tempDiv.innerHTML = `<div class="bubble-meta"><span>👑 이건우 대표님 (CEO)</span></div><div class="bubble-text">${message}</div>`;
+      const meta = document.createElement('div');
+      meta.className = 'bubble-meta';
+      meta.textContent = '👑 이건우 대표님 (CEO)';
+      const body = document.createElement('div');
+      body.className = 'bubble-text';
+      body.textContent = message;
+      tempDiv.appendChild(meta);
+      tempDiv.appendChild(body);
       feed.appendChild(tempDiv);
 
       const thinkDiv = document.createElement('div');
       thinkDiv.id = 'chat-thinking-bubble';
       thinkDiv.className = 'chat-bubble assistant';
-      thinkDiv.innerHTML = `<div class="bubble-meta"><span>⚡ 에이전트 팀이 ADE·IDE 문맥을 확인하며 답변 작성 중...</span></div>`;
+      const thinkMeta = document.createElement('div');
+      thinkMeta.className = 'bubble-meta';
+      thinkMeta.textContent = '자비스가 답변을 준비하는 중입니다.';
+      thinkDiv.appendChild(thinkMeta);
       feed.appendChild(thinkDiv);
       feed.scrollTop = feed.scrollHeight;
-    }
-
-    // Check if user said "승인해" for a pending PC action
-    if (this.pendingPcActionKey && /승인|실행해|허락|오케이|ok|yes/i.test(message)) {
-      this.executeApprovedPcAction(this.pendingPcActionKey);
-      return;
     }
 
     try {
@@ -392,7 +546,7 @@ window.MultimodalEngine = {
           message,
           context: {
             personaMode,
-            llmEngine: cfg.llmEngine || 'gemma4:e2b',
+            llmEngine: cfg.llmEngine || 'gemma4:e4b',
             speakingStyle: cfg.speakingStyle || 'NATURAL_AGENT_CONVERSATION'
           }
         })
@@ -421,13 +575,28 @@ window.MultimodalEngine = {
       if (data.telemetry) {
         window.BSC_WORLDVIEW.updateTelemetryUI(data.telemetry);
       }
+      this.clearThinkingBubble();
       if (data.dialogueTurns && data.dialogueTurns.length > 0) {
         this.speakNeuralTurns(data.dialogueTurns, data.reply);
       } else if (data.reply) {
         this.speakStewardReply(data.reply);
       }
     } catch (e) {
-      console.error(e);
+      this.clearThinkingBubble();
+      const errFeed = document.getElementById('agent-chat-feed');
+      if (errFeed) {
+        const err = document.createElement('div');
+        err.className = 'chat-bubble assistant';
+        const errMeta = document.createElement('div');
+        errMeta.className = 'bubble-meta';
+        errMeta.textContent = '🤖 J.A.R.V.I.S.';
+        const errBody = document.createElement('div');
+        errBody.className = 'bubble-text';
+        errBody.textContent = '대표님, 서버에 닿지 못했습니다. 자비스 서버가 켜져 있는지 확인해 주십시오.';
+        err.appendChild(errMeta);
+        err.appendChild(errBody);
+        errFeed.appendChild(err);
+      }
     }
   },
 
@@ -1044,16 +1213,56 @@ window.MultimodalEngine = {
       this.toggleChatDrawer(false);
     });
 
-    // Agent Quick-Call Chips inside Chat Drawer
-    document.querySelectorAll('#agent-quick-chips .agent-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('#agent-quick-chips .agent-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        const agentKey = chip.dataset.agentCall || 'cowork';
-        const sel = document.getElementById('jarvis-persona-select');
-        if (sel) sel.value = agentKey;
-        drawerInput?.focus();
+    // Separate BeausCreators Agent Council Window (💬 의논 · 🏛️ 회의 · 📋 보고서)
+    this.activeCouncilMode = 'DISCUSS';
+    document.getElementById('btn-open-bsc-council')?.addEventListener('click', () => {
+      this.toggleBscCouncilWindow();
+    });
+    document.getElementById('orb-bsc-council')?.addEventListener('click', () => {
+      this.toggleBscCouncilWindow();
+    });
+    document.getElementById('btn-open-council-from-drawer')?.addEventListener('click', () => {
+      this.toggleBscCouncilWindow(true);
+    });
+    document.getElementById('btn-close-bsc-council')?.addEventListener('click', () => {
+      this.toggleBscCouncilWindow(false);
+    });
+
+    document.querySelectorAll('.bsc-council-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bsc-council-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeCouncilMode = btn.dataset.councilMode || 'MEETING';
+        document.getElementById('bsc-council-input')?.focus();
       });
+    });
+
+    document.getElementById('bsc-council-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const cInput = document.getElementById('bsc-council-input');
+      const val = cInput ? cInput.value.trim() : '';
+      if (!val) return;
+      cInput.value = '';
+      this.submitBscCouncilTopic(val, this.activeCouncilMode || 'MEETING');
+    });
+
+    // Full System Review (검토) · Inspection (검수) · Verification (검증) & Harness² Self-Evolution
+    document.getElementById('btn-run-full-verify')?.addEventListener('click', () => {
+      this.runFullSystemVerificationUI();
+    });
+    document.getElementById('btn-council-verify-system')?.addEventListener('click', () => {
+      this.runFullSystemVerificationUI();
+    });
+
+    // Toast Full-Read & Stop Voice Controls
+    document.getElementById('btn-toast-read-full')?.addEventListener('click', () => {
+      const txt = window.BSC_WORLDVIEW?.lastSpokenText || document.getElementById('toast-text')?.textContent || '';
+      if (txt) {
+        this.speakStewardReply(txt);
+      }
+    });
+    document.getElementById('btn-toast-stop-voice')?.addEventListener('click', () => {
+      this.stopAllSpeech();
     });
 
     // 1-Click Export Current Chat to 6 Formats (PNG/Video/MD/Word/PPT/PDF) & Sync to ADE/IDE/Google Drive

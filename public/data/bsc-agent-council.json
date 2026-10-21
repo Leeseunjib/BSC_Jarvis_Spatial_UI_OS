@@ -1,0 +1,59 @@
+{
+  "updatedAt": "2026-10-21T07:55:07.104Z",
+  "sessions": [
+    {
+      "id": "council-welcome",
+      "timestamp": "오후 4:55:07",
+      "mode": "MEETING",
+      "topic": "BeausCreators 에이전트 의논·회의·보고서 전용 시스템 가동 보고",
+      "entries": [
+        {
+          "agentId": "taejun",
+          "speaker": "👔 비서실장 태준 (총괄·의결)",
+          "avatar": "/agent_images/taejun/tactics.png",
+          "roleTag": "회의 총괄",
+          "text": "이건우 대표님, 자비스 메인 시스템(자비스 단독 음성·1:1 티키타카)과 완벽히 분리된 『BeausCreators 에이전트 전용 의논·회의·보고서 워크스페이스』입니다. 상단에서 [💬 의논], [🏛️ 회의], [📋 보고서] 모드를 선택하시고 안건을 던져주시면 본사 에이전트들이 즉시 협업하여 결과를 도출합니다."
+        }
+      ],
+      "reportPath": ""
+    },
+    {
+      "id": "council-1792569307059",
+      "timestamp": "오후 4:55:07",
+      "mode": "MEETING",
+      "modeLabel": "🏛️ [회의 (Council Meeting)] 부서별 릴레이 발언 및 태준 비서실장 의결",
+      "topic": "Google Harness² 재귀 진화 극대화 및 자비스 단독 보이스 + BeausCreators 에이전트 워룸 이원화",
+      "entries": [
+        {
+          "agentId": "soha",
+          "speaker": "👩‍💼 수석비서 소하 (기획·일정)",
+          "avatar": "/agent_images/soha/explain.png",
+          "roleTag": "안건 상정",
+          "text": "이건우 대표님께서 발의하신 \"Google Harness² 재귀 진화 극대화 및 자비스 단독 보이스 + BeausCreators 에이전트 워룸 이원화\" 안건에 대해 본사 기획 기준과 우선순위를 정리했습니다. 대표님의 의도가 현장에 100% 반영되도록 핵심 과제를 도출하겠습니다."
+        },
+        {
+          "agentId": "geonu",
+          "speaker": "💻 CTO 거누 (아키텍처·백엔드)",
+          "avatar": "/agent_images/geonu/tactics.png",
+          "roleTag": "아키텍처 발언",
+          "text": "기술 아키텍처 관점에서 자비스 메인 보이스 채널과 본사 에이전트 워룸 채널을 완벽히 분리하고, 끝까지 끊김 없는 멀티청크 TTS 스트리밍과 ADE·IDE 실시간 동기화 파이프라인으로 즉시 뒷받침하겠습니다."
+        },
+        {
+          "agentId": "woojin",
+          "speaker": "🧠 AI 연구원 우진 (Harness²·LLM)",
+          "avatar": "/agent_images/geonu/explain.png",
+          "roleTag": "Harness² 전략",
+          "text": "Google Research Harness²의 Propose-Probe-Compose 루프와 Experience Library R을 통해 이번 논의에서 도출된 규칙을 EXPERIENCE.md에 즉시 영구 각인하여, 대화가 거듭될수록 스스로 똑똑해지는 재귀 성장을 가동하겠습니다."
+        },
+        {
+          "agentId": "taejun",
+          "speaker": "👔 비서실장 태준 (총괄·의결)",
+          "avatar": "/agent_images/taejun/tactics.png",
+          "roleTag": "최종 의결",
+          "text": "세 부서의 의견을 종합하여 \"Google Harness² 재귀 진화 극대화 및 자비스 단독 보이스 + BeausCreators 에이전트 워룸 이원화\" 실행안을 최종 의결합니다. 본 회의록과 보고서는 본사 보고서 폴더(01.보고서)와 작업일지에 동시 보존되었습니다. 대표님, 승인해 주시면 즉시 후속 실행에 착수하겠습니다."
+        }
+      ],
+      "reportPath": "C:\\BeausCreators\\01.BSC_HQ\\1.Documents\\01.보고서\\2026-10-21\\BSC_Agent_MEETING_Report_1792569307057.md"
+    }
+  ]
+}

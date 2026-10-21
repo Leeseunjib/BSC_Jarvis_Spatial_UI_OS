@@ -20,9 +20,21 @@ const { buildBrainGraph } = require('./scripts/build-brain-map');
 const { processCoVisionAndExport, loadHistory } = require('./scripts/co-vision-exporter');
 const {
   loadChatHistory,
+  loadBscCouncilHistory,
+  generateBscAgentCouncilSession,
   getAdeIdeBridgeStatus,
-  generateNaturalAgentConversation
+  generateNaturalAgentConversation,
+  recordDeterministicJarvisTurn
 } = require('./scripts/live-agent-chat-engine');
+const { runFullSystemAuditAndVerification } = require('./scripts/jarvis-system-verifier');
+
+let harness2Engine = null;
+try {
+  const h2Path = 'C:\\BeausCreators\\01.BSC_HQ\\3.CompanyOS\\Scripts\\Invoke-Harness2Engine.js';
+  if (fs.existsSync(h2Path)) {
+    harness2Engine = require(h2Path);
+  }
+} catch (e) {}
 
 const PORT = process.env.JARVIS_PORT ? Number(process.env.JARVIS_PORT) : 7777;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
@@ -32,7 +44,7 @@ const BRAIN_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'brain.json');
 const SETTINGS_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'jarvis-settings.json');
 const HQ_ROSTER_PATH = 'C:\\BeausCreators\\01.BSC_HQ\\2.Agents\\에이전트\\00.시스템\\05.System_Data_and_Docs\\agent_status.json';
 
-// 🎙️ Neural & Open-Source Voice Profiles ($0 Free High-Definition TTS)
+// 🎙️ J.A.R.V.I.S. Exclusive Voice Profile (Single Unified J.A.R.V.I.S. Voice per CEO Directive)
 const NEURAL_VOICE_PROFILES = {
   jarvis: {
     voice: 'ko-KR-HyunsuMultilingualNeural',
@@ -40,108 +52,68 @@ const NEURAL_VOICE_PROFILES = {
     pitch: '-3Hz',
     speakerTitle: '🤖 J.A.R.V.I.S.',
     avatar: '/agent_images/geonu/analyze.png'
-  },
-  soha: {
-    voice: 'ko-KR-SunHiNeural',
-    rate: '+8%',
-    pitch: '+2Hz',
-    speakerTitle: '👩‍💼 수석비서 소하',
-    avatar: '/agent_images/soha/explain.png'
-  },
-  taejun: {
-    voice: 'ko-KR-InJoonNeural',
-    rate: '+6%',
-    pitch: '-4Hz',
-    speakerTitle: '👔 비서실장 태준',
-    avatar: '/agent_images/taejun/tactics.png'
-  },
-  geonu: {
-    voice: 'en-US-BrianMultilingualNeural',
-    rate: '+7%',
-    pitch: '-1Hz',
-    speakerTitle: '💻 CTO 거누',
-    avatar: '/agent_images/geonu/success.png'
   }
 };
 
 function cleanTextForSpeech(rawText) {
   return String(rawText || '')
-    .replace(/```[\s\S]*?```/g, '')
+    .replace(/```[\s\S]*?```/g, ' 코드 블록 생략. ')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
     .replace(/[*#_~>|『』「」]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .slice(0, 320);
+    .slice(0, 4000); // Raised from 320 to 4,000 so J.A.R.V.I.S. reads 100% of window content to the very end!
 }
 
-async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customOpts = {}) {
-  const cleanText = cleanTextForSpeech(rawText);
-  if (!cleanText) {
-    return { ok: false, error: 'Empty speech text' };
-  }
+function stripLeadingId3(buf) {
+  if (!buf || buf.length < 10) return buf;
+  if (buf[0] !== 0x49 || buf[1] !== 0x44 || buf[2] !== 0x33) return buf;
+  const size = ((buf[6] & 0x7f) << 21) | ((buf[7] & 0x7f) << 14) | ((buf[8] & 0x7f) << 7) | (buf[9] & 0x7f);
+  const start = 10 + size;
+  return start < buf.length ? buf.subarray(start) : buf;
+}
 
-  // 1. Optional Local Open-Source GPU TTS (Chatterbox Multilingual / Qwen3-TTS / CosyVoice 3 on port 7860)
-  const ttsEngine = customOpts.ttsEngine || 'edge-neural-hd';
-  if (/chatterbox|qwen3|cosyvoice|voxcpm/i.test(ttsEngine)) {
-    try {
-      const localUrl = (customOpts.localTtsUrl || 'http://127.0.0.1:7860').replace(/\/$/, '') + '/tts';
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 2200);
-      const localRes = await fetch(localUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          text: cleanText,
-          lang: customOpts.lang || 'ko',
-          exaggeration: customOpts.exaggeration || 0.5,
-          cfg_weight: customOpts.cfgWeight || 0.45
-        })
-      });
-      clearTimeout(tid);
-      if (localRes.ok) {
-        const localData = await localRes.json();
-        if (localData && localData.ok && localData.audioBase64) {
-          const profile = NEURAL_VOICE_PROFILES[personaKey] || NEURAL_VOICE_PROFILES.jarvis;
-          return {
-            ok: true,
-            personaKey,
-            voiceName: localData.engine || ttsEngine,
-            speakerTitle: profile.speakerTitle,
-            avatar: profile.avatar,
-            mimeType: localData.mimeType || 'audio/wav',
-            byteLength: localData.audioBase64.length,
-            audioBase64: localData.audioBase64
-          };
-        }
+function splitTextIntoSentenceChunks(text, maxChunkLen = 800) {
+  const sentences = text
+    .split(/(?<=[.?!。]|다\.|요\.|죠\.|까\?|네\.)\s+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+  const chunks = [];
+  let current = '';
+  for (const s of sentences) {
+    if (s.length > maxChunkLen) {
+      if (current) {
+        chunks.push(current);
+        current = '';
       }
-    } catch (e) {
-      // Seamlessly fall back to zero-latency Neural HD stream if local Python GPU daemon is offline
+      for (let i = 0; i < s.length; i += maxChunkLen) {
+        chunks.push(s.slice(i, i + maxChunkLen));
+      }
+    } else if ((current ? `${current} ${s}` : s).length <= maxChunkLen) {
+      current = current ? `${current} ${s}` : s;
+    } else {
+      if (current) chunks.push(current);
+      current = s;
     }
   }
+  if (current) chunks.push(current);
+  return chunks.length > 0 ? chunks : [text];
+}
 
-  const profile = NEURAL_VOICE_PROFILES[personaKey] || NEURAL_VOICE_PROFILES.jarvis;
-  const chosenVoice = customOpts.voiceId || profile.voice;
-  let rateStr = profile.rate;
-  if (typeof customOpts.speechRate === 'number' && !isNaN(customOpts.speechRate)) {
-    const pct = Math.round((customOpts.speechRate - 1.0) * 100);
-    rateStr = (pct >= 0 ? `+${pct}%` : `${pct}%`);
-  }
-  const pitchStr = customOpts.pitchHz || profile.pitch;
-
+async function synthesizeSingleEdgeChunk(chunkText, chosenVoice, rateStr, pitchStr) {
   const tts = new MsEdgeTTS();
   try {
     await tts.setMetadata(chosenVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    const { audioStream } = tts.toStream(cleanText, {
+    const { audioStream } = tts.toStream(chunkText, {
       rate: rateStr,
       pitch: pitchStr
     });
-    const chunks = [];
+    const parts = [];
     await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('Neural TTS stream timeout')), 8000);
-      audioStream.on('data', chunk => chunks.push(chunk));
+      const timer = setTimeout(() => reject(new Error('Neural TTS chunk timeout')), 12000);
+      audioStream.on('data', d => parts.push(d));
       audioStream.on('end', () => {
         clearTimeout(timer);
         resolve();
@@ -152,23 +124,57 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customO
       });
     });
     try { tts.close(); } catch (e) {}
-    const buf = Buffer.concat(chunks);
-    if (buf.length === 0 && chosenVoice !== 'ko-KR-HyunsuMultilingualNeural') {
-      return synthesizeNeuralKoreanTts(rawText, personaKey, { ...customOpts, voiceId: 'ko-KR-HyunsuMultilingualNeural' });
+    return Buffer.concat(parts);
+  } catch (e) {
+    try { tts.close(); } catch (err) {}
+    return Buffer.alloc(0);
+  }
+}
+
+async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customOpts = {}) {
+  const cleanText = cleanTextForSpeech(rawText);
+  if (!cleanText) {
+    return { ok: false, error: 'Empty speech text' };
+  }
+
+  // Always use J.A.R.V.I.S. exclusive voice profile
+  const profile = NEURAL_VOICE_PROFILES.jarvis;
+  const chosenVoice = customOpts.voiceId || profile.voice;
+  let rateStr = profile.rate;
+  if (typeof customOpts.speechRate === 'number' && !isNaN(customOpts.speechRate)) {
+    const pct = Math.round((customOpts.speechRate - 1.0) * 100);
+    rateStr = (pct >= 0 ? `+${pct}%` : `${pct}%`);
+  }
+  const pitchStr = customOpts.pitchHz || profile.pitch;
+
+  try {
+    const sentenceChunks = splitTextIntoSentenceChunks(cleanText, 800);
+    const audioBuffers = [];
+    for (const chunk of sentenceChunks) {
+      if (!chunk.trim()) continue;
+      let buf = await synthesizeSingleEdgeChunk(chunk, chosenVoice, rateStr, pitchStr);
+      if (buf.length === 0 && chosenVoice !== 'ko-KR-HyunsuMultilingualNeural') {
+        buf = await synthesizeSingleEdgeChunk(chunk, 'ko-KR-HyunsuMultilingualNeural', rateStr, pitchStr);
+      }
+      if (buf.length > 0) {
+        audioBuffers.push(audioBuffers.length === 0 ? buf : stripLeadingId3(buf));
+      }
     }
+    const finalBuf = Buffer.concat(audioBuffers);
     return {
-      ok: buf.length > 0,
-      personaKey,
+      ok: finalBuf.length > 0,
+      personaKey: 'jarvis',
       voice: chosenVoice,
       voiceName: chosenVoice,
       speakerTitle: profile.speakerTitle,
       avatar: profile.avatar,
+      chunkCount: sentenceChunks.length,
+      charLength: cleanText.length,
       mimeType: 'audio/mp3',
-      byteLength: buf.length,
-      audioBase64: buf.toString('base64')
+      byteLength: finalBuf.length,
+      audioBase64: finalBuf.toString('base64')
     };
   } catch (err) {
-    try { tts.close(); } catch (e) {}
     return { ok: false, error: err.message };
   }
 }
@@ -384,11 +390,11 @@ const osActionQueue = [
   }
 ];
 
-// Intelligent Co-Creation & Autonomous Window Spawner Dialogue Engine (Movie J.A.R.V.I.S. Concise Executive Style + Local Gemma 4)
+// Intelligent Co-Creation & Autonomous Window Spawner Dialogue Engine (Google Harness² + Local Gemma 4 e4b Tiki-Taka)
 async function processJarvisTurn(message, contextState = {}) {
   const q = (message || '').trim();
-  const personaMode = contextState.personaMode || 'jarvis'; // Default to crisp Movie J.A.R.V.I.S. ('jarvis' | 'cowork' | 'soha' | 'taejun' | 'geonu')
-  const selectedModel = contextState.llmEngine || 'gemma4:e2b';
+  const personaMode = contextState.personaMode || 'jarvis';
+  const selectedModel = contextState.llmEngine || 'gemma4:e4b';
   const summonedWindows = [];
   let graphCommand = null;
   let coreMode = null;
@@ -400,11 +406,13 @@ async function processJarvisTurn(message, contextState = {}) {
   let delegatedAgent = '🤖 J.A.R.V.I.S.';
   let primaryPersona = personaMode === 'soha' ? 'soha' : (personaMode === 'taejun' ? 'taejun' : (personaMode === 'geonu' ? 'geonu' : 'jarvis'));
 
+  // Only summon studio windows when 대표님 explicitly gives an open/summon command
+  const hasExplicitOpenCmd = /열어|띄워|켜줘|소환|보여줘|가동해|실행해/i.test(q);
+
   // 0-A. Settings Modal trigger
   if (/설정\s*창|환경\s*설정|설정\s*열어|settings|세팅\s*열어/i.test(q)) {
     openSettingsModal = true;
     reply = '대표님, 통합 환경설정 제어판을 열었습니다. 오픈모델, 성우 음색, 테마, 음성 매크로를 즉시 변경하실 수 있습니다.';
-    sohaAddon = '대표님, 원하시는 프리셋을 원클릭으로 바로 적용해 보세요!';
   }
   // 0-A2. 15-Second Executive Morning/Closing Briefing ("자비스, 오늘 브리핑")
   else if (/오늘\s*브리핑|모닝\s*브리핑|마감\s*브리핑|전체\s*브리핑|15초\s*브리핑|전사\s*브리핑/i.test(q)) {
@@ -425,107 +433,78 @@ async function processJarvisTurn(message, contextState = {}) {
       content: briefMd
     });
     reply = briefData.speechScript || `이건우 대표님, 현재 코어 요원 ${briefData.activeAgents}명이 가동 중이며 승인 대기 안건은 ${pendingCnt}건입니다. 1순위 안건부터 브리핑할까요?`;
-    sohaAddon = `오늘 보고서 ${briefData.reportCount}건과 작업일지 정합성 검수도 모두 마쳤습니다, 대표님!`;
   }
-  // 0-A3. Hand Gesture (HOLO Air-Touch) Activation & Guide ("손동작", "제스처", "에어터치")
-  else if (/손동작|제스처|에어\s*터치|손\s*인식|gesture|air\s*touch|홀로\s*모드/i.test(q)) {
+  // 0-A3. Hand Gesture (HOLO Air-Touch) Activation & Guide
+  else if (hasExplicitOpenCmd && /손동작|제스처|에어\s*터치|손\s*인식|gesture|air\s*touch|홀로\s*모드/i.test(q)) {
     activateHoloGesture = true;
-    reply = '이건우 대표님, 우측 하단 HOLO 손동작 제어 HUD를 즉시 활성화했습니다. 카메라 앞 손동작이나 5대 제스처 패드로 3D 은하 회전, 15초 브리핑, 승인 실행이 가능합니다.';
-    sohaAddon = '브이(✌️) 포즈를 취하시면 15초 브리핑이, 엄지 척(👍)을 하시면 대기 안건 승인이 즉시 실행됩니다!';
+    reply = '이건우 대표님, 우측 하단 HOLO 손동작 제어 HUD를 즉시 활성화했습니다.';
   }
-  // 0-B. Open-Source TTS & 23-Language Voice Cloning Studio (YouTube pnQUKnmPkFg)
-  else if (/더빙|chatterbox|채터박스|qwen3-tts|보이스\s*클로닝|목소리\s*복제|15개.*성우|오픈소스\s*tts/i.test(q)) {
+  // 0-B. Open-Source TTS & 23-Language Voice Cloning Studio
+  else if (hasExplicitOpenCmd && /더빙|chatterbox|채터박스|qwen3-tts|보이스\s*클로닝|목소리\s*복제|오픈소스\s*tts/i.test(q)) {
     summonedWindows.push({
       windowType: 'OPEN_TTS_STUDIO',
       title: '🎙️ 오픈소스 TTS & 23개국어 보이스 클로닝 스튜디오 (Chatterbox · Qwen3-TTS · VoxCPM2)',
       subtitle: 'CONNECT AI LAB 15-Model Benchmark Winner · Timbre 0.75 · Zero-Cost Dubbing'
     });
-    reply = '대표님, 오픈소스 TTS 15종 벤치마크 1위인 Chatterbox 23개국어 보이스 클로닝 및 Qwen3-TTS 스튜디오를 가동했습니다.';
-    sohaAddon = '10초 음성 샘플로 한국어 말투 간섭 없이 원어민 억양 더빙이 준비되었습니다!';
   }
-  // 0-C. Current Model / Gemma / Ollama / Voice inquiry
-  else if (/어떤\s*모델|무슨\s*모델|현재\s*모델|gemma|젬마|올라마|ollama|누구랑|어떤\s*엔진|파라미터|목소리|성우|음성.*불편|챗봇/i.test(q)) {
-    summonedWindows.push({
-      windowType: 'AI_STUDIO_HUB',
-      title: '⚡ Google AI Studio × 로컬 Gemma 4 (e2b / e4b / 31b) & 오픈소스 TTS 통합 허브',
-      subtitle: 'Local Ollama Gemma 4 · Chatterbox / Qwen3-TTS / Edge Neural HD'
-    });
-    reply = '대표님, 현재 로컬 Ollama의 Google Gemma 4 코어(e2b·e4b·31b)가 제 두뇌로 직결되어 과금 0원으로 가동 중입니다. 음성은 신경망 HD 성우 및 오픈소스 Chatterbox 파이프라인으로 출력합니다.';
-    sohaAddon = '대표님, 상단 바의 [⚙️ 설정]에서 언제든 다른 오픈모델이나 성우 음색으로 즉시 전환하실 수 있어요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. (Gemma 4)';
-  }
-  // 1. Google AI Studio Hub / 18 Modules / 9-Model Router / Laya / Presets / Voice Macros
-  else if (/ai\s*studio|스튜디오\s*허브|통합\s*허브|18대|18개|17대|17개|9대\s*모델|라우터|laya|프리셋|음성\s*매크로|전체\s*기능/i.test(q)) {
+  // 1. Google AI Studio Hub / 18 Modules
+  else if (hasExplicitOpenCmd && /ai\s*studio|스튜디오\s*허브|통합\s*허브|18대|18개|9대\s*모델|라우터/i.test(q)) {
     summonedWindows.push({
       windowType: 'AI_STUDIO_HUB',
       title: '⚡ Google AI Studio × BSC J.A.R.V.I.S. 18대 스튜디오 & 오픈모델 통합 허브',
       subtitle: 'Gemma 4 (e4b/e2b/31b) · Laya-421M · REA-14B · Chatterbox TTS'
     });
-    reply = '대표님, 18개 전체 스튜디오와 오픈모델 라우터를 총괄하는 통합 관제 허브를 소환했습니다.';
-    sohaAddon = '상단 도메인 바에서도 모든 스튜디오를 원클릭으로 바로 여실 수 있습니다!';
   }
   // 1-B. MAPS 4-Layer & REA Reverse Engineering Studio
-  else if (/\bmaps\b|\brea\b|역공학|디컴파일|펄스|\bpulse\b|메모리\s*볼트|ghidra|asar/i.test(q)) {
+  else if (hasExplicitOpenCmd && /\bmaps\b|\brea\b|역공학|디컴파일|메모리\s*볼트|ghidra|asar/i.test(q)) {
     summonedWindows.push({
       windowType: 'MAPS_REA_STUDIO',
       title: '🗺️ MAPS 4계층(Memory·Agent·Pulse·Screen) & REA 오픈모델 역공학 스튜디오',
       subtitle: 'pavrus117/ai-os-maps-guide + morluto/rea (rea-open-agent-14b MCP)'
     });
-    reply = '대표님, MAPS 4계층 메모리 볼트와 REA 바이너리 역공학 디컴파일 워크벤치를 열었습니다.';
-    sohaAddon = '거누 CTO가 정적 보안 감사 준비를 마쳤습니다!';
   }
   // 1-C. SRP Agent Registry & Personality Studio
-  else if (/레지스트리|페르소나|일괄.*활성|일괄.*토글|agent\s*registry/i.test(q)) {
+  else if (hasExplicitOpenCmd && /레지스트리|페르소나\s*창|agent\s*registry/i.test(q)) {
     summonedWindows.push({
       windowType: 'AGENT_REGISTRY',
       title: '🤖 SRP 에이전트 레지스트리 & 페르소나 슬라이더 & BSC 28인 요원 스튜디오',
       subtitle: 'class AgentManagementController · Bulk Status Toggle (Active / Inactive / Invert)'
     });
-    reply = '대표님, 에이전트 레지스트리를 소환했습니다. 요원 일괄 활성화 및 페르소나 슬라이더 조율이 가능합니다.';
-    sohaAddon = '28명 요원들의 실시간 상태가 모두 동기화되었습니다!';
   }
   // 1-D. Character 360 Turnaround & Blender 3D VFX Studio
-  else if (/캐릭터|턴어라운드|360|블렌더|blender|vfx|\bobj\b|스토리보드|barehands/i.test(q)) {
+  else if (hasExplicitOpenCmd && /턴어라운드|360|블렌더|blender|vfx|\bobj\b/i.test(q)) {
     summonedWindows.push({
       windowType: 'CREATIVE_BLENDER',
       title: '🎨 캐릭터 360° 턴어라운드 시트 · Wavefront .OBJ · Blender 3D VFX 스튜디오',
       subtitle: 'class CharacterAssetStudioController · Cycles / EEVEE Next bpy Synthesizer'
     });
-    reply = '대표님, 360도 캐릭터 턴어라운드 시트와 블렌더 3D VFX 합성 스튜디오를 가동했습니다.';
-    sohaAddon = 'Wavefront .OBJ 메쉬와 bpy 스크립트를 즉시 추출하실 수 있어요!';
   }
   // 1-E. 9-Model Benchmark & RL (GRPO / Unsloth) Studio
-  else if (/강화학습|\bgrpo\b|unsloth|벤치마크|양자화|가중치|왜도|skewness|\bslm\b/i.test(q)) {
+  else if (hasExplicitOpenCmd && /강화학습|\bgrpo\b|unsloth|벤치마크|양자화/i.test(q)) {
     summonedWindows.push({
       windowType: 'RL_BENCHMARK',
       title: '🧠 로컬 Gemma 4 / SLM 벤치마크 & Unsloth GRPO 강화학습 가중치 스튜디오',
       subtitle: 'Q4_K_M / Q8_0 / FP16 Benchmark · 5-Layer Skewness Histogram · Full-System Audit'
     });
-    reply = '대표님, 오픈모델 양자화 속도 벤치마크 및 GRPO 강화학습 가중치 분석 스튜디오를 띄웠습니다.';
-    sohaAddon = '레이어별 가중치 정규분포 히스토그램이 정상 수렴 중입니다!';
   }
-  // 1-F. Co-Vision Shared Sight & 6-Format Exporter (Image/Video/MD/Word/PPT/PDF) + OmniParser & Face Empathy Studio
-  else if (/옴니파서|omniparser|얼굴\s*교감|표정|피로도|시선|비전\s*스튜디오|face-to-face|시야|내가\s*보는|보고\s*있는|워드|docx|피티|ppt|구글\s*드라이브|문서로\s*만들/i.test(q)) {
+  // 1-F. Co-Vision Shared Sight & 6-Format Exporter Studio
+  else if (hasExplicitOpenCmd && /옴니파서|omniparser|비전|시야\s*공유|얼굴\s*교감|문서로\s*만들/i.test(q)) {
     summonedWindows.push({
       windowType: 'VISION_FACE',
       title: '👁️ Co-Vision 카메라 시야공유 · 6종 산출물(이미지·영상·MD·Word·PPT·PDF) 제작 · ADE/IDE/Google Drive 스튜디오',
       subtitle: 'Gemma 4 Multimodal Vision · Auto-Export (.png/.webm/.md/.docx/.pptx/.pdf) · 4-Way Archive Sync'
     });
-    reply = '대표님, 카메라 및 화면 공유 시야(Co-Vision)를 분석하여 이미지, 영상, 마크다운, 워드, 파워포인트, PDF 6종 문서를 동시 생성하고 ADE·IDE·구글 드라이브로 자동 아카이빙하는 스튜디오를 열었습니다.';
-    sohaAddon = '채팅창에 남겨주시는 모든 시각 대화 기록이 4대 저장소에 실시간으로 영구 보존됩니다!';
   }
   // 1-G. AlphaFold BioScience & Autonomous Simulation & Antigravity IDE Bridge
-  else if (/바이오|알파폴드|alphafold|단백질|tp53|egfr|brca1|모의훈련|시뮬레이션|안티그래비티\s*ide|자가치유/i.test(q)) {
+  else if (hasExplicitOpenCmd && /바이오|알파폴드|alphafold|단백질|모의훈련/i.test(q)) {
     summonedWindows.push({
       windowType: 'SIM_BIO_IDE',
       title: '🧬 AlphaFold 바이오사이언스 · 자율 모의훈련 ROI · Antigravity IDE 브릿지',
       subtitle: 'TP53 / EGFR / BRCA1 pLDDT & ClinVar · Monte Carlo Simulation · AST Self-Healing'
     });
-    reply = '대표님, AlphaFold 단백질 구조 분석, 몬테카를로 모의훈련 및 IDE 자가치유 브릿지 창을 열었습니다.';
-    sohaAddon = 'pLDDT 신뢰도와 ClinVar 변이 지표가 로드되었습니다!';
   }
   // 1-H. Manual / Help / Guide
-  else if (/설명서|매뉴얼|가이드|사용법|도와줘|manual|help|창.*띄워/i.test(q)) {
+  else if (hasExplicitOpenCmd && /설명서|매뉴얼|사용법|manual/i.test(q)) {
     const manualPath = path.join(VAULT_DIR, '03_Multimodal_HUD_Manual.md');
     const manualContent = fs.existsSync(manualPath) ? fs.readFileSync(manualPath, 'utf8') : '';
     summonedWindows.push({
@@ -534,11 +513,9 @@ async function processJarvisTurn(message, contextState = {}) {
       subtitle: 'vault/03_Multimodal_HUD_Manual.md · MAPS 2-Hop Instant Load',
       content: manualContent
     });
-    reply = '대표님, 멀티모달 제어와 18대 스튜디오 사용법을 정리한 마스터 설명서를 띄웠습니다.';
-    sohaAddon = '필요하신 기능은 말씀만 하시면 즉시 실행해 드릴게요!';
   }
   // 2. Deep Research / 112 Open-source / Report / Worldview
-  else if (/보고서|딥리서치|오픈소스\s*보고서|112|110|기획서|세계관|장로교|말씀|묵상|report/i.test(q)) {
+  else if (hasExplicitOpenCmd && /보고서|딥리서치|오픈소스\s*보고서|세계관\s*헌장/i.test(q)) {
     let targetFile = path.join(__dirname, 'research', 'JARVIS_110_Sources_Master_Index.md');
     let title = '📊 해외 112개 J.A.R.V.I.S. 오픈소스 딥리서치 보고서';
     if (/세계관|장로교|청지기|말씀|묵상|함께|together|soul/i.test(q)) {
@@ -552,31 +529,25 @@ async function processJarvisTurn(message, contextState = {}) {
       subtitle: targetFile.replace(/\\/g, '/'),
       content
     });
-    reply = `대표님, 『${title}』 뷰어를 중앙 HUD에 소환했습니다. 2-Hop 직접 렌더링으로 4,200 토큰을 절감했습니다.`;
-    sohaAddon = '핵심 항목부터 바로 검토하실 수 있습니다!';
   }
   // 3. Live Console / Agent Status / Token Flow
-  else if (/콘솔|제작|진행|토큰|에이전트|거누|유나|서진|수호|태준|console|token|status|최적화/i.test(q)) {
+  else if (hasExplicitOpenCmd && /콘솔|토큰\s*흐름|관제창/i.test(q)) {
     summonedWindows.push({
       windowType: 'LIVE_CONSOLE',
       title: '💻 실시간 에이전트 제작 콘솔 & 토큰 흐름(Token Flow) 관제창',
       subtitle: 'CHL Harness Gate ACTIVE · MAPS 2-Hop Savings 88.5%'
     });
-    reply = '대표님, 실시간 에이전트 작업 콘솔과 토큰 유량 모니터를 띄웠습니다. 현재 절감률은 88.5%입니다.';
-    sohaAddon = '모든 파이프라인이 정상 가동 중입니다!';
   }
   // 4. Generation Tools / 3D / Diagram / Studio
-  else if (/생성|스튜디오|다이어그램|3d|홀로그램|모형|설계도|프리뷰|studio|generate|diagram/i.test(q)) {
+  else if (hasExplicitOpenCmd && /생성\s*스튜디오|다이어그램\s*창|홀로그램\s*스튜디오/i.test(q)) {
     summonedWindows.push({
       windowType: 'GEN_STUDIO',
       title: '🎨 J.A.R.V.I.S. 통합 생성 스튜디오 (3D 홀로그램 & 아키텍처 & UI 프리뷰)',
       subtitle: 'Interactive 3D GLB + Mermaid Architecture + Live UI Sandbox'
     });
-    reply = '대표님, 3D 홀로그램과 아키텍처 다이어그램을 즉시 생성하는 스튜디오를 가동했습니다.';
-    sohaAddon = '마우스나 HOLO 제스처로 모델을 회전해 보실 수 있어요!';
   }
   // 5. Computer Control / PC Action
-  else if (/컴퓨터|제어|열어|실행|탐색기|메모장|pdf|진단|\bpc\b|control/i.test(q)) {
+  else if (hasExplicitOpenCmd && /탐색기|메모장|하드웨어\s*진단/i.test(q)) {
     let actionKey = 'open_plan_pdf';
     if (/탐색기|폴더/i.test(q)) actionKey = 'open_workspace_explorer';
     else if (/지식창고|본사/i.test(q)) actionKey = 'open_hq_knowledge';
@@ -587,11 +558,9 @@ async function processJarvisTurn(message, contextState = {}) {
       actionKey,
       ...SAFE_PC_ACTIONS[actionKey]
     };
-    reply = `대표님, 『${pcProposal.label}』 실행 준비를 마쳤습니다. 승인해주시면 즉시 집행합니다.`;
-    sohaAddon = '안전 검증을 통과한 명령입니다, 대표님!';
   }
   // 6. Switch Graph View or Core shape
-  else if (/뇌|brain|동심원|ring|타임라인|timeline|영역|area|2d|3d|은하|galaxy|큐브|cube|얼굴|face/i.test(q)) {
+  else if (hasExplicitOpenCmd && /뇌\s*뷰|동심원\s*뷰|타임라인\s*뷰|영역\s*뷰|2d\s*뷰|3d\s*은하|큐브\s*모드|얼굴\s*모드/i.test(q)) {
     if (/뇌|brain/i.test(q)) graphCommand = 'brain';
     else if (/동심원|ring/i.test(q) && !/코어/i.test(q)) graphCommand = 'rings';
     else if (/타임라인|timeline/i.test(q)) graphCommand = 'timeline';
@@ -602,21 +571,73 @@ async function processJarvisTurn(message, contextState = {}) {
     if (/큐브|cube/i.test(q)) coreMode = 'CUBE';
     else if (/얼굴|face/i.test(q)) coreMode = 'FACE';
     else if (/링|ring/i.test(q)) coreMode = 'RING';
-
-    reply = `대표님, 지식 은하 뷰(${graphCommand || '유지'})와 코어 형태(${coreMode || '유지'})를 즉시 전환했습니다.`;
-    sohaAddon = '523개 지식 노드 재배치 완료했습니다!';
   }
 
-  // Always generate a genuinely natural, multi-turn, ADE/IDE context-aware agent conversation
-  // (replaces rigid preset strings while keeping any summoned window / action side-effects intact!)
+  if (!reply && summonedWindows.length > 0) {
+    reply = `대표님, ${summonedWindows[0].title} 창을 열었습니다.`;
+  }
+  if (!reply && graphCommand) {
+    reply = `대표님, 지식 은하를 ${graphCommand} 보기로 바꿨습니다.`;
+  }
+  if (!reply && coreMode) {
+    reply = `대표님, 코어를 ${coreMode} 형태로 바꿨습니다.`;
+  }
+  if (!reply && pcProposal) {
+    reply = `대표님, ${pcProposal.label}은 승인 후에만 실행합니다.`;
+  }
+
+  // 창 열기·설정·승인 요청은 이미 답이 정해져 있다. 로컬 두뇌를 기다리지 않는다.
+  if (reply && !contextState.forceLiveLlm) {
+    const recorded = recordDeterministicJarvisTurn(q, reply);
+    const dialogueTurns = [{
+      persona: 'jarvis',
+      speaker: NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
+      avatar: NEURAL_VOICE_PROFILES.jarvis.avatar,
+      text: reply
+    }];
+    if (summonedWindows.length > 0) {
+      for (const w of summonedWindows) broadcastEvent('summon_window', w);
+    }
+    broadcastEvent('agent_chat_update', {
+      chatHistory: recorded.chatHistory,
+      bridgeStatus: recorded.bridgeStatus,
+      dialogueTurns
+    });
+    logConsoleStream('🤖 J.A.R.V.I.S.', `Command turn: "${q.slice(0, 44)}"`, 0, 0);
+    return {
+      ok: true,
+      reply,
+      jarvisReply: reply,
+      sohaReply: '',
+      dialogueTurns,
+      primaryPersona: 'jarvis',
+      delegatedAgent: '🤖 J.A.R.V.I.S.',
+      fallbackUsed: false,
+      summonedWindows,
+      spawnedWindows: summonedWindows,
+      openSettingsModal,
+      activateHoloGesture,
+      graphCommand,
+      coreMode,
+      pcProposal,
+      chatHistory: recorded.chatHistory,
+      bridgeStatus: recorded.bridgeStatus,
+      telemetry: tokenTelemetry
+    };
+  }
+
+  // Free conversation still goes through the local brain.
   let chatHistory = [];
   let bridgeStatus = getAdeIdeBridgeStatus();
 
   if (!contextState.skipLiveLlm) {
-    const liveConv = await generateNaturalAgentConversation(q, contextState);
+    const liveConv = await generateNaturalAgentConversation(q, {
+      ...contextState,
+      llmEngine: selectedModel
+    });
     if (liveConv && liveConv.primaryText) {
       reply = liveConv.primaryText;
-      sohaAddon = liveConv.secondaryText || sohaAddon;
+      sohaAddon = liveConv.secondaryText || '';
       delegatedAgent = liveConv.primaryAgent
         ? `${liveConv.primaryAgent.speakerTitle} (${liveConv.modelUsed})`
         : `🤖 J.A.R.V.I.S. (${liveConv.modelUsed})`;
@@ -626,23 +647,15 @@ async function processJarvisTurn(message, contextState = {}) {
 
       const dialogueTurnsLive = [
         {
-          persona: liveConv.primaryAgent?.voicePersona || 'jarvis',
-          speaker: liveConv.primaryAgent?.speakerTitle || NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
-          avatar: liveConv.primaryAgent?.avatar || NEURAL_VOICE_PROFILES.jarvis.avatar,
+          persona: 'jarvis',
+          speaker: NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
+          avatar: NEURAL_VOICE_PROFILES.jarvis.avatar,
           text: liveConv.primaryText
         }
       ];
-      if (liveConv.secondaryAgent && liveConv.secondaryText) {
-        dialogueTurnsLive.push({
-          persona: liveConv.secondaryAgent.voicePersona || 'soha',
-          speaker: liveConv.secondaryAgent.speakerTitle,
-          avatar: liveConv.secondaryAgent.avatar,
-          text: liveConv.secondaryText
-        });
-      }
 
-      const fullDisplayReplyLive = dialogueTurnsLive.map(t => `[${t.speaker}] ${t.text}`).join('\n');
-      logConsoleStream(delegatedAgent, `Natural Agent Turn: "${q.slice(0, 44)}" -> ADE/IDE Synced`, 165, 2250);
+      const fullDisplayReplyLive = liveConv.primaryText;
+      logConsoleStream(delegatedAgent, `Harness² Tiki-Taka Turn: "${q.slice(0, 44)}" -> ${liveConv.harness2Notes || 'Synced'}`, 165, 2250);
 
       if (summonedWindows.length > 0) {
         for (const w of summonedWindows) {
@@ -659,10 +672,13 @@ async function processJarvisTurn(message, contextState = {}) {
         ok: true,
         reply: fullDisplayReplyLive,
         jarvisReply: liveConv.primaryText,
-        sohaReply: liveConv.secondaryText || '',
+        sohaReply: '',
         dialogueTurns: dialogueTurnsLive,
-        primaryPersona,
+        primaryPersona: 'jarvis',
         delegatedAgent,
+        harness2Notes: liveConv.harness2Notes,
+        experienceRecorded: liveConv.experienceRecorded,
+        fallbackUsed: Boolean(liveConv.fallbackUsed),
         summonedWindows,
         spawnedWindows: summonedWindows,
         openSettingsModal,
@@ -677,54 +693,19 @@ async function processJarvisTurn(message, contextState = {}) {
     }
   }
 
-  // Construct multi-persona dialogueTurns for authentic autonomous team feel
-  const dialogueTurns = [];
-  if (personaMode === 'soha') {
-    const combinedSoha = sohaAddon ? `${sohaAddon} (${reply})` : reply;
-    dialogueTurns.push({
-      persona: 'soha',
-      speaker: NEURAL_VOICE_PROFILES.soha.speakerTitle,
-      avatar: NEURAL_VOICE_PROFILES.soha.avatar,
-      text: combinedSoha
-    });
-  } else if (personaMode === 'taejun' || personaMode === 'geonu') {
-    const prof = NEURAL_VOICE_PROFILES[personaMode];
-    dialogueTurns.push({
-      persona: personaMode,
-      speaker: prof.speakerTitle,
-      avatar: prof.avatar,
-      text: reply
-    });
-  } else if (personaMode === 'jarvis') {
-    dialogueTurns.push({
+  // Fallback: Single Pure J.A.R.V.I.S. Voice Turn (Never mix other agent voices in main J.A.R.V.I.S. system)
+  const dialogueTurns = [
+    {
       persona: 'jarvis',
       speaker: NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
       avatar: NEURAL_VOICE_PROFILES.jarvis.avatar,
       text: reply
-    });
-  } else {
-    // Default 'cowork': J.A.R.V.I.S. speaks first, then Chief Secretary Soha adds her warm proactive briefing
-    dialogueTurns.push({
-      persona: 'jarvis',
-      speaker: NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
-      avatar: NEURAL_VOICE_PROFILES.jarvis.avatar,
-      text: reply
-    });
-    if (sohaAddon) {
-      dialogueTurns.push({
-        persona: 'soha',
-        speaker: NEURAL_VOICE_PROFILES.soha.speakerTitle,
-        avatar: NEURAL_VOICE_PROFILES.soha.avatar,
-        text: sohaAddon
-      });
     }
-  }
+  ];
 
-  const fullDisplayReply = sohaAddon && personaMode === 'cowork'
-    ? `[자비스] ${reply}\n[수석비서 소하] ${sohaAddon}`
-    : dialogueTurns[0].text;
+  const fullDisplayReply = reply;
 
-  logConsoleStream(delegatedAgent, `Processed: "${q.slice(0, 44)}" -> ${dialogueTurns.length} voice turns, ${summonedWindows.length} window(s)`, 145, 2100);
+  logConsoleStream(delegatedAgent, `Processed: "${q.slice(0, 44)}" -> J.A.R.V.I.S. voice turn, ${summonedWindows.length} window(s)`, 145, 2100);
 
   if (summonedWindows.length > 0) {
     for (const w of summonedWindows) {
@@ -736,9 +717,9 @@ async function processJarvisTurn(message, contextState = {}) {
     ok: true,
     reply: fullDisplayReply,
     jarvisReply: reply,
-    sohaReply: sohaAddon,
+    sohaReply: '',
     dialogueTurns,
-    primaryPersona,
+    primaryPersona: 'jarvis',
     delegatedAgent,
     summonedWindows,
     spawnedWindows: summonedWindows,
@@ -949,8 +930,8 @@ const server = http.createServer(async (req, res) => {
         riskLevel: 'SAFE',
         explanation: turnResult.pcProposal.desc
       }] : [],
-      routedEngine: llmEngine,
-      fallbackUsed: false,
+      routedEngine: turnResult.delegatedAgent || llmEngine,
+      fallbackUsed: Boolean(turnResult.fallbackUsed),
       latencyMs,
       tokensPerSec: 310
     });
@@ -1317,6 +1298,53 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, getAdeIdeBridgeStatus());
   }
 
+  // 10-L. Google Harness² (arXiv:2610.14224) 8-Component Surface & Experience Library R API
+  if (pathname === '/api/jarvis/harness2') {
+    if (req.method === 'GET') {
+      const status = harness2Engine && harness2Engine.getHarness2Status
+        ? harness2Engine.getHarness2Status()
+        : { ok: false, error: 'Harness² Engine not found' };
+      return sendJson(res, 200, status);
+    }
+    if (req.method === 'POST') {
+      const body = await parseBody(req);
+      if (harness2Engine && harness2Engine.recordHarness2Experience) {
+        const recorded = harness2Engine.recordHarness2Experience(body);
+        return sendJson(res, 200, { ok: true, recorded });
+      }
+      return sendJson(res, 500, { ok: false, error: 'Harness² Engine unavailable' });
+    }
+  }
+
+  // 10-M. Separate BeausCreators Agent Council UI API (💬 의논 · 🏛️ 회의 · 📋 보고서 — Text/Doc Only, Never Hijacks J.A.R.V.I.S. Voice)
+  if (pathname === '/api/jarvis/bsc-council') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, {
+        ok: true,
+        ...loadBscCouncilHistory(),
+        bridgeStatus: getAdeIdeBridgeStatus()
+      });
+    }
+    if (req.method === 'POST') {
+      const body = await parseBody(req);
+      const resCouncil = await generateBscAgentCouncilSession(body.topic, body.mode || 'MEETING', body.context || {});
+      broadcastEvent('bsc_council_update', resCouncil);
+      logConsoleStream(
+        '🏢 BeausCreators Council',
+        `[${resCouncil.session?.mode}] "${(body.topic || '').slice(0, 36)}" -> Report Saved`,
+        110,
+        2400
+      );
+      return sendJson(res, 200, resCouncil);
+    }
+  }
+
+  // 10-N. Full System Review (검토), Inspection (검수), Verification (검증) & Harness² Self-Evolution API
+  if (pathname === '/api/jarvis/full-verify') {
+    const auditResult = await runFullSystemAuditAndVerification();
+    return sendJson(res, 200, auditResult);
+  }
+
   if (req.method === 'POST' && pathname === '/api/jarvis/covision-export') {
     const body = await parseBody(req);
     const result = await processCoVisionAndExport(body);
@@ -1372,12 +1400,12 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📱  Mobile Cam URL: http://192.168.219.239:${PORT}/mobile-cam`);
   console.log(`====================================================================`);
 
-  // Non-blocking warm-up of gemma4:e2b in VRAM (keep_alive: 30m) for instant 1s replies
+  // Non-blocking warm-up of gemma4:e4b in VRAM (keep_alive: 30m) for smart Tiki-Taka + Harness² replies
   fetch(`${OLLAMA_BASE_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'gemma4:e2b',
+      model: 'gemma4:e4b',
       stream: false,
       think: false,
       keep_alive: '30m',
