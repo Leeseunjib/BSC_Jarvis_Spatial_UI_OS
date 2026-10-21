@@ -28,14 +28,31 @@ window.MultimodalEngine = {
     this.initVoiceEngine();
     this.bindUIControls();
 
-    // Initial Steward Greeting & Auto-Spawn Welcome Console after 800ms
+    // Load persisted Master Settings from disk
+    fetch('/api/jarvis/settings')
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.ok && res.settings && window.AIStudioData) {
+          Object.assign(window.AIStudioData.routerConfig, res.settings);
+          if (res.settings.designTheme && window.HUDWindowSpawner && window.HUDWindowSpawner.applyDesignTheme) {
+            window.HUDWindowSpawner.applyDesignTheme(res.settings.designTheme);
+          }
+        }
+      })
+      .catch(() => {});
+
+    // Auto-Spawn the Unified 18-Studio Hub so both J.A.R.V.I.S. systems are immediately visible on screen
     setTimeout(() => {
-      window.HUDWindowSpawner.spawn({
-        windowType: 'LIVE_CONSOLE',
-        title: '💻 J.A.R.V.I.S. 실시간 동역 콘솔 & 토큰 유량(Token Flow) 모니터',
-        subtitle: 'Coram Deo & Together · BSC 28 Agents Orchestrator'
-      });
-    }, 800);
+      if (window.HUDWindowSpawner && window.HUDWindowSpawner.openAIStudioWindowByType) {
+        window.HUDWindowSpawner.openAIStudioWindowByType('AI_STUDIO_HUB');
+      } else {
+        window.HUDWindowSpawner.spawn({
+          windowType: 'LIVE_CONSOLE',
+          title: '💻 J.A.R.V.I.S. 실시간 동역 콘솔 & 토큰 유량(Token Flow) 모니터',
+          subtitle: 'Coram Deo & Together · BSC 28 Agents Orchestrator'
+        });
+      }
+    }, 650);
   },
 
   initSSE() {
@@ -127,22 +144,36 @@ window.MultimodalEngine = {
     if (myToken !== this.speechQueueToken) return;
     const text = (turn && turn.text ? turn.text : '').trim();
     if (!text) return;
+    const cfg = (window.AIStudioData && window.AIStudioData.routerConfig) || {};
     const persona = turn.persona || 'jarvis';
     const speaker = turn.speaker || '🤖 J.A.R.V.I.S.';
     const avatar = turn.avatar || (persona === 'soha' ? '/agent_images/soha/explain.png' : '/agent_images/geonu/analyze.png');
+    const customVoiceId = turn.voiceId || (persona === 'jarvis' ? cfg.voiceId : undefined);
     const voiceBadge = persona === 'soha'
       ? '🎙️ 선희 신경망 성우 (SunHiNeural · 수석비서 소하)'
       : (persona === 'taejun' || persona === 'geonu'
         ? '🎙️ 인준 신경망 성우 (InJoonNeural · BSC 리더)'
-        : '🎙️ 현수 멀티링구얼 신경망 성우 (HyunsuNeural · J.A.R.V.I.S.)');
+        : `🎙️ ${cfg.ttsEngine === 'LOCAL_CHATTERBOX_MULTILINGUAL' ? 'Chatterbox Multilingual (MIT)' : '현수 신경망 성우 (HyunsuNeural · 영화 자비스 톤)'}`);
 
     window.BSC_WORLDVIEW.showToast(speaker, text, avatar, voiceBadge);
+
+    if (cfg.autoSpeakResponses === false && !turn.voiceId) return;
 
     try {
       const res = await fetch('/api/jarvis/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, persona })
+        body: JSON.stringify({
+          text,
+          persona,
+          voiceId: customVoiceId,
+          speechRate: cfg.speechRate || 1.05,
+          pitchHz: cfg.pitchHz || '-2Hz',
+          ttsEngine: cfg.ttsEngine || 'LOCAL_CHATTERBOX_MULTILINGUAL',
+          exaggeration: cfg.ttsExaggeration || 0.45,
+          cfgWeight: cfg.ttsCfgWeight || 0.5,
+          localTtsUrl: cfg.localTtsServerUrl || 'http://127.0.0.1:7860/tts'
+        })
       });
       if (myToken !== this.speechQueueToken) return;
       const data = await res.json();
@@ -174,7 +205,7 @@ window.MultimodalEngine = {
     if (window.speechSynthesis && myToken === this.speechQueueToken) {
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'ko-KR';
-      utter.rate = 1.05;
+      utter.rate = cfg.speechRate || 1.05;
       window.speechSynthesis.speak(utter);
     }
   },
@@ -212,6 +243,7 @@ window.MultimodalEngine = {
     }
 
     try {
+      const cfg = (window.AIStudioData && window.AIStudioData.routerConfig) || {};
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -219,12 +251,16 @@ window.MultimodalEngine = {
           message,
           context: {
             personaMode,
-            llmEngine: (window.AIStudioWindows && window.AIStudioWindows.state && window.AIStudioWindows.state.llmEngine) || 'gemma4:e4b'
+            llmEngine: cfg.llmEngine || 'gemma4:e4b',
+            speakingStyle: cfg.speakingStyle || 'MOVIE_JARVIS_CONCISE'
           }
         })
       });
       const data = await res.json();
 
+      if (data.openSettingsModal && window.HUDWindowSpawner && window.HUDWindowSpawner.openMasterSettingsModal) {
+        window.HUDWindowSpawner.openMasterSettingsModal();
+      }
       if (data.graphCommand && window.BrainGraphEngine) {
         window.BrainGraphEngine.setViewMode(data.graphCommand);
       }

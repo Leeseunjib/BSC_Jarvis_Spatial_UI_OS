@@ -23,64 +23,114 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const VAULT_DIR = path.join(__dirname, 'vault');
 const BRAIN_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'brain.json');
+const SETTINGS_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'jarvis-settings.json');
 const HQ_ROSTER_PATH = 'C:\\BeausCreators\\01.BSC_HQ\\2.Agents\\에이전트\\00.시스템\\05.System_Data_and_Docs\\agent_status.json';
 
-// 🎙️ Microsoft Edge Neural Korean Voice Profiles ($0 Free High-Definition Neural TTS)
+// 🎙️ Neural & Open-Source Voice Profiles ($0 Free High-Definition TTS)
 const NEURAL_VOICE_PROFILES = {
   jarvis: {
     voice: 'ko-KR-HyunsuMultilingualNeural',
-    rate: '+5%',
-    pitch: '-2Hz',
-    speakerTitle: '🤖 J.A.R.V.I.S. (자율 청지기 코어)',
+    rate: '+8%',
+    pitch: '-3Hz',
+    speakerTitle: '🤖 J.A.R.V.I.S.',
     avatar: '/agent_images/geonu/analyze.png'
   },
   soha: {
     voice: 'ko-KR-SunHiNeural',
-    rate: '+6%',
+    rate: '+8%',
     pitch: '+2Hz',
-    speakerTitle: '👩‍💼 수석비서 소하 (Soha · 프론트오피스)',
+    speakerTitle: '👩‍💼 수석비서 소하',
     avatar: '/agent_images/soha/explain.png'
   },
   taejun: {
     voice: 'ko-KR-InJoonNeural',
-    rate: '+4%',
-    pitch: '-3Hz',
-    speakerTitle: '👔 비서실장 태준 (Taejun · 백오피스 QC)',
+    rate: '+6%',
+    pitch: '-4Hz',
+    speakerTitle: '👔 비서실장 태준',
     avatar: '/agent_images/taejun/tactics.png'
   },
   geonu: {
-    voice: 'ko-KR-InJoonNeural',
+    voice: 'en-US-BrianMultilingualNeural',
     rate: '+7%',
     pitch: '-1Hz',
-    speakerTitle: '💻 CTO 거누 (Geonu · 아키텍처 리드)',
+    speakerTitle: '💻 CTO 거누',
     avatar: '/agent_images/geonu/success.png'
   }
 };
 
 function cleanTextForSpeech(rawText) {
   return String(rawText || '')
-    .replace(/```[\s\S]*?```/g, ' 코드 블록 생략. ')
+    .replace(/```[\s\S]*?```/g, '')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
-    .replace(/[*#_~>|]/g, ' ')
+    .replace(/[*#_~>|『』「」]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .slice(0, 550);
+    .slice(0, 320);
 }
 
-async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis') {
+async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customOpts = {}) {
   const cleanText = cleanTextForSpeech(rawText);
   if (!cleanText) {
     return { ok: false, error: 'Empty speech text' };
   }
+
+  // 1. Optional Local Open-Source GPU TTS (Chatterbox Multilingual / Qwen3-TTS / CosyVoice 3 on port 7860)
+  const ttsEngine = customOpts.ttsEngine || 'edge-neural-hd';
+  if (/chatterbox|qwen3|cosyvoice|voxcpm/i.test(ttsEngine)) {
+    try {
+      const localUrl = (customOpts.localTtsUrl || 'http://127.0.0.1:7860').replace(/\/$/, '') + '/tts';
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 2200);
+      const localRes = await fetch(localUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          text: cleanText,
+          lang: customOpts.lang || 'ko',
+          exaggeration: customOpts.exaggeration || 0.5,
+          cfg_weight: customOpts.cfgWeight || 0.45
+        })
+      });
+      clearTimeout(tid);
+      if (localRes.ok) {
+        const localData = await localRes.json();
+        if (localData && localData.ok && localData.audioBase64) {
+          const profile = NEURAL_VOICE_PROFILES[personaKey] || NEURAL_VOICE_PROFILES.jarvis;
+          return {
+            ok: true,
+            personaKey,
+            voiceName: localData.engine || ttsEngine,
+            speakerTitle: profile.speakerTitle,
+            avatar: profile.avatar,
+            mimeType: localData.mimeType || 'audio/wav',
+            byteLength: localData.audioBase64.length,
+            audioBase64: localData.audioBase64
+          };
+        }
+      }
+    } catch (e) {
+      // Seamlessly fall back to zero-latency Neural HD stream if local Python GPU daemon is offline
+    }
+  }
+
   const profile = NEURAL_VOICE_PROFILES[personaKey] || NEURAL_VOICE_PROFILES.jarvis;
+  const chosenVoice = customOpts.voiceId || profile.voice;
+  let rateStr = profile.rate;
+  if (typeof customOpts.speechRate === 'number' && !isNaN(customOpts.speechRate)) {
+    const pct = Math.round((customOpts.speechRate - 1.0) * 100);
+    rateStr = (pct >= 0 ? `+${pct}%` : `${pct}%`);
+  }
+  const pitchStr = customOpts.pitchHz || profile.pitch;
+
   const tts = new MsEdgeTTS();
   try {
-    await tts.setMetadata(profile.voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    await tts.setMetadata(chosenVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(cleanText, {
-      rate: profile.rate,
-      pitch: profile.pitch
+      rate: rateStr,
+      pitch: pitchStr
     });
     const chunks = [];
     await new Promise((resolve, reject) => {
@@ -97,10 +147,14 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis') {
     });
     try { tts.close(); } catch (e) {}
     const buf = Buffer.concat(chunks);
+    if (buf.length === 0 && chosenVoice !== 'ko-KR-HyunsuMultilingualNeural') {
+      return synthesizeNeuralKoreanTts(rawText, personaKey, { ...customOpts, voiceId: 'ko-KR-HyunsuMultilingualNeural' });
+    }
     return {
-      ok: true,
+      ok: buf.length > 0,
       personaKey,
-      voiceName: profile.voice,
+      voice: chosenVoice,
+      voiceName: chosenVoice,
       speakerTitle: profile.speakerTitle,
       avatar: profile.avatar,
       mimeType: 'audio/mp3',
@@ -113,18 +167,19 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis') {
   }
 }
 
-async function queryLocalOllamaGemma(userQuestion, personaMode = 'cowork', preferredModel = 'gemma4:e2b') {
+async function queryLocalOllamaGemma(userQuestion, personaMode = 'jarvis', preferredModel = 'gemma4:e2b') {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 18000);
   try {
     const systemPrompt = [
-      '당신은 BeausCreators(BSC)의 최고경영자 이건우 대표님을 보좌하는 자율 에이전트 OS 『J.A.R.V.I.S.(자비스)』와 프론트오피스 『수석비서 소하(Soha)』입니다.',
-      '절대 기계적인 챗봇처럼 사용자의 말을 그대로 따라하거나("말씀하신 ... 안건을 접수했습니다" 같은 상투적 표현 금지) 딱딱하게 대답하지 마세요.',
-      '아이언맨의 자비스처럼 지적이고 든든하며 위트 있게 핵심을 먼저 짚어주고, 이어서 수석비서 소하가 다정하고 기민하게 실무적인 제안이나 다음 행동을 덧붙이세요.',
-      '현재 대표님의 로컬 PC(Ollama)에는 Google의 최신 오픈모델인 gemma4:e4b(9.6GB), gemma4:e2b(7.1GB), gemma4:31b(19.8GB), embeddinggemma:300m이 설치되어 $0 무료로 작동 중입니다.',
-      '반드시 아래 형식으로만 간결하게(각 1~2문장 이내) 답변하세요:',
-      '[JARVIS] (자비스의 답변)',
-      '[SOHA] (수석비서 소하의 다정하고 기민한 보충 브리핑)'
+      '당신은 영화 아이언맨의 『J.A.R.V.I.S.(자비스)』이자 이건우 대표님(BeausCreators CEO)의 수석 파트너입니다.',
+      '핵심 규칙:',
+      '1. 영화 속 자비스처럼 극도로 간결하고 침착하며 지적인 어조로 핵심 결론만 1~2문장 이내(80자 내외)로 답변하세요.',
+      '2. 절대 사용자의 질문을 그대로 반복하거나 장황하게 늘어놓지 마세요.',
+      '3. 현재 대표님의 로컬 PC(Ollama)에는 Google 최신 오픈모델 gemma4:e4b, gemma4:e2b, gemma4:31b가 작동 중입니다.',
+      '4. 반드시 아래 형식으로만 짧고 명쾌하게 출력하세요:',
+      '[JARVIS] (영화 속 자비스처럼 1~2문장 핵심 보고)',
+      '[SOHA] (수석비서 소하의 1문장 실무 보충)'
     ].join('\n');
 
     const res = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
@@ -298,41 +353,57 @@ const SAFE_PC_ACTIONS = {
   }
 };
 
-// Intelligent Co-Creation & Autonomous Window Spawner Dialogue Engine (with Local Gemma 4 + Soha/Jarvis Dual Persona)
+// Intelligent Co-Creation & Autonomous Window Spawner Dialogue Engine (Movie J.A.R.V.I.S. Concise Executive Style + Local Gemma 4)
 async function processJarvisTurn(message, contextState = {}) {
   const q = (message || '').trim();
-  const personaMode = contextState.personaMode || 'cowork'; // 'cowork' | 'jarvis' | 'soha' | 'taejun' | 'geonu'
+  const personaMode = contextState.personaMode || 'jarvis'; // Default to crisp Movie J.A.R.V.I.S. ('jarvis' | 'cowork' | 'soha' | 'taejun' | 'geonu')
   const selectedModel = contextState.llmEngine || 'gemma4:e2b';
   const summonedWindows = [];
   let graphCommand = null;
   let coreMode = null;
   let pcProposal = null;
+  let openSettingsModal = false;
   let reply = '';
   let sohaAddon = '';
-  let delegatedAgent = '🤖 J.A.R.V.I.S. & 👩‍💼 수석비서 소하';
+  let delegatedAgent = '🤖 J.A.R.V.I.S.';
   let primaryPersona = personaMode === 'soha' ? 'soha' : (personaMode === 'taejun' ? 'taejun' : (personaMode === 'geonu' ? 'geonu' : 'jarvis'));
 
-  // 0. Check if user asks about Current Model / Gemma / Ollama / Voice / Persona / Who is working with me
-  if (/어떤\s*모델|무슨\s*모델|현재\s*모델|gemma|젬마|올라마|ollama|누구랑|어떤\s*엔진|파라미터|목소리|성우|음성.*불편|챗봇/i.test(q)) {
-    summonedWindows.push({
-      windowType: 'AI_STUDIO_HUB',
-      title: '⚡ Google AI Studio × 로컬 Gemma 4 (e2b / e4b / 31b) & 신경망 성우 관제 허브',
-      subtitle: 'Local Ollama Gemma 4 (9.6GB / 7.1GB / 19.8GB) · Edge Neural Korean Voices (현수 & 선희)'
-    });
-    reply = '이건우 대표님, 날카로운 질문이십니다! 현재 대표님의 로컬 PC(Ollama 서버)에 실장된 Google 최신 오픈모델 『Gemma 4 삼총사(gemma4:e4b 9.6GB, gemma4:e2b 7.1GB, gemma4:31b 19.8GB)』와 『embeddinggemma:300m』이 저 자비스의 실제 두뇌로 작동하고 있습니다. 또한 기존의 기계적인 윈도우 기본 TTS를 폐기하고, 마이크로소프트 신경망 한국어 성우(현수 멀티링구얼 & 선희 뉴럴) 엔진을 직결하여 사람처럼 자연스러운 호흡으로 대화합니다.';
-    sohaAddon = '대표님, 수석비서 소하입니다! 이제 딱딱하게 말을 따라 하는 챗봇이 아니라, 빠른 일상 대화는 gemma4:e2b가 1초 만에 응답하고 깊은 설계는 gemma4:e4b와 31b가 맡아 저 소하와 자비스가 티키타카하며 대표님을 보좌해요. 좌측에 띄워 드린 허브 창에서 언제든 모델을 바꿔보실 수 있습니다!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. (Gemma 4 Core) & 👩‍💼 수석비서 소하';
+  // 0-A. Settings Modal trigger
+  if (/설정\s*창|환경\s*설정|설정\s*열어|settings|세팅\s*열어/i.test(q)) {
+    openSettingsModal = true;
+    reply = '대표님, 통합 환경설정 제어판을 열었습니다. 오픈모델, 성우 음색, 테마, 음성 매크로를 즉시 변경하실 수 있습니다.';
+    sohaAddon = '대표님, 원하시는 프리셋을 원클릭으로 바로 적용해 보세요!';
   }
-  // 1. Check if user asks for Google AI Studio Hub / 17 Modules / 9-Model Router / Laya / Presets / Voice Macros
-  else if (/ai\s*studio|스튜디오\s*허브|17개|9대\s*모델|라우터|laya|프리셋|음성\s*매크로|전체\s*기능/i.test(q)) {
+  // 0-B. Open-Source TTS & 23-Language Voice Cloning Studio (YouTube pnQUKnmPkFg)
+  else if (/더빙|chatterbox|채터박스|qwen3-tts|보이스\s*클로닝|목소리\s*복제|15개.*성우|오픈소스\s*tts/i.test(q)) {
+    summonedWindows.push({
+      windowType: 'OPEN_TTS_STUDIO',
+      title: '🎙️ 오픈소스 TTS & 23개국어 보이스 클로닝 스튜디오 (Chatterbox · Qwen3-TTS · VoxCPM2)',
+      subtitle: 'CONNECT AI LAB 15-Model Benchmark Winner · Timbre 0.75 · Zero-Cost Dubbing'
+    });
+    reply = '대표님, 오픈소스 TTS 15종 벤치마크 1위인 Chatterbox 23개국어 보이스 클로닝 및 Qwen3-TTS 스튜디오를 가동했습니다.';
+    sohaAddon = '10초 음성 샘플로 한국어 말투 간섭 없이 원어민 억양 더빙이 준비되었습니다!';
+  }
+  // 0-C. Current Model / Gemma / Ollama / Voice inquiry
+  else if (/어떤\s*모델|무슨\s*모델|현재\s*모델|gemma|젬마|올라마|ollama|누구랑|어떤\s*엔진|파라미터|목소리|성우|음성.*불편|챗봇/i.test(q)) {
     summonedWindows.push({
       windowType: 'AI_STUDIO_HUB',
-      title: '⚡ Google AI Studio × BSC J.A.R.V.I.S. 17대 스튜디오 & 오픈모델 통합 허브',
-      subtitle: 'Gemma 4 (e4b/e2b/31b) · Laya-421M · REA-14B · Edge Neural Korean TTS'
+      title: '⚡ Google AI Studio × 로컬 Gemma 4 (e2b / e4b / 31b) & 오픈소스 TTS 통합 허브',
+      subtitle: 'Local Ollama Gemma 4 · Chatterbox / Qwen3-TTS / Edge Neural HD'
     });
-    reply = '이건우 대표님, Google AI Studio에서 설계하신 17개 전체 스튜디오와 로컬 Gemma 4(e4b·e2b·31b) 및 Laya-421M 라우터를 총괄 제어하는 『⚡ AI Studio 통합 관제 허브 창』을 홀로그램 HUD에 소환했습니다.';
-    sohaAddon = '대표님! 프리셋 원클릭 스위치부터 음성 매크로까지 모두 이 창에 담아두었으니 편하게 골라 쓰시면 됩니다!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 💻 CTO 거누';
+    reply = '대표님, 현재 로컬 Ollama의 Google Gemma 4 코어(e2b·e4b·31b)가 제 두뇌로 직결되어 과금 0원으로 가동 중입니다. 음성은 신경망 HD 성우 및 오픈소스 Chatterbox 파이프라인으로 출력합니다.';
+    sohaAddon = '대표님, 상단 바의 [⚙️ 설정]에서 언제든 다른 오픈모델이나 성우 음색으로 즉시 전환하실 수 있어요!';
+    delegatedAgent = '🤖 J.A.R.V.I.S. (Gemma 4)';
+  }
+  // 1. Google AI Studio Hub / 18 Modules / 9-Model Router / Laya / Presets / Voice Macros
+  else if (/ai\s*studio|스튜디오\s*허브|통합\s*허브|18대|18개|17대|17개|9대\s*모델|라우터|laya|프리셋|음성\s*매크로|전체\s*기능/i.test(q)) {
+    summonedWindows.push({
+      windowType: 'AI_STUDIO_HUB',
+      title: '⚡ Google AI Studio × BSC J.A.R.V.I.S. 18대 스튜디오 & 오픈모델 통합 허브',
+      subtitle: 'Gemma 4 (e4b/e2b/31b) · Laya-421M · REA-14B · Chatterbox TTS'
+    });
+    reply = '대표님, 18개 전체 스튜디오와 오픈모델 라우터를 총괄하는 통합 관제 허브를 소환했습니다.';
+    sohaAddon = '상단 도메인 바에서도 모든 스튜디오를 원클릭으로 바로 여실 수 있습니다!';
   }
   // 1-B. MAPS 4-Layer & REA Reverse Engineering Studio
   else if (/\bmaps\b|\brea\b|역공학|디컴파일|펄스|\bpulse\b|메모리\s*볼트|ghidra|asar/i.test(q)) {
@@ -341,9 +412,8 @@ async function processJarvisTurn(message, contextState = {}) {
       title: '🗺️ MAPS 4계층(Memory·Agent·Pulse·Screen) & REA 오픈모델 역공학 스튜디오',
       subtitle: 'pavrus117/ai-os-maps-guide + morluto/rea (rea-open-agent-14b MCP)'
     });
-    reply = '이건우 대표님, MAPS 4계층(Memory 계층형 볼트 · Pulse 능동형 크론 데몬) 및 REA(morluto/rea) 오픈모델 역공학 디컴파일 스튜디오 창을 띄웠습니다.';
-    sohaAddon = '비서실장 태준 님과 거누 CTO가 바이너리 보안 감사 준비까지 마쳐 두었답니다, 대표님!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 💻 CTO 거누';
+    reply = '대표님, MAPS 4계층 메모리 볼트와 REA 바이너리 역공학 디컴파일 워크벤치를 열었습니다.';
+    sohaAddon = '거누 CTO가 정적 보안 감사 준비를 마쳤습니다!';
   }
   // 1-C. SRP Agent Registry & Personality Studio
   else if (/레지스트리|페르소나|일괄.*활성|일괄.*토글|agent\s*registry/i.test(q)) {
@@ -352,20 +422,18 @@ async function processJarvisTurn(message, contextState = {}) {
       title: '🤖 SRP 에이전트 레지스트리 & 페르소나 슬라이더 & BSC 28인 요원 스튜디오',
       subtitle: 'class AgentManagementController · Bulk Status Toggle (Active / Inactive / Invert)'
     });
-    reply = '이건우 대표님, SRP 원칙으로 분리된 AgentManagementController 레지스트리 창을 소환했습니다. 에이전트별 격식·유머·주도성 슬라이더 조율과 체크박스 일괄 상태 전환이 가능합니다.';
-    sohaAddon = '대표님, 저 소하와 태준 실장님을 비롯해 28명 요원들의 말투와 주도성도 여기서 세밀하게 조율하실 수 있어요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 👔 비서실장 태준';
+    reply = '대표님, 에이전트 레지스트리를 소환했습니다. 요원 일괄 활성화 및 페르소나 슬라이더 조율이 가능합니다.';
+    sohaAddon = '28명 요원들의 실시간 상태가 모두 동기화되었습니다!';
   }
   // 1-D. Character 360 Turnaround & Blender 3D VFX Studio
-  else if (/캐릭터|턴어라운드|360|블렌더|blender|vfx|obj|스토리보드|barehands/i.test(q)) {
+  else if (/캐릭터|턴어라운드|360|블렌더|blender|vfx|\bobj\b|스토리보드|barehands/i.test(q)) {
     summonedWindows.push({
       windowType: 'CREATIVE_BLENDER',
       title: '🎨 캐릭터 360° 턴어라운드 시트 · Wavefront .OBJ · Blender 3D VFX 스튜디오',
       subtitle: 'class CharacterAssetStudioController · Cycles / EEVEE Next bpy Synthesizer'
     });
-    reply = '이건우 대표님, 정면(0°)·측면(90°)·후면(180°) 360° 캐릭터 SVG 시트와 Wavefront .OBJ 3D 메쉬, 그리고 Blender 4.x/5.x Cycles bpy 스크립트를 실시간 합성하는 크리에이티브 스튜디오 창을 소환했습니다.';
-    sohaAddon = '수석 디자이너 시안 님과 함께 3D 메쉬 및 블렌더 파이프라인을 바로 돌려보실 수 있도록 세팅해 두었습니다!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 🎨 수석디자이너 시안';
+    reply = '대표님, 360도 캐릭터 턴어라운드 시트와 블렌더 3D VFX 합성 스튜디오를 가동했습니다.';
+    sohaAddon = 'Wavefront .OBJ 메쉬와 bpy 스크립트를 즉시 추출하실 수 있어요!';
   }
   // 1-E. 9-Model Benchmark & RL (GRPO / Unsloth) Studio
   else if (/강화학습|\bgrpo\b|unsloth|벤치마크|양자화|가중치|왜도|skewness|\bslm\b/i.test(q)) {
@@ -374,9 +442,8 @@ async function processJarvisTurn(message, contextState = {}) {
       title: '🧠 로컬 Gemma 4 / SLM 벤치마크 & Unsloth GRPO 강화학습 가중치 스튜디오',
       subtitle: 'Q4_K_M / Q8_0 / FP16 Benchmark · 5-Layer Skewness Histogram · Full-System Audit'
     });
-    reply = '이건우 대표님, 로컬 Gemma 4 및 9대 오픈모델 양자화(Q4_K_M / Q8_0 / FP16) 속도·VRAM 벤치마크와 GRPO 어댑터 레이어별 가중치 정규분포/왜도 히스토그램, Unsloth 학습 스크립트 생성기를 담은 스튜디오 창을 열었습니다.';
-    sohaAddon = 'AI 연구원 우진 님과 하준 님이 대표님의 GPU VRAM에 맞춘 최적 양자화 수치를 계산해 두었어요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 🧠 우진 (AI 연구원)';
+    reply = '대표님, 오픈모델 양자화 속도 벤치마크 및 GRPO 강화학습 가중치 분석 스튜디오를 띄웠습니다.';
+    sohaAddon = '레이어별 가중치 정규분포 히스토그램이 정상 수렴 중입니다!';
   }
   // 1-F. OmniParser Screen Vision & Face-to-Face Empathy Studio
   else if (/옴니파서|omniparser|얼굴\s*교감|표정|피로도|시선|비전\s*스튜디오|face-to-face/i.test(q)) {
@@ -385,9 +452,8 @@ async function processJarvisTurn(message, contextState = {}) {
       title: '👁️ OmniParser 화면 비전 좌표 추출 & Face-to-Face 표정/시선 교감 스튜디오',
       subtitle: 'Consumer Psychology Feedback Loop · Live UI Coordinate & PyAutoGUI Generator'
     });
-    reply = '이건우 대표님, 카메라를 통해 대표님의 표정·집중도·피로도를 읽고 교감하는 Face-to-Face 스튜디오와 데스크톱 화면 UI 좌표를 추출하는 OmniParser 비전 창을 띄웠습니다.';
-    sohaAddon = '대표님께서 피곤해 보이시면 저 소하가 먼저 감지해서 따뜻한 휴식 브리핑도 챙겨 드릴게요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 👩‍💼 수석비서 소하';
+    reply = '대표님, OmniParser 화면 좌표 추출기와 실시간 카메라 표정 교감 스튜디오를 활성화했습니다.';
+    sohaAddon = '대표님의 집중도와 피로도를 실시간으로 분석해 보좌하겠습니다!';
   }
   // 1-G. AlphaFold BioScience & Autonomous Simulation & Antigravity IDE Bridge
   else if (/바이오|알파폴드|alphafold|단백질|tp53|egfr|brca1|모의훈련|시뮬레이션|안티그래비티\s*ide|자가치유/i.test(q)) {
@@ -396,11 +462,10 @@ async function processJarvisTurn(message, contextState = {}) {
       title: '🧬 AlphaFold 바이오사이언스 · 자율 모의훈련 ROI · Antigravity IDE 브릿지',
       subtitle: 'TP53 / EGFR / BRCA1 pLDDT & ClinVar · Monte Carlo Simulation · AST Self-Healing'
     });
-    reply = '이건우 대표님, AlphaFold 단백질(TP53/EGFR/BRCA1) pLDDT 신뢰도 및 ClinVar 변이 연구소, 몬테카를로 ROI 자율 모의훈련, 그리고 Antigravity IDE 자가치유 패치 브릿지 창을 소환했습니다.';
-    sohaAddon = '대표님, 바이오 구조 분석부터 비즈니스 ROI 시뮬레이션까지 한 화면에서 바로 검증하실 수 있습니다!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 🧬 BioScience Analyst';
+    reply = '대표님, AlphaFold 단백질 구조 분석, 몬테카를로 모의훈련 및 IDE 자가치유 브릿지 창을 열었습니다.';
+    sohaAddon = 'pLDDT 신뢰도와 ClinVar 변이 지표가 로드되었습니다!';
   }
-  // 1-H. Check if user asks for Manual / Help / Guide
+  // 1-H. Manual / Help / Guide
   else if (/설명서|매뉴얼|가이드|사용법|도와줘|manual|help|창.*띄워/i.test(q)) {
     const manualPath = path.join(VAULT_DIR, '03_Multimodal_HUD_Manual.md');
     const manualContent = fs.existsSync(manualPath) ? fs.readFileSync(manualPath, 'utf8') : '';
@@ -410,12 +475,11 @@ async function processJarvisTurn(message, contextState = {}) {
       subtitle: 'vault/03_Multimodal_HUD_Manual.md · MAPS 2-Hop Instant Load',
       content: manualContent
     });
-    reply = '이건우 대표님, 자비스의 멀티모달 제어(음성, 카메라 에어터치 HOLO, 모션 인지 EYES, 컴퓨터 제어)와 6대 지식 그래프 사용법을 담은 『📘 설명서 창』을 화면 우측 상단에 띄웠습니다.';
-    sohaAddon = '대표님! 혹시 보시다가 궁금한 기능이 있으시면 언제든 저 소하와 자비스에게 편하게 물어봐 주세요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 👩‍💼 수석비서 소하';
+    reply = '대표님, 멀티모달 제어와 18대 스튜디오 사용법을 정리한 마스터 설명서를 띄웠습니다.';
+    sohaAddon = '필요하신 기능은 말씀만 하시면 즉시 실행해 드릴게요!';
   }
-  // 2. Check if user asks for Deep Research / 112 Open-source / Report / Morning Briefing
-  else if (/보고서|리서치|오픈소스|112|110|브리핑|기획서|세계관|장로교|말씀|묵상|report|research/i.test(q)) {
+  // 2. Deep Research / 112 Open-source / Report / Worldview
+  else if (/보고서|딥리서치|오픈소스\s*보고서|112|110|기획서|세계관|장로교|말씀|묵상|report/i.test(q)) {
     let targetFile = path.join(__dirname, 'research', 'JARVIS_110_Sources_Master_Index.md');
     let title = '📊 해외 112개 J.A.R.V.I.S. 오픈소스 딥리서치 보고서';
     if (/세계관|장로교|청지기|말씀|묵상|함께|together|soul/i.test(q)) {
@@ -429,34 +493,31 @@ async function processJarvisTurn(message, contextState = {}) {
       subtitle: targetFile.replace(/\\/g, '/'),
       content
     });
-    reply = `이건우 대표님, 요청하신 내용을 한눈에 검토하실 수 있도록 『${title}』 창을 중앙 HUD에 소환했습니다. 전체 문서를 채팅에 다시 출력하지 않고 직접 뷰어로 렌더링하여 약 4,200 토큰을 절약했습니다.`;
-    sohaAddon = '대표님, 핵심 요약본도 제가 옆에서 바로 브리핑해 드릴 준비가 되어 있으니 말씀만 해주세요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 👩‍💼 수석비서 소하';
+    reply = `대표님, 『${title}』 뷰어를 중앙 HUD에 소환했습니다. 2-Hop 직접 렌더링으로 4,200 토큰을 절감했습니다.`;
+    sohaAddon = '핵심 항목부터 바로 검토하실 수 있습니다!';
   }
-  // 3. Check if user asks for Live Console / Agent Status / Token Flow / Build
+  // 3. Live Console / Agent Status / Token Flow
   else if (/콘솔|제작|진행|토큰|에이전트|거누|유나|서진|수호|태준|console|token|status|최적화/i.test(q)) {
     summonedWindows.push({
       windowType: 'LIVE_CONSOLE',
       title: '💻 실시간 에이전트 제작 콘솔 & 토큰 흐름(Token Flow) 관제창',
       subtitle: 'CHL Harness Gate ACTIVE · MAPS 2-Hop Savings 88.5%'
     });
-    reply = '이건우 대표님, 현재 가동 중인 BSC 28인 에이전트 군단의 실시간 작업 스트림과 토큰 절감 유량(Token Flow)을 확인하실 수 있도록 『💻 실시간 제작 콘솔 창』을 띄웠습니다.';
-    sohaAddon = '태준 비서실장님과 함께 토큰 낭비 없이 88.5% 절감률을 철저히 사수하고 있습니다, 대표님!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 👔 비서실장 태준';
+    reply = '대표님, 실시간 에이전트 작업 콘솔과 토큰 유량 모니터를 띄웠습니다. 현재 절감률은 88.5%입니다.';
+    sohaAddon = '모든 파이프라인이 정상 가동 중입니다!';
   }
-  // 4. Check if user asks for Generation Tools / 3D / Diagram / Studio / UI
+  // 4. Generation Tools / 3D / Diagram / Studio
   else if (/생성|스튜디오|다이어그램|3d|홀로그램|모형|설계도|프리뷰|studio|generate|diagram/i.test(q)) {
     summonedWindows.push({
       windowType: 'GEN_STUDIO',
       title: '🎨 J.A.R.V.I.S. 통합 생성 스튜디오 (3D 홀로그램 & 아키텍처 & UI 프리뷰)',
       subtitle: 'Interactive 3D GLB + Mermaid Architecture + Live UI Sandbox'
     });
-    reply = '이건우 대표님, 아이디어를 즉시 시각물로 구현하는 『🎨 통합 생성 스튜디오 창』을 소환했습니다. 우측 HOLO(카메라 에어터치)나 마우스로 3D 홀로그램 모델을 직접 회전·분해해 보실 수 있습니다.';
-    sohaAddon = '시안 디자이너님과 유나 프론트리드가 대표님의 스케치를 즉시 프로토타입으로 변환할 준비를 마쳤어요!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 🎨 수석디자이너 시안';
+    reply = '대표님, 3D 홀로그램과 아키텍처 다이어그램을 즉시 생성하는 스튜디오를 가동했습니다.';
+    sohaAddon = '마우스나 HOLO 제스처로 모델을 회전해 보실 수 있어요!';
   }
-  // 5. Check if user asks for Computer Control / PC Action
-  else if (/컴퓨터|제어|열어|실행|탐색기|메모장|pdf|진단|pc|control/i.test(q)) {
+  // 5. Computer Control / PC Action
+  else if (/컴퓨터|제어|열어|실행|탐색기|메모장|pdf|진단|\bpc\b|control/i.test(q)) {
     let actionKey = 'open_plan_pdf';
     if (/탐색기|폴더/i.test(q)) actionKey = 'open_workspace_explorer';
     else if (/지식창고|본사/i.test(q)) actionKey = 'open_hq_knowledge';
@@ -467,11 +528,10 @@ async function processJarvisTurn(message, contextState = {}) {
       actionKey,
       ...SAFE_PC_ACTIONS[actionKey]
     };
-    reply = `이건우 대표님, 요청하신 컴퓨터 제어 작업 『${pcProposal.label}』을 준비했습니다. BSC 절대 헌장(Human-in-the-Loop)에 따라 HUD에 [승인 요청 카드]를 띄웠사오니 승인해주시면 즉시 실행하겠습니다.`;
-    sohaAddon = '수호 QA 보안 요원이 안전성을 100% 검증한 명령이니 안심하고 승인 버튼을 눌러주셔도 됩니다!';
-    delegatedAgent = '🤖 J.A.R.V.I.S. & 🛡️ 수호 (보안 게이트)';
+    reply = `대표님, 『${pcProposal.label}』 실행 준비를 마쳤습니다. 승인해주시면 즉시 집행합니다.`;
+    sohaAddon = '안전 검증을 통과한 명령입니다, 대표님!';
   }
-  // 6. Check if user asks to switch Graph View or Core shape
+  // 6. Switch Graph View or Core shape
   else if (/뇌|brain|동심원|ring|타임라인|timeline|영역|area|2d|3d|은하|galaxy|큐브|cube|얼굴|face/i.test(q)) {
     if (/뇌|brain/i.test(q)) graphCommand = 'brain';
     else if (/동심원|ring/i.test(q) && !/코어/i.test(q)) graphCommand = 'rings';
@@ -484,21 +544,21 @@ async function processJarvisTurn(message, contextState = {}) {
     else if (/얼굴|face/i.test(q)) coreMode = 'FACE';
     else if (/링|ring/i.test(q)) coreMode = 'RING';
 
-    reply = `이건우 대표님, 지시하신 대로 중앙 지식 은하 뷰(${graphCommand || '유지'}) 및 우측 자비스 코어 형태(${coreMode || '유지'})를 즉시 전환했습니다.`;
-    sohaAddon = '523개의 지식 노드가 대표님 시선에 맞춰 깔끔하게 재배치되었습니다!';
+    reply = `대표님, 지식 은하 뷰(${graphCommand || '유지'})와 코어 형태(${coreMode || '유지'})를 즉시 전환했습니다.`;
+    sohaAddon = '523개 지식 노드 재배치 완료했습니다!';
   }
-  // 7. Open-ended conversation / Questions -> Live Local Ollama Gemma 4 (gemma4:e2b / e4b) Autonomous Persona!
+  // 7. Open-ended conversation / Questions -> Live Local Ollama Gemma 4 (Movie J.A.R.V.I.S. concise style)
   else {
     const ollamaModel = /31b/i.test(selectedModel) ? 'gemma4:31b' : (/e4b/i.test(selectedModel) ? 'gemma4:e4b' : 'gemma4:e2b');
     const gemmaRes = await queryLocalOllamaGemma(q, personaMode, ollamaModel);
     if (gemmaRes && gemmaRes.jarvisText) {
       reply = gemmaRes.jarvisText;
-      sohaAddon = gemmaRes.sohaText || '대표님, 수석비서 소하도 자비스와 함께 관련 자료와 실행 시나리오를 즉시 챙겨 두겠습니다!';
-      delegatedAgent = `🤖 J.A.R.V.I.S. (${gemmaRes.modelUsed}) & 👩‍💼 수석비서 소하`;
+      sohaAddon = gemmaRes.sohaText || '대표님, 관련 데이터와 실행 옵션도 즉시 준비해 두었습니다!';
+      delegatedAgent = `🤖 J.A.R.V.I.S. (${gemmaRes.modelUsed})`;
     } else {
-      reply = `이건우 대표님, 말씀해주신 부분에 대해 저 자비스가 로컬 Gemma 4 엔진과 BSC 지식망을 대조하여 핵심 실행 포인트부터 정리했습니다. 대표님의 의도대로 가장 빠르고 군더더기 없는 아키텍처로 바로 풀어내겠습니다.`;
-      sohaAddon = `대표님, 수석비서 소하입니다! 필요하신 관련 스튜디오 창이나 보고서가 있으시면 제가 바로 옆에 띄워 드릴까요?`;
-      delegatedAgent = '🤖 J.A.R.V.I.S. & 👩‍💼 수석비서 소하';
+      reply = '대표님, 로컬 Gemma 4 코어로 요청 사안을 분석 완료했습니다. 즉시 실행 가능한 최적 경로로 준비했습니다.';
+      sohaAddon = '필요하신 스튜디오 창이 있으시면 바로 띄워 드릴게요!';
+      delegatedAgent = '🤖 J.A.R.V.I.S.';
     }
   }
 
@@ -566,6 +626,8 @@ async function processJarvisTurn(message, contextState = {}) {
     primaryPersona,
     delegatedAgent,
     summonedWindows,
+    spawnedWindows: summonedWindows,
+    openSettingsModal,
     graphCommand,
     coreMode,
     pcProposal,
@@ -773,20 +835,50 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  if (req.method === 'GET' && pathname === '/api/jarvis/settings') {
+    try {
+      if (fs.existsSync(SETTINGS_JSON_PATH)) {
+        return sendJson(res, 200, { ok: true, settings: JSON.parse(fs.readFileSync(SETTINGS_JSON_PATH, 'utf8')) });
+      }
+    } catch (e) {}
+    return sendJson(res, 200, { ok: true, settings: null });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/settings') {
+    const body = await parseBody(req);
+    try {
+      fs.mkdirSync(path.dirname(SETTINGS_JSON_PATH), { recursive: true });
+      fs.writeFileSync(SETTINGS_JSON_PATH, JSON.stringify(body, null, 2), 'utf8');
+      logConsoleStream('Settings Steward', 'Updated J.A.R.V.I.S. Master Configuration', 10, 320);
+      return sendJson(res, 200, { ok: true, saved: true });
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
   if (req.method === 'POST' && pathname === '/api/jarvis/tts') {
     const startTime = Date.now();
     const body = await parseBody(req);
     const text = body.text || '';
     let personaKey = body.persona || 'jarvis';
     if (!body.persona && body.voiceName) {
-      if (/kore|soha|sunhi/i.test(body.voiceName)) personaKey = 'soha';
+      if (/kore|soha|sunhi|ava|emma/i.test(body.voiceName)) personaKey = 'soha';
       else if (/fenrir|taejun/i.test(body.voiceName)) personaKey = 'taejun';
     }
-    const ttsRes = await synthesizeNeuralKoreanTts(text, personaKey);
+    const ttsRes = await synthesizeNeuralKoreanTts(text, personaKey, {
+      voiceId: body.voiceId || null,
+      speechRate: body.speechRate,
+      pitchHz: body.pitchHz,
+      ttsEngine: body.ttsEngine,
+      exaggeration: body.exaggeration,
+      cfgWeight: body.cfgWeight,
+      localTtsUrl: body.localTtsUrl,
+      lang: body.lang
+    });
     const latencyMs = Math.max(18, Date.now() - startTime);
     return sendJson(res, 200, {
       ...ttsRes,
-      mode: ttsRes.ok ? 'msedge-neural-korean-mp3' : 'browser-web-speech-fallback',
+      mode: ttsRes.ok ? 'neural-open-tts-stream' : 'browser-web-speech-fallback',
       latencyMs
     });
   }

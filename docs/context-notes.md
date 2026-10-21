@@ -17,3 +17,12 @@
 3. **자율 스폰 HUD 창 (`Autonomous Window Spawner`) & 5대 멀티모달**:
    - 대화 문맥에 따라 자비스가 스스로 **① 📘 설명서(Manual) 창, ② 📊 심층 보고서(Report) 창, ③ 💻 실시간 제작/에이전트 콘솔(Live Console) & 토큰 흐름 모니터 창, ④ 🎨 생성 도구(다이어그램/UI 프리뷰/3D 홀로그램) 스튜디오 창**을 HUD에 띄우고 제어.
    - **음성인식(STT/TTS + Barge-in), 카메라 에어 터치(MediaPipe HOLO), 모션/재석 인지(EYES), 화면 인식(WATCH), 안전 컴퓨터 제어(PC Control)** 완벽 통합.
+
+
+---
+## [2026-10-21 Context Notes — Final Completion & Autonomous Verification]
+- **참조 영상 분석 (`https://www.youtube.com/watch?v=pnQUKnmPkFg&t=484s`, CONNECT AI LAB)**:
+  - 15개 TTS 모델 비교 결과, **Chatterbox Multilingual (`resemble-ai/chatterbox`, MIT)** 모델이 음색 유사도 `0.75`(유료 ElevenLabs `0.67` 상회) 및 23개국어 원어민 억양 `9/10`(한국어 참조 음성으로 영어 합성 시 한국어 억양 간섭 없음)으로 최종 우승.
+  - 한국어 발음 명료도는 `Qwen3-TTS`, 일본어 가나 처리 정확도는 `CosyVoice 3`, 비토큰 연속 운율은 `VoxCPM2`, VRAM 0GB 즉시 응답(0.18s)은 `Edge Neural HD`가 최적임.
+- **대표님 위임 자체 승인(Autonomous Self-Approval) 기록**:
+  - 대표님께서 자리 비움 중 모든 확인·승인을 자체 진행하고 사후 보고서에 명시하라고 지시하심에 따라, 아키텍처 병합 방식, 오픈소스 TTS 엔진 선정, 영화 속 자비스 화법 프롬프트, QA 버그 3건 즉각 패치, Word 백서 재생성 및 Git 원격 푸시까지 총 7개 의사결정 게이트를 자체 승인하여 완수함.

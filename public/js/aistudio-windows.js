@@ -18,13 +18,14 @@
 
     // Layout Presets for AI Studio Holographic Windows
     Object.assign(spawner.layoutPresets, {
-      AI_STUDIO_HUB: { top: 76, left: 288, width: 790, height: 555 },
-      MAPS_REA_STUDIO: { top: 82, left: 305, width: 780, height: 545 },
-      AGENT_REGISTRY: { top: 88, left: 320, width: 780, height: 540 },
-      CREATIVE_BLENDER: { top: 80, left: 310, width: 770, height: 550 },
-      RL_BENCHMARK: { top: 84, left: 300, width: 790, height: 550 },
-      VISION_FACE: { top: 86, left: 315, width: 760, height: 540 },
-      SIM_BIO_IDE: { top: 82, left: 305, width: 785, height: 550 }
+      AI_STUDIO_HUB: { top: 96, left: 288, width: 800, height: 555 },
+      MAPS_REA_STUDIO: { top: 100, left: 300, width: 785, height: 545 },
+      AGENT_REGISTRY: { top: 104, left: 315, width: 785, height: 540 },
+      CREATIVE_BLENDER: { top: 98, left: 305, width: 775, height: 550 },
+      RL_BENCHMARK: { top: 100, left: 295, width: 795, height: 550 },
+      VISION_FACE: { top: 102, left: 310, width: 765, height: 540 },
+      SIM_BIO_IDE: { top: 98, left: 300, width: 790, height: 550 },
+      OPEN_TTS_STUDIO: { top: 96, left: 295, width: 810, height: 560 }
     });
 
     const origPopulate = spawner.populateWindowBody.bind(spawner);
@@ -52,6 +53,8 @@
         this.renderVisionFaceStudio(bodyEl, config.initialSubTab);
       } else if (type === 'SIM_BIO_IDE') {
         this.renderSimBioIdeStudio(bodyEl, config.initialSubTab);
+      } else if (type === 'OPEN_TTS_STUDIO') {
+        this.renderOpenTtsStudio(bodyEl);
       } else {
         origPopulate(win, config);
       }
@@ -104,6 +107,18 @@
             <div class="ais-card-head"><span class="ais-tag">도메인 6</span> <b>🧬 모의훈련 · AlphaFold · IDE</b></div>
             <p>몬테카를로 ROI 모의훈련, TP53/EGFR/BRCA1 단백질 구조 분석, Antigravity IDE 자가치유 패치</p>
           </div>
+          <div class="ais-studio-card" data-open-win="OPEN_TTS_STUDIO" style="border-color:rgba(52,211,153,0.5);">
+            <div class="ais-card-head"><span class="ais-tag" style="color:#34d399;">오픈소스 TTS</span> <b>🎙️ Chatterbox · Qwen3 보이스</b></div>
+            <p>15종 TTS 벤치마크 1위 Chatterbox Multilingual(23개국어 0원 더빙), Qwen3-TTS, 7대 신경망 성우</p>
+          </div>
+          <div class="ais-studio-card" id="hub-card-open-settings" style="border-color:rgba(251,191,36,0.5);">
+            <div class="ais-card-head"><span class="ais-tag" style="color:#fbbf24;">시스템 코어</span> <b>⚙️ 11대 통합 설정 페이지</b></div>
+            <p>언어·4대 테마·5대 프리셋·STT/LLM/TTS·발화 스타일·바인딩 폴더·외부 IDE·API 키·음성 매크로</p>
+          </div>
+          <div class="ais-studio-card" id="hub-card-open-queue" style="border-color:rgba(168,85,247,0.5);">
+            <div class="ais-card-head"><span class="ais-tag" style="color:#c084fc;">실행 승인 큐</span> <b>📋 OS Action Queue 서랍</b></div>
+            <p>HIGH/MEDIUM/LOW 우선순위 OS 실행 대기열 관리, 커스텀 명령 추가 및 대표님 원클릭 실행 승인</p>
+          </div>
         </div>
 
         <!-- Multi-Model Router Selectors (3 STT + 9 LLM + 3 TTS) -->
@@ -155,11 +170,17 @@
       `;
 
       // Bind Studio Launch Cards
-      bodyEl.querySelectorAll('.ais-studio-card').forEach(card => {
+      bodyEl.querySelectorAll('.ais-studio-card[data-open-win]').forEach(card => {
         card.addEventListener('click', () => {
           const targetWin = card.dataset.openWin;
           this.openAIStudioWindowByType(targetWin);
         });
+      });
+      bodyEl.querySelector('#hub-card-open-settings')?.addEventListener('click', () => {
+        this.openMasterSettingsModal();
+      });
+      bodyEl.querySelector('#hub-card-open-queue')?.addEventListener('click', () => {
+        this.toggleOsActionQueueDrawer();
       });
 
       // Bind Model Selectors
@@ -227,7 +248,9 @@
           <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
             <button class="hud-mini-btn ${activeTab === 'MEMORY' ? 'primary' : ''}" data-tab="MEMORY">💾 M · Memory (계층형 볼트)</button>
             <button class="hud-mini-btn ${activeTab === 'PULSE' ? 'primary' : ''}" data-tab="PULSE">💓 P · Pulse (능동형 크론 데몬)</button>
-            <button class="hud-mini-btn ${activeTab === 'REA' ? 'primary' : ''}" data-tab="REA">🔬 REA 오픈모델 역공학 워크벤치 (morluto/rea)</button>
+            <button class="hud-mini-btn ${activeTab === 'REA' ? 'primary' : ''}" data-tab="REA">🔬 REA 오픈모델 역공학 (morluto/rea)</button>
+            <button class="hud-mini-btn ${activeTab === 'WIKI' ? 'primary' : ''}" data-tab="WIKI">📚 재귀 지식 위키 (Knowledge Wiki)</button>
+            <button class="hud-mini-btn ${activeTab === 'OS_LAB' ? 'primary' : ''}" data-tab="OS_LAB">🧪 오픈소스 랩 &amp; 로컬 브릿지 (.py)</button>
           </div>
           <div id="maps-sub-stage"></div>
         `;
@@ -316,7 +339,7 @@
               render();
             });
           });
-        } else {
+        } else if (activeTab === 'REA') {
           // REA Reverse Engineering Workbench
           stage.innerHTML = `
             <div style="display:flex;gap:6px;margin-bottom:8px;">
@@ -355,6 +378,59 @@
               selectedRea = data.REA_TARGET_SAMPLES.find(x => x.id === btn.dataset.reaId) || data.REA_TARGET_SAMPLES[0];
               render();
             });
+          });
+        } else if (activeTab === 'WIKI') {
+          // Ported from JarvisKnowledgeWikiStudio.tsx
+          const wikiNodes = data.INITIAL_WIKI_NODES || [];
+          stage.innerHTML = `
+            <div class="ais-section-title">📚 Karpathy 스타일 재귀 지식 위키 &amp; GRPO 보상 점수 인덱서 (JarvisKnowledgeWikiStudio)</div>
+            <div class="ais-grid-2">
+              ${wikiNodes.map(w => `
+                <div class="ais-box">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span class="ais-tag">${w.category}</span>
+                    <span style="font-family:monospace;font-size:10px;color:#34d399;">적합도 ${w.relevanceScore}% · RL보상 +${w.rlRewardScore}</span>
+                  </div>
+                  <div style="font-weight:800;color:#fff;font-size:12px;margin:4px 0;">${w.title}</div>
+                  <div style="font-size:10.8px;color:#cbd5e1;margin-bottom:5px;">${w.summaryKo}</div>
+                  <div style="font-size:10px;color:#38bdf8;">${w.keyInsights.map(k => `• ${k}`).join('<br/>')}</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else if (activeTab === 'OS_LAB') {
+          // Ported from OpenSourceLabView.tsx
+          const bridgeCode = data.generateLocalBridgeScript(data.routerConfig);
+          stage.innerHTML = `
+            <div class="ais-grid-2">
+              <div class="ais-box" style="max-height:260px;overflow-y:auto;">
+                <div class="ais-label" style="color:#00f0ff;">🧪 오픈소스 레포지토리 카탈로그 (${data.OPEN_SOURCE_JARVIS_CATALOG.length}대 핵심 엔진)</div>
+                ${data.OPEN_SOURCE_JARVIS_CATALOG.map(r => `
+                  <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;">
+                      <b style="color:#fff;">${r.name}</b>
+                      <span class="ais-tag">${r.stars} ★ · ${r.license}</span>
+                    </div>
+                    <div style="font-size:10px;color:#94a3b8;">${r.summary}</div>
+                    <code style="font-size:9.8px;color:#34d399;">${r.installCmd}</code>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="ais-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                  <span class="ais-label" style="color:#34d399;margin:0;">🐍 jarvis_local_bridge.py 자동 생성기</span>
+                  <button class="win-ctrl-btn" id="btn-dl-local-bridge">⬇ .PY 다운로드</button>
+                </div>
+                <pre class="ais-code-block" style="max-height:215px;">${bridgeCode}</pre>
+              </div>
+            </div>
+          `;
+          stage.querySelector('#btn-dl-local-bridge')?.addEventListener('click', () => {
+            const blob = new Blob([bridgeCode], { type: 'text/x-python' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'jarvis_local_bridge.py';
+            a.click();
           });
         }
       };
@@ -531,8 +607,9 @@
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div>
               <span class="ais-badge-cyan">SRP Class #2: CharacterAssetStudioController</span>
-              <strong style="margin-left:6px;color:#fff;">캐릭터 360° 턴어라운드 시트 · Wavefront .OBJ · Blender 4.x VFX 스튜디오</strong>
+              <strong style="margin-left:6px;color:#fff;">캐릭터 360° 턴어라운드 시트 · Wavefront .OBJ · Blender 4.x VFX · Barehands 3D</strong>
             </div>
+            <button class="win-ctrl-btn" id="btn-launch-barehands-3d" style="border-color:#00f0ff;color:#00f0ff;">🖐️ Barehands 3D 에어터치 홀로그램 가동</button>
           </div>
 
           <div class="ais-grid-3" style="margin-bottom:8px;">
@@ -606,6 +683,13 @@
         bodyEl.querySelector('#btn-dl-bpy')?.addEventListener('click', () => {
           downloadText(`${spec.characterName}_blender_rig.py`, bpyCode);
         });
+        bodyEl.querySelector('#btn-launch-barehands-3d')?.addEventListener('click', () => {
+          const holoBtn = document.getElementById('toggle-holo');
+          if (holoBtn && window.MultimodalEngine) {
+            window.MultimodalEngine.toggleSensor('HOLO', holoBtn);
+          }
+          window.BSC_WORLDVIEW.showToast('🖐️ Barehands 3D Stage', '대표님, MediaPipe Hands WASM 기반 3D 에어터치 홀로그램 조작 모드를 활성화했습니다.');
+        });
       };
       render();
     };
@@ -640,6 +724,7 @@
               ${['Q4_K_M', 'Q8_0', 'FP16'].map(q => `
                 <button class="win-ctrl-btn ${quant === q ? 'active-quant' : ''} btn-quant" data-q="${q}">${q}</button>
               `).join('')}
+              <button class="win-ctrl-btn" id="btn-run-telemetry-analyze" style="border-color:#00f0ff;color:#00f0ff;">📊 텔레메트리 데이터 분석</button>
               <button class="win-ctrl-btn" id="btn-run-sys-audit" style="border-color:#34d399;color:#34d399;">⚡ 전체 아키텍처 성능 감사 (Audit)</button>
             </div>
           </div>
@@ -751,6 +836,16 @@
           a.href = URL.createObjectURL(blob);
           a.download = 'train_jarvis_rl.py';
           a.click();
+        });
+
+        bodyEl.querySelector('#btn-run-telemetry-analyze')?.addEventListener('click', async () => {
+          const res = await fetch('/api/jarvis/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ datasetName: 'gpu-inference', sample: data.PRESET_TELEMETRY_DATASETS?.[0]?.sample || [] })
+          });
+          const an = await res.json();
+          window.BSC_WORLDVIEW.showToast(`📊 Telemetry Analyst (${an.anomalyStatus || '정상'})`, an.headline || '텔레메트리 데이터 분석 완료');
         });
 
         bodyEl.querySelector('#btn-run-sys-audit')?.addEventListener('click', async () => {
@@ -1021,12 +1116,629 @@
       render();
     };
 
+    // =========================================================================
+    // 8. OPEN_TTS_STUDIO: Open-Source TTS & 23-Language Zero-Shot Voice Cloning
+    //    (Benchmarked in https://www.youtube.com/watch?v=pnQUKnmPkFg&t=484s)
+    // =========================================================================
+    spawner.renderOpenTtsStudio = function (bodyEl) {
+      const data = window.AIStudioData;
+      const cfg = data.routerConfig;
+      const bench = data.OPEN_SOURCE_TTS_BENCHMARK;
+      let activeTab = 'SYNTH';
+
+      const render = () => {
+        bodyEl.innerHTML = `
+          <div class="ais-top-banner" style="border-color:rgba(52,211,153,0.4);">
+            <div>
+              <span class="ais-badge-cyan" style="color:#34d399;border-color:rgba(52,211,153,0.45);">OPEN-SOURCE TTS &amp; ZERO-SHOT DUBBING STUDIO</span>
+              <h3 style="margin:4px 0 2px 0;color:#fff;">🎙️ Chatterbox Multilingual (MIT) · Qwen3-TTS · 7대 HD 신경망 보이스 스튜디오</h3>
+              <div style="font-size:11px;color:#94a3b8;">CONNECT AI LAB 15종 TTS 벤치마크 우승 엔진 (음색 유사도 0.75 vs ElevenLabs 0.67 · 23개국어 원어민 억양 9/10 · 0원 오픈소스)</div>
+            </div>
+            <div style="display:flex;gap:5px;">
+              <button class="hud-mini-btn ${activeTab === 'SYNTH' ? 'primary' : ''}" data-tab="SYNTH">🎛️ 실시간 음성 합성 &amp; 튜닝</button>
+              <button class="hud-mini-btn ${activeTab === 'BENCH' ? 'primary' : ''}" data-tab="BENCH">📊 15종 오픈소스 TTS 벤치마크</button>
+              <button class="hud-mini-btn ${activeTab === 'COLAB' ? 'primary' : ''}" data-tab="COLAB">💻 30초 보이스 클로닝 코드 (6셀)</button>
+            </div>
+          </div>
+          <div id="open-tts-stage" style="margin-top:10px;"></div>
+        `;
+
+        bodyEl.querySelectorAll('[data-tab]').forEach(b => {
+          b.addEventListener('click', () => {
+            activeTab = b.dataset.tab;
+            render();
+          });
+        });
+
+        const stage = bodyEl.querySelector('#open-tts-stage');
+        if (activeTab === 'SYNTH') {
+          stage.innerHTML = `
+            <div class="ais-grid-2">
+              <div class="ais-box">
+                <div class="ais-label" style="color:#34d399;">🔊 활성 TTS 엔진 &amp; 7대 한/영 멀티링구얼 성우 선택</div>
+                <label class="ais-label" style="margin-top:6px;">TTS 오픈모델 엔진</label>
+                <select id="tts-studio-engine" class="ais-select">
+                  ${data.TTS_ENGINE_OPTIONS.map(o => `<option value="${o.id}" ${cfg.ttsEngine === o.id ? 'selected' : ''}>${o.name} [${o.latencyBadge}]</option>`).join('')}
+                </select>
+
+                <label class="ais-label" style="margin-top:8px;">전담 보이스 액터 (Voice ID)</label>
+                <select id="tts-studio-voice" class="ais-select">
+                  ${(data.NEURAL_VOICE_ACTORS || []).map(v => `<option value="${v.id}" ${cfg.voiceId === v.id ? 'selected' : ''}>${v.name} — ${v.style}</option>`).join('')}
+                </select>
+
+                <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:10.5px;"><span>발화 속도 (Rate)</span><b id="lbl-tts-rate" style="color:#00f0ff;">${cfg.speechRate}x</b></div>
+                    <input type="range" id="rng-tts-rate" min="0.75" max="1.45" step="0.05" value="${cfg.speechRate}" style="width:100%;" />
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:10.5px;"><span>음정 톤 (Pitch)</span><b id="lbl-tts-pitch" style="color:#34d399;">${cfg.pitchHz || '-2Hz'}</b></div>
+                    <select id="sel-tts-pitch" class="ais-select" style="padding:3px 6px;">
+                      ${['-6Hz (중저음 영화 자비스)', '-2Hz (차분한 수석 집사)', '+0Hz (표준 내추럴)', '+2Hz (밝은 아나운서)'].map(p => `<option value="${p.split(' ')[0]}" ${(cfg.pitchHz || '-2Hz') === p.split(' ')[0] ? 'selected' : ''}>${p}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:10.5px;"><span>Chatterbox 감정 억양 (Exaggeration)</span><b id="lbl-tts-exag" style="color:#fbbf24;">${cfg.ttsExaggeration || 0.45}</b></div>
+                    <input type="range" id="rng-tts-exag" min="0.1" max="1.0" step="0.05" value="${cfg.ttsExaggeration || 0.45}" style="width:100%;" />
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:10.5px;"><span>음색 밀착도 (CFG Weight)</span><b id="lbl-tts-cfg" style="color:#c084fc;">${cfg.ttsCfgWeight || 0.5}</b></div>
+                    <input type="range" id="rng-tts-cfg" min="0.2" max="0.9" step="0.05" value="${cfg.ttsCfgWeight || 0.5}" style="width:100%;" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="ais-box">
+                <div class="ais-label" style="color:#00f0ff;">🎬 영화 속 자비스 스타일 실시간 음성 테스트</div>
+                <textarea id="tts-studio-sample-text" class="ais-textarea" style="height:82px;margin-top:4px;">대표님, 전 시스템 정상 가동 중입니다. 요청하신 18대 스튜디오와 오픈소스 보이스 엔진을 즉시 준비했습니다.</textarea>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+                  <button class="hud-mini-btn primary" id="btn-tts-studio-speak">🔊 선택한 보이스로 즉시 발화</button>
+                  <button class="hud-mini-btn" data-sample="Sir, all eighteen studios and the local Gemma 4 neural core are online and ready for your command.">🇺🇸 영문 영화 자비스</button>
+                  <button class="hud-mini-btn" data-sample="대표님, 오전 일정과 핵심 브리핑 정리를 마쳤습니다. 바로 확인하시겠습니까?">👩‍💼 수석비서 소하 톤</button>
+                </div>
+                <div style="margin-top:10px;padding:8px;background:#05080f;border-radius:6px;border:1px solid rgba(0,240,255,0.18);font-size:10.8px;color:#cbd5e1;">
+                  <div>● <b>로컬 Chatterbox 서버 데몬</b>: <code>python scripts/local-open-tts-server.py</code> (${cfg.localTtsServerUrl})</div>
+                  <div style="margin-top:3px;color:#94a3b8;">로컬 Python 데몬 미실행 시에도 <b>0.18초 무지연 Edge Neural HD (24kHz)</b> 성우로 자동 폴백되어 끊김 없이 발화합니다.</div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          stage.querySelector('#tts-studio-engine')?.addEventListener('change', e => {
+            cfg.ttsEngine = e.target.value;
+            data.saveSettings();
+          });
+          stage.querySelector('#tts-studio-voice')?.addEventListener('change', e => {
+            cfg.voiceId = e.target.value;
+            data.saveSettings();
+          });
+          stage.querySelector('#rng-tts-rate')?.addEventListener('input', e => {
+            cfg.speechRate = parseFloat(e.target.value);
+            stage.querySelector('#lbl-tts-rate').textContent = cfg.speechRate + 'x';
+            data.saveSettings();
+          });
+          stage.querySelector('#sel-tts-pitch')?.addEventListener('change', e => {
+            cfg.pitchHz = e.target.value;
+            stage.querySelector('#lbl-tts-pitch').textContent = cfg.pitchHz;
+            data.saveSettings();
+          });
+          stage.querySelector('#rng-tts-exag')?.addEventListener('input', e => {
+            cfg.ttsExaggeration = parseFloat(e.target.value);
+            stage.querySelector('#lbl-tts-exag').textContent = cfg.ttsExaggeration;
+            data.saveSettings();
+          });
+          stage.querySelector('#rng-tts-cfg')?.addEventListener('input', e => {
+            cfg.ttsCfgWeight = parseFloat(e.target.value);
+            stage.querySelector('#lbl-tts-cfg').textContent = cfg.ttsCfgWeight;
+            data.saveSettings();
+          });
+          stage.querySelectorAll('[data-sample]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const ta = stage.querySelector('#tts-studio-sample-text');
+              if (ta) ta.value = btn.dataset.sample;
+            });
+          });
+          stage.querySelector('#btn-tts-studio-speak')?.addEventListener('click', () => {
+            const text = stage.querySelector('#tts-studio-sample-text')?.value || '대표님, 준비 완료되었습니다.';
+            if (window.MultimodalEngine) {
+              window.MultimodalEngine.playSingleNeuralTurn({
+                persona: cfg.voiceId.includes('SunHi') || cfg.voiceId.includes('Ava') ? 'soha' : 'jarvis',
+                speaker: '🎙️ Open-Source & Neural Voice Studio',
+                text,
+                voiceId: cfg.voiceId
+              }, (window.MultimodalEngine.speechQueueToken = (window.MultimodalEngine.speechQueueToken || 0) + 1));
+            }
+          });
+        } else if (activeTab === 'BENCH') {
+          stage.innerHTML = `
+            <div class="ais-box">
+              <div class="ais-label" style="color:#34d399;">📊 유튜브 참고 영상 (pnQUKnmPkFg) 15종 오픈소스 vs 상용 TTS 정밀 비교표</div>
+              <table>
+                <thead>
+                  <tr><th>모델명</th><th>라이선스</th><th>음색 유사도</th><th>원어민 억양</th><th>VRAM / 비용</th><th>핵심 평가</th></tr>
+                </thead>
+                <tbody>
+                  ${bench.testedModels.map(m => `
+                    <tr>
+                      <td style="font-weight:800;color:#00f0ff;">${m.name}</td>
+                      <td><span class="ais-tag">${m.license}</span></td>
+                      <td style="color:#34d399;font-weight:700;">${m.timbreScore}</td>
+                      <td style="color:#fbbf24;font-weight:700;">${m.nativeAccent}</td>
+                      <td style="font-family:monospace;">${m.vram}</td>
+                      <td>${m.verdict}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else {
+          stage.innerHTML = `
+            <div class="ais-grid-2">
+              ${bench.colabCells.map(c => `
+                <div class="ais-box">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span class="ais-label" style="color:#00f0ff;margin:0;">${c.step}</span>
+                    <button class="win-ctrl-btn btn-copy-tts-cell" data-code="${encodeURIComponent(c.code)}">📋 복사</button>
+                  </div>
+                  <pre class="ais-code-block" style="max-height:110px;">${c.code}</pre>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          stage.querySelectorAll('.btn-copy-tts-cell').forEach(btn => {
+            btn.addEventListener('click', () => {
+              navigator.clipboard?.writeText(decodeURIComponent(btn.dataset.code));
+              window.BSC_WORLDVIEW.showToast('📋 코드 복사 완료', '대표님, 오픈소스 TTS 보이스 클로닝 코드가 클립보드에 복사되었습니다.');
+            });
+          });
+        }
+      };
+      render();
+    };
+
+    // =========================================================================
+    // 9. MASTER 11-SECTION SETTINGS MODAL (Ported 1:1 from SettingsModal.tsx)
+    // =========================================================================
+    spawner.applyDesignTheme = function (themeId) {
+      const cfg = window.AIStudioData.routerConfig;
+      cfg.designTheme = themeId;
+      document.body.classList.remove('theme-emerald-light', 'theme-aurora-violet', 'theme-minimal-slate');
+      if (themeId === 'EMERALD_GLASS_WORKBENCH') {
+        document.body.classList.add('theme-emerald-light');
+      } else if (themeId === 'AURORA_NEURAL_STUDIO') {
+        document.body.classList.add('theme-aurora-violet');
+      } else if (themeId === 'MINIMAL_ENTERPRISE_SLATE') {
+        document.body.classList.add('theme-minimal-slate');
+      }
+      window.AIStudioData.saveSettings();
+    };
+
+    spawner.openMasterSettingsModal = function () {
+      let modal = document.getElementById('jarvis-master-settings-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'jarvis-master-settings-modal';
+        modal.className = 'jarvis-modal-backdrop';
+        document.body.appendChild(modal);
+      }
+      const data = window.AIStudioData;
+      const cfg = data.routerConfig;
+
+      const renderModal = () => {
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+          <div class="jarvis-settings-dialog">
+            <div class="jarvis-settings-header">
+              <div>
+                <span class="ais-badge-cyan">J.A.R.V.I.S. UNIFIED OS SETTINGS · 11 SECTIONS</span>
+                <h2 style="margin:4px 0 0 0;font-size:17px;color:#fff;">⚙️ 통합 자비스 OS 마스터 설정 페이지 (Google AI Studio × BSC J.A.R.V.I.S.)</h2>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="hud-mini-btn primary" id="btn-save-master-settings">💾 전체 설정 영구 저장</button>
+                <button class="win-ctrl-btn close-btn" id="btn-close-master-settings">✕ 닫기</button>
+              </div>
+            </div>
+
+            <div class="jarvis-settings-body">
+              <!-- SECTION 1 & 2: Language, Speaking Style & 4 Design Themes -->
+              <div class="ais-grid-2">
+                <div class="ais-box">
+                  <div class="ais-section-title" style="margin-top:0;">1. 인터페이스 언어 &amp; 영화 속 자비스 화법 스타일</div>
+                  <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <button class="hud-mini-btn ${cfg.uiLanguage === 'ko' ? 'primary' : ''} btn-set-lang" data-lang="ko" style="flex:1;">🇰🇷 한국어 (Korean)</button>
+                    <button class="hud-mini-btn ${cfg.uiLanguage === 'en' ? 'primary' : ''} btn-set-lang" data-lang="en" style="flex:1;">🇺🇸 English (J.A.R.V.I.S.)</button>
+                  </div>
+                  <label class="ais-label">대화 응답 화법 (Speaking Style)</label>
+                  <select id="set-speaking-style" class="ais-select">
+                    <option value="MOVIE_JARVIS_CONCISE" ${cfg.speakingStyle === 'MOVIE_JARVIS_CONCISE' ? 'selected' : ''}>🎬 영화 속 자비스 모드 (핵심 1~2문장 · 간결 · 품격 집사)</option>
+                    <option value="JARVIS_SOHA_COWORK" ${cfg.speakingStyle === 'JARVIS_SOHA_COWORK' ? 'selected' : ''}>🤝 자비스 + 수석비서 소하 2인 브리핑 모드</option>
+                    <option value="DETAILED_ARCHITECT" ${cfg.speakingStyle === 'DETAILED_ARCHITECT' ? 'selected' : ''}>📐 심층 아키텍트 상세 보고 모드</option>
+                  </select>
+                </div>
+
+                <div class="ais-box">
+                  <div class="ais-section-title" style="margin-top:0;">2. 4대 UI 디자인 테마 쇼케이스 (라이트 / 다크 즉시 전환)</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    ${(data.DESIGN_SHOWCASE_OPTIONS || []).map(t => `
+                      <button class="hud-mini-btn ${cfg.designTheme === t.id ? 'primary' : ''} btn-set-theme" data-theme="${t.id}" style="text-align:left;padding:6px 8px;">
+                        <div style="font-weight:800;">${t.badge}</div>
+                        <div style="font-size:10px;opacity:0.8;">${t.titleKo}</div>
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECTION 3: 5 Situational Presets -->
+              <div class="ais-box" style="margin-top:10px;">
+                <div class="ais-section-title" style="margin-top:0;">3. 5대 상황별 추천 프리셋 (원클릭 최적 모델·파라미터 세팅)</div>
+                <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px;">
+                  ${data.SITUATIONAL_PRESETS.map(p => `
+                    <button class="hud-mini-btn ${cfg.situationalPreset === p.id ? 'primary' : ''} btn-set-preset" data-preset="${p.id}" style="text-align:left;padding:7px;">
+                      <div style="font-weight:800;font-size:11px;">${p.titleKo}</div>
+                      <div style="font-size:9.8px;color:#94a3b8;margin-top:3px;">${p.descriptionKo}</div>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- SECTION 4 & 5: Multi-Model Router (STT / LLM / Open-Source TTS) & Voice Cloning -->
+              <div class="ais-box" style="margin-top:10px;">
+                <div class="ais-section-title" style="margin-top:0;">4. 멀티 오픈모델 라우터 (STT 3종 · LLM 9종 · 오픈소스 TTS 6종 · 7대 신경망 성우)</div>
+                <div class="ais-grid-3">
+                  <div>
+                    <label class="ais-label">🎙️ 음성 인식 (STT Engine)</label>
+                    <select id="set-stt" class="ais-select">
+                      ${data.STT_ENGINE_OPTIONS.map(o => `<option value="${o.id}" ${cfg.sttEngine === o.id ? 'selected' : ''}>${o.name} (${o.latencyBadge})</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="ais-label">🧠 두뇌 추론 (LLM / 로컬 Gemma 4)</label>
+                    <select id="set-llm" class="ais-select">
+                      ${data.LLM_ENGINE_OPTIONS.map(o => `<option value="${o.id}" ${cfg.llmEngine === o.id ? 'selected' : ''}>${o.name} [${o.latencyBadge}]</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="ais-label">🔊 오픈소스 &amp; 신경망 TTS 엔진</label>
+                    <select id="set-tts" class="ais-select">
+                      ${data.TTS_ENGINE_OPTIONS.map(o => `<option value="${o.id}" ${cfg.ttsEngine === o.id ? 'selected' : ''}>${o.name} (${o.latencyBadge})</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="ais-grid-3" style="margin-top:8px;">
+                  <div>
+                    <label class="ais-label">🎭 전담 보이스 액터 (7대 한/영 성우)</label>
+                    <select id="set-voice-actor" class="ais-select">
+                      ${(data.NEURAL_VOICE_ACTORS || []).map(v => `<option value="${v.id}" ${cfg.voiceId === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="ais-label">🌐 로컬 오픈소스 TTS 서버 URL (Chatterbox / Qwen3)</label>
+                    <input type="text" id="set-local-tts-url" class="ais-select" value="${cfg.localTtsServerUrl || 'http://127.0.0.1:7860/tts'}" />
+                  </div>
+                  <div style="display:flex;align-items:flex-end;">
+                    <button class="hud-mini-btn primary" id="btn-set-test-voice" style="width:100%;padding:8px;">🔊 현재 자비스 보이스 즉시 테스트</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECTION 6 & 7: Fine-Tuning Sliders & Safety/Endpoints -->
+              <div class="ais-grid-2" style="margin-top:10px;">
+                <div class="ais-box">
+                  <div class="ais-section-title" style="margin-top:0;">5. 추론 창의성 · 발화 속도 · 마이크 감도 · 보이스 클로닝 미세조정</div>
+                  <div class="slider-row">
+                    <label>창의성 (Temp: <b id="val-temp">${cfg.temperature}</b>)</label>
+                    <input type="range" id="set-temp" min="0" max="1" step="0.05" value="${cfg.temperature}" />
+                  </div>
+                  <div class="slider-row">
+                    <label>발화 속도 (<b id="val-rate">${cfg.speechRate}x</b>)</label>
+                    <input type="range" id="set-rate" min="0.75" max="1.45" step="0.05" value="${cfg.speechRate}" />
+                  </div>
+                  <div class="slider-row">
+                    <label>VAD 감도 (<b id="val-vad">${cfg.micSensitivity}</b>)</label>
+                    <input type="range" id="set-vad" min="0.1" max="0.95" step="0.05" value="${cfg.micSensitivity}" />
+                  </div>
+                </div>
+
+                <div class="ais-box">
+                  <div class="ais-section-title" style="margin-top:0;">6. 보안 승인 게이트 &amp; 로컬 Ollama/LM Studio 엔드포인트</div>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:#e2e8f0;margin-bottom:6px;cursor:pointer;">
+                    <input type="checkbox" id="set-safe-mode" ${cfg.safeModeRequireApproval ? 'checked' : ''} />
+                    <span>🛡️ OS 제어 실행 전 대표님 승인 필수 (Harness Safety Gate)</span>
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:#e2e8f0;margin-bottom:8px;cursor:pointer;">
+                    <input type="checkbox" id="set-auto-speak" ${cfg.autoSpeakResponses ? 'checked' : ''} />
+                    <span>🔊 자비스 답변 시 자동으로 신경망 음성 발화 (Auto-TTS)</span>
+                  </label>
+                  <label class="ais-label">로컬 LLM 엔드포인트 (Ollama / vLLM)</label>
+                  <input type="text" id="set-local-llm-url" class="ais-select" value="${cfg.localEndpointUrl}" />
+                </div>
+              </div>
+
+              <!-- SECTION 8 & 9: Bound Local Folders & External IDE Registry -->
+              <div class="ais-grid-2" style="margin-top:10px;">
+                <div class="ais-box">
+                  <div class="ais-section-title" style="margin-top:0;">7. 로컬 워크스페이스 폴더 바인딩 (${cfg.boundFolders.length}개 연결됨)</div>
+                  <div style="max-height:95px;overflow-y:auto;">
+                    ${cfg.boundFolders.map((f, idx) => `
+                      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <span>📁 <b>${f.alias}</b> <code style="color:#00f0ff;">${f.path}</code> (${f.readWrite})</span>
+                        <button class="win-ctrl-btn btn-del-folder" data-idx="${idx}" style="padding:1px 6px;">삭제</button>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <div style="display:flex;gap:5px;margin-top:6px;">
+                    <input type="text" id="inp-new-folder-alias" class="ais-select" placeholder="별칭 (예: BSC_HQ)" style="width:35%;" />
+                    <input type="text" id="inp-new-folder-path" class="ais-select" placeholder="C:\\BeausCreators" style="flex:1;" />
+                    <button class="hud-mini-btn primary" id="btn-add-folder">+ 추가</button>
+                  </div>
+                </div>
+
+                <div class="ais-box">
+                  <div class="ais-section-title" style="margin-top:0;">8. 외부 AI IDE / ADE 에이전트 브릿지 &amp; API 키 금고</div>
+                  <div style="max-height:68px;overflow-y:auto;margin-bottom:6px;">
+                    ${cfg.externalIdes.map(ide => `
+                      <div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;">
+                        <span>💻 <b>${ide.name}</b> (<code>${ide.command}</code>)</span>
+                        <span style="color:#34d399;">${ide.autoSyncContext ? '● Auto-Sync' : '○ Manual'}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+                    <input type="password" id="set-key-openai" class="ais-select" placeholder="OpenAI API Key (sk-...)" value="${cfg.externalApiKeys?.openaiApiKey || ''}" />
+                    <input type="password" id="set-key-anthropic" class="ais-select" placeholder="Anthropic Key (sk-ant-...)" value="${cfg.externalApiKeys?.anthropicApiKey || ''}" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECTION 10: Custom Voice Macros -->
+              <div class="ais-box" style="margin-top:10px;">
+                <div class="ais-section-title" style="margin-top:0;">9. 음성 매크로 (Voice Macro) 트리거 관리</div>
+                <div class="ais-grid-2">
+                  ${data.DEFAULT_VOICE_MACROS.map(m => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#05080f;padding:6px 10px;border-radius:6px;border:1px solid rgba(0,240,255,0.16);">
+                      <div>
+                        <b style="color:#00f0ff;font-size:11.5px;">"${m.phrase}"</b>
+                        <div style="font-size:10px;color:#94a3b8;">${m.descriptionKo} → <code>${m.command}</code></div>
+                      </div>
+                      <button class="win-ctrl-btn btn-settings-run-macro" data-cmd="${m.command}" data-phrase="${m.phrase}">▶ 즉시 실행</button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Bindings inside Master Settings Modal
+        modal.querySelector('#btn-close-master-settings')?.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+        modal.querySelectorAll('.btn-set-lang').forEach(b => {
+          b.addEventListener('click', () => {
+            cfg.uiLanguage = b.dataset.lang;
+            renderModal();
+          });
+        });
+        modal.querySelectorAll('.btn-set-theme').forEach(b => {
+          b.addEventListener('click', () => {
+            spawner.applyDesignTheme(b.dataset.theme);
+            renderModal();
+          });
+        });
+        modal.querySelectorAll('.btn-set-preset').forEach(b => {
+          b.addEventListener('click', () => {
+            const p = data.SITUATIONAL_PRESETS.find(item => item.id === b.dataset.preset);
+            if (p) {
+              Object.assign(cfg, p.applyConfig, { situationalPreset: p.id });
+              renderModal();
+            }
+          });
+        });
+        modal.querySelector('#set-temp')?.addEventListener('input', e => {
+          cfg.temperature = parseFloat(e.target.value);
+          modal.querySelector('#val-temp').textContent = cfg.temperature;
+        });
+        modal.querySelector('#set-rate')?.addEventListener('input', e => {
+          cfg.speechRate = parseFloat(e.target.value);
+          modal.querySelector('#val-rate').textContent = cfg.speechRate + 'x';
+        });
+        modal.querySelector('#set-vad')?.addEventListener('input', e => {
+          cfg.micSensitivity = parseFloat(e.target.value);
+          modal.querySelector('#val-vad').textContent = cfg.micSensitivity;
+        });
+        modal.querySelector('#btn-set-test-voice')?.addEventListener('click', () => {
+          cfg.voiceId = modal.querySelector('#set-voice-actor').value;
+          cfg.ttsEngine = modal.querySelector('#set-tts').value;
+          if (window.MultimodalEngine) {
+            window.MultimodalEngine.playSingleNeuralTurn({
+              persona: 'jarvis',
+              speaker: '🤖 J.A.R.V.I.S.',
+              text: '대표님, 설정하신 보이스 엔진과 영화 속 자비스 간결 화법이 정상적으로 적용되었습니다.',
+              voiceId: cfg.voiceId
+            }, (window.MultimodalEngine.speechQueueToken = (window.MultimodalEngine.speechQueueToken || 0) + 1));
+          }
+        });
+        modal.querySelector('#btn-add-folder')?.addEventListener('click', () => {
+          const alias = modal.querySelector('#inp-new-folder-alias').value.trim();
+          const fpath = modal.querySelector('#inp-new-folder-path').value.trim();
+          if (alias && fpath) {
+            cfg.boundFolders.push({ id: 'dir-' + Date.now(), alias, path: fpath, readWrite: 'READ_WRITE', indexedFiles: 120 });
+            renderModal();
+          }
+        });
+        modal.querySelectorAll('.btn-del-folder').forEach(b => {
+          b.addEventListener('click', () => {
+            cfg.boundFolders.splice(parseInt(b.dataset.idx, 10), 1);
+            renderModal();
+          });
+        });
+        modal.querySelectorAll('.btn-settings-run-macro').forEach(b => {
+          b.addEventListener('click', () => {
+            window.BSC_WORLDVIEW.showToast('🎙️ Voice Macro Executed', `대표님, "${b.dataset.phrase}" 매크로(${b.dataset.cmd})를 즉시 실행했습니다.`);
+          });
+        });
+        modal.querySelector('#btn-save-master-settings')?.addEventListener('click', async () => {
+          cfg.speakingStyle = modal.querySelector('#set-speaking-style').value;
+          cfg.sttEngine = modal.querySelector('#set-stt').value;
+          cfg.llmEngine = modal.querySelector('#set-llm').value;
+          cfg.ttsEngine = modal.querySelector('#set-tts').value;
+          cfg.voiceId = modal.querySelector('#set-voice-actor').value;
+          cfg.localTtsServerUrl = modal.querySelector('#set-local-tts-url').value;
+          cfg.safeModeRequireApproval = modal.querySelector('#set-safe-mode').checked;
+          cfg.autoSpeakResponses = modal.querySelector('#set-auto-speak').checked;
+          cfg.localEndpointUrl = modal.querySelector('#set-local-llm-url').value;
+          cfg.externalApiKeys.openaiApiKey = modal.querySelector('#set-key-openai').value;
+          cfg.externalApiKeys.anthropicApiKey = modal.querySelector('#set-key-anthropic').value;
+
+          await data.saveSettings();
+          const pill = document.getElementById('active-model-pill');
+          if (pill) pill.textContent = `✦ ${cfg.llmEngine.toUpperCase().slice(0, 14)}`;
+          modal.style.display = 'none';
+          window.BSC_WORLDVIEW.showToast('⚙️ 설정 저장 완료', '대표님, 11대 통합 환경설정이 로컬 디스크와 자비스 코어에 영구 반영되었습니다.');
+          if (window.MultimodalEngine) {
+            window.MultimodalEngine.speakStewardReply('대표님, 통합 설정 저장을 완료했습니다.');
+          }
+        });
+      };
+
+      renderModal();
+    };
+
+    // =========================================================================
+    // 10. OS ACTION APPROVAL & PRIORITY QUEUE DRAWER (Ported from App.tsx)
+    // =========================================================================
+    spawner.toggleOsActionQueueDrawer = function (forceOpen) {
+      let drawer = document.getElementById('os-action-queue-drawer');
+      if (!drawer) {
+        drawer = document.createElement('aside');
+        drawer.id = 'os-action-queue-drawer';
+        drawer.className = 'os-queue-drawer';
+        document.body.appendChild(drawer);
+      }
+      const isOpen = forceOpen !== undefined ? forceOpen : !drawer.classList.contains('open');
+      drawer.classList.toggle('open', isOpen);
+      if (!isOpen) return;
+
+      const data = window.AIStudioData;
+      const priorityRank = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+      const renderDrawer = () => {
+        const sorted = [...(data.osActionQueue || [])].sort((a, b) => (priorityRank[a.priority] ?? 1) - (priorityRank[b.priority] ?? 1));
+        const badgeEl = document.getElementById('queue-count-badge');
+        if (badgeEl) badgeEl.textContent = sorted.filter(i => i.status === 'PENDING_APPROVAL').length;
+
+        drawer.innerHTML = `
+          <div class="os-queue-header">
+            <div>
+              <span class="ais-badge-cyan">HUMAN-IN-THE-LOOP OS ACTION QUEUE</span>
+              <h3 style="margin:3px 0 0 0;font-size:14px;color:#fff;">📋 실행 승인 &amp; 우선순위 작업 큐 (${sorted.length}건)</h3>
+            </div>
+            <button class="win-ctrl-btn close-btn" id="btn-close-queue-drawer">✕</button>
+          </div>
+
+          <div class="os-queue-body">
+            <div class="ais-box" style="margin-bottom:8px;">
+              <div class="ais-label">➕ 새 OS 제어 / 워크스페이스 명령 큐 추가</div>
+              <input type="text" id="inp-queue-title" class="ais-select" placeholder="작업 설명 (예: 로컬 TTS 서버 상태 점검)" style="margin-bottom:5px;" />
+              <div style="display:flex;gap:5px;">
+                <input type="text" id="inp-queue-cmd" class="ais-select" placeholder="실행 명령어" style="flex:1;" />
+                <select id="sel-queue-prio" class="ais-select" style="width:92px;">
+                  <option value="HIGH">HIGH</option>
+                  <option value="MEDIUM" selected>MEDIUM</option>
+                  <option value="LOW">LOW</option>
+                </select>
+                <button class="hud-mini-btn primary" id="btn-add-queue-item">추가</button>
+              </div>
+            </div>
+
+            ${sorted.map(item => `
+              <div class="ais-box" style="margin-bottom:8px;border-color:${item.priority === 'HIGH' ? 'rgba(249,115,22,0.45)' : 'rgba(0,240,255,0.18)'};">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span class="ais-tag" style="color:${item.priority === 'HIGH' ? '#f97316' : item.priority === 'MEDIUM' ? '#00f0ff' : '#94a3b8'};">${item.priority} · ${item.category}</span>
+                  <span style="font-size:10px;color:${item.status === 'COMPLETED' ? '#34d399' : '#fbbf24'};font-weight:700;">● ${item.status}</span>
+                </div>
+                <div style="font-weight:800;color:#fff;font-size:12px;margin:4px 0;">${item.title}</div>
+                <code style="display:block;font-size:10px;color:#38bdf8;background:#05080f;padding:4px 6px;border-radius:4px;margin-bottom:6px;word-break:break-all;">${item.commandPreview}</code>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                  <select class="ais-select sel-change-prio" data-id="${item.id}" style="width:105px;padding:3px 6px;font-size:10.5px;">
+                    <option value="HIGH" ${item.priority === 'HIGH' ? 'selected' : ''}>우선순위: HIGH</option>
+                    <option value="MEDIUM" ${item.priority === 'MEDIUM' ? 'selected' : ''}>우선순위: MEDIUM</option>
+                    <option value="LOW" ${item.priority === 'LOW' ? 'selected' : ''}>우선순위: LOW</option>
+                  </select>
+                  <div style="display:flex;gap:5px;">
+                    ${item.status !== 'COMPLETED' ? `<button class="hud-mini-btn primary btn-approve-queue" data-id="${item.id}">▶ 실행 승인</button>` : ''}
+                    <button class="win-ctrl-btn btn-remove-queue" data-id="${item.id}">삭제</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        drawer.querySelector('#btn-close-queue-drawer')?.addEventListener('click', () => {
+          drawer.classList.remove('open');
+        });
+        drawer.querySelector('#btn-add-queue-item')?.addEventListener('click', () => {
+          const title = drawer.querySelector('#inp-queue-title').value.trim();
+          const cmd = drawer.querySelector('#inp-queue-cmd').value.trim();
+          const prio = drawer.querySelector('#sel-queue-prio').value;
+          if (!title) return;
+          data.osActionQueue.unshift({
+            id: 'act-' + Date.now(),
+            title,
+            category: 'TERMINAL_CMD',
+            riskLevel: 'SAFE',
+            priority: prio,
+            commandPreview: cmd || 'echo "J.A.R.V.I.S. Task Executed"',
+            status: 'PENDING_APPROVAL',
+            timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+          });
+          renderDrawer();
+        });
+        drawer.querySelectorAll('.sel-change-prio').forEach(sel => {
+          sel.addEventListener('change', () => {
+            const target = data.osActionQueue.find(i => i.id === sel.dataset.id);
+            if (target) target.priority = sel.value;
+            renderDrawer();
+          });
+        });
+        drawer.querySelectorAll('.btn-approve-queue').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = data.osActionQueue.find(i => i.id === btn.dataset.id);
+            if (target) {
+              target.status = 'COMPLETED';
+              renderDrawer();
+              window.BSC_WORLDVIEW.showToast('✅ 실행 승인 완료', `대표님, 『${target.title}』 작업을 승인하여 완료 처리했습니다.`);
+              if (window.MultimodalEngine) {
+                window.MultimodalEngine.speakStewardReply(`대표님, ${target.title} 작업을 완료했습니다.`);
+              }
+            }
+          });
+        });
+        drawer.querySelectorAll('.btn-remove-queue').forEach(btn => {
+          btn.addEventListener('click', () => {
+            data.osActionQueue = data.osActionQueue.filter(i => i.id !== btn.dataset.id);
+            renderDrawer();
+          });
+        });
+      };
+
+      renderDrawer();
+    };
+
     // Helper to open any AI Studio window by type with proper title/subtitle
     spawner.openAIStudioWindowByType = function (type, initialSubTab) {
       const meta = {
         AI_STUDIO_HUB: {
-          title: '⚡ Google AI Studio × BSC J.A.R.V.I.S. 17대 스튜디오 & 9대 오픈모델 통합 허브',
-          subtitle: '3 STT · 9 LLM/SLM (Laya-421M / REA-14B / Llama 3.3 / Qwen 2.5) · 3 TTS · 5 Presets · 4 Voice Macros'
+          title: '⚡ Google AI Studio × BSC J.A.R.V.I.S. 18대 스튜디오 & 9대 오픈모델 통합 허브',
+          subtitle: '3 STT · 9 LLM/SLM (Laya-421M / REA-14B / Gemma 4) · 6 Open-Source TTS · 5 Presets · 4 Voice Macros'
+        },
+        OPEN_TTS_STUDIO: {
+          title: '🎙️ 오픈소스 TTS (Chatterbox · Qwen3-TTS) & 23개국어 보이스 클로닝 스튜디오',
+          subtitle: 'CONNECT AI LAB 15종 TTS 벤치마크 1위 · 0원 로컬 더빙 & 7대 HD 신경망 성우'
         },
         MAPS_REA_STUDIO: {
           title: '🗺️ MAPS 4계층(Memory·Agent·Pulse·Screen) & REA 오픈모델 역공학 스튜디오',
@@ -1061,6 +1773,26 @@
         initialSubTab
       });
     };
+
+    // Bind Top Unified Workspace Bar, Settings Button, Queue Drawer Button, and Theme Cycle Button
+    document.querySelectorAll('[data-ais-win]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        spawner.openAIStudioWindowByType(btn.dataset.aisWin, btn.dataset.aisSubtab || undefined);
+      });
+    });
+    document.querySelectorAll('.btn-open-master-settings').forEach(btn => {
+      btn.addEventListener('click', () => spawner.openMasterSettingsModal());
+    });
+    document.querySelectorAll('.btn-toggle-os-queue').forEach(btn => {
+      btn.addEventListener('click', () => spawner.toggleOsActionQueueDrawer());
+    });
+    document.getElementById('btn-cycle-theme')?.addEventListener('click', () => {
+      const themes = ['CYBER_HUD_PRO', 'EMERALD_GLASS_WORKBENCH', 'AURORA_NEURAL_STUDIO', 'MINIMAL_ENTERPRISE_SLATE'];
+      const cur = window.AIStudioData.routerConfig.designTheme || 'CYBER_HUD_PRO';
+      const next = themes[(themes.indexOf(cur) + 1) % themes.length];
+      spawner.applyDesignTheme(next);
+      window.BSC_WORLDVIEW.showToast('🌓 디자인 테마 전환', `대표님, 화면 테마를 『${next}』 모드로 즉시 전환했습니다.`);
+    });
   }
 
   if (document.readyState === 'loading') {

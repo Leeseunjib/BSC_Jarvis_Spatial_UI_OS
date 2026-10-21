@@ -1,0 +1,9 @@
+{
+  "uiLanguage": "ko",
+  "speakingStyle": "MOVIE_JARVIS_CONCISE",
+  "designTheme": "CYBER_HUD_PRO",
+  "ttsEngine": "LOCAL_CHATTERBOX_MULTILINGUAL",
+  "voiceId": "ko-KR-HyunsuMultilingualNeural",
+  "speechRate": 1.08,
+  "pitchHz": "-2Hz"
+}

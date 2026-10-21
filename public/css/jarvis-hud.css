@@ -995,3 +995,172 @@ html, body {
   color: var(--cyan);
   background: rgba(0, 240, 255, 0.18);
 }
+
+/* =========================================================================
+   UNIFIED TOP WORKSPACE BAR + MASTER SETTINGS MODAL + OS QUEUE DRAWER
+   ========================================================================= */
+#unified-workspace-bar {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 32;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: rgba(6, 11, 22, 0.88);
+  border: 1px solid rgba(0, 240, 255, 0.34);
+  border-radius: 999px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 0 18px rgba(0, 240, 255, 0.14);
+  max-width: calc(100vw - 560px);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.uni-tab-btn {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.uni-tab-btn:hover {
+  border-color: var(--cyan);
+  color: #fff;
+  background: rgba(0, 240, 255, 0.16);
+}
+
+.uni-tab-btn.primary {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.uni-tab-btn.emerald {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: rgba(52, 211, 153, 0.55);
+  color: #34d399;
+}
+
+.uni-tab-btn.settings-btn {
+  background: rgba(251, 191, 36, 0.16);
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fbbf24;
+}
+
+.uni-tab-btn.queue-btn {
+  background: rgba(168, 85, 247, 0.16);
+  border-color: rgba(168, 85, 247, 0.55);
+  color: #d8b4fe;
+}
+
+.queue-badge {
+  display: inline-block;
+  background: #a855f7;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 0 5px;
+  border-radius: 999px;
+  margin-left: 3px;
+}
+
+/* Master 11-Section Settings Modal */
+.jarvis-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(2, 6, 15, 0.82);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.jarvis-settings-dialog {
+  width: min(1040px, 95vw);
+  max-height: 88vh;
+  background: rgba(8, 14, 26, 0.97);
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 240, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.jarvis-settings-header {
+  padding: 14px 18px;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.14), rgba(52, 211, 153, 0.08));
+  border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jarvis-settings-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* OS Action Queue Drawer */
+.os-queue-drawer {
+  position: fixed;
+  top: 64px;
+  right: -400px;
+  width: 370px;
+  height: calc(100vh - 145px);
+  z-index: 150;
+  background: rgba(7, 12, 24, 0.96);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 12px 0 0 12px;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.8);
+  transition: right 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.os-queue-drawer.open {
+  right: 12px;
+}
+
+.os-queue-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.os-queue-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 4 Design Themes Support (Emerald Light, Aurora Violet, Minimal Slate) */
+body.theme-emerald-light {
+  --bg-void: #f1f5f9;
+  --panel-bg: rgba(255, 255, 255, 0.9);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+}
+body.theme-aurora-violet {
+  --cyan: #c084fc;
+  --sky: #818cf8;
+}
+body.theme-minimal-slate {
+  --cyan: #94a3b8;
+  --sky: #cbd5e1;
+}

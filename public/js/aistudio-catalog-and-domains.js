@@ -12,28 +12,101 @@
  */
 
 window.AIStudioData = {
-  // 현재 활성화된 멀티모델 라우터 설정 상태 (대표님 PC 로컬 Ollama gemma4:e4b & Neural TTS 기본 활성화)
+  // 현재 활성화된 멀티모델 라우터 설정 상태 (대표님 PC 로컬 Ollama gemma4:e4b & 오픈소스/신경망 TTS 기본 활성화)
   routerConfig: {
     sttEngine: 'whisper-large-v3',
     llmEngine: 'gemma4:e4b',
     ttsEngine: 'edge-neural-korean-tts',
-    ttsVoice: 'Jarvis_Hyunsu_Soha_SunHi',
-    activePersonaMode: 'JARVIS_AND_SOHA', // 'JARVIS', 'SOHA', 'TAEJUN', 'GEONU', 'JARVIS_AND_SOHA'
+    ttsVoice: 'ko-KR-HyunsuMultilingualNeural',
+    sohaVoice: 'ko-KR-SunHiNeural',
+    activePersonaMode: 'jarvis', // 'jarvis' (영화 속 자비스 간결 모드 기본), 'cowork', 'soha', 'taejun', 'geonu'
+    exaggeration: 0.5,
+    cfgWeight: 0.45,
+    pitchHz: '-3Hz',
+    localTtsUrl: 'http://127.0.0.1:7860',
     layaRouterEnabled: true,
     autoRouting: true,
     wakeWordEnabled: false,
     autoSpeakReply: true,
-    speechRate: 1.05,
+    speechRate: 1.08,
     vadSensitivity: 60,
-    temperature: 0.7,
+    temperature: 0.65,
     freeEnginePriority: true,
     safetyMode: 'ALWAYS_ASK',
     ollamaEndpoint: 'http://localhost:11434',
     bridgeEndpoint: 'ws://localhost:8765',
     uiLanguage: 'ko',
     designTheme: 'cyber-hud',
-    situationalPreset: 'daily-assistant'
+    situationalPreset: 'daily-assistant',
+    boundFolders: [
+      { id: 'f-1', folderName: 'BSC_Javis_OS Vault', absolutePath: 'c:\\BSC_Javis_OS\\vault', purpose: 'KNOWLEDGE_WIKI', lastScannedTime: '방금 전', fileCount: 24 },
+      { id: 'f-2', folderName: 'BSC_HQ 6.Knowledge_Index', absolutePath: 'C:\\BeausCreators\\01.BSC_HQ\\6.Knowledge_Index', purpose: 'KNOWLEDGE_WIKI', lastScannedTime: '5분 전', fileCount: 455 },
+      { id: 'f-3', folderName: 'Jarvis-Open-AI-Assistant', absolutePath: 'C:\\Users\\USER\\antigravity\\Jarvis-Open-AI-Assistant\\src', purpose: 'CODE_BASE', lastScannedTime: '방금 전', fileCount: 24 }
+    ],
+    externalIdes: [
+      { id: 'ide-1', name: 'Antigravity IDE & ADE', status: 'CONNECTED', wsEndpoint: 'ws://localhost:8765/antigravity', boundFolderPath: 'c:\\BSC_Javis_OS', autoSync: true },
+      { id: 'ide-2', name: 'Cursor AI Agent', status: 'SYNCING', wsEndpoint: 'ws://localhost:8765/cursor', boundFolderPath: 'C:\\BeausCreators\\01.BSC_HQ', autoSync: true }
+    ]
   },
+
+  NEURAL_VOICE_ACTORS: [
+    { id: 'ko-KR-HyunsuMultilingualNeural', name: '🎙️ 현수 멀티링구얼 (Hyunsu HD · 영화 속 자비스 중저음 남성 · 기본 추천)', persona: 'jarvis', lang: 'ko/Multi' },
+    { id: 'en-US-AndrewMultilingualNeural', name: '🎙️ Andrew 멀티링구얼 (글로벌 시네마틱 자비스 남성 · 한/영 완벽 발음)', persona: 'jarvis', lang: 'Multi-23' },
+    { id: 'ko-KR-InJoonNeural', name: '🎙️ 인준 뉴럴 (InJoon HD · 침착한 비서실장 태준 남성)', persona: 'taejun', lang: 'ko-KR' },
+    { id: 'en-US-BrianMultilingualNeural', name: '🎙️ Brian 멀티링구얼 (경쾌한 테크 리더 CTO 거누 남성)', persona: 'geonu', lang: 'Multi-23' },
+    { id: 'ko-KR-SunHiNeural', name: '🎙️ 선희 뉴럴 (SunHi HD · 밝고 또렷한 수석비서 소하 여성 · 추천)', persona: 'soha', lang: 'ko-KR' },
+    { id: 'en-US-AvaMultilingualNeural', name: '🎙️ Ava 멀티링구얼 (부드럽고 세련된 글로벌 소하 여성)', persona: 'soha', lang: 'Multi-23' },
+    { id: 'en-US-EmmaMultilingualNeural', name: '🎙️ Emma 멀티링구얼 (차분한 임원 비서 여성)', persona: 'soha', lang: 'Multi-23' }
+  ],
+
+  DESIGN_SHOWCASE_OPTIONS: [
+    { id: 'cyber-hud', titleKo: '시안 1: 홀로그램 사이버 HUD (BSC 기본)', titleEn: 'Holographic Cyber HUD', overseasReference: 'Iron Man J.A.R.V.I.S. Obsidian & Cyan' },
+    { id: 'minimal-dark', titleKo: '시안 2: 사파이어 시안 다크', titleEn: 'Sapphire Cyan Dark', overseasReference: 'Linear / Raycast Deep Slate & Sky' },
+    { id: 'warm-light', titleKo: '시안 3: 에메랄드 라이트 글래스', titleEn: 'Emerald Light Glass', overseasReference: 'BSC JARVIS Emerald & White Glass' },
+    { id: 'soft-studio', titleKo: '시안 4: 소프트 크리에이티브 스튜디오', titleEn: 'Soft Creative Studio', overseasReference: 'Runway / ElevenLabs Studio Tone' }
+  ],
+
+  INITIAL_OS_ACTION_QUEUE: [
+    {
+      id: 'act-init-1',
+      actionType: 'FILE_SYSTEM',
+      title: '프로젝트 파일 정리 (24개 주제별 자동 분류)',
+      command: 'python jarvis_file_organizer.py --scan ./project_files --count 24 --mode topic_folders',
+      target: '프로젝트 폴더 (파일 24개)',
+      coordinates: '원본 유지 · 주제별 분류',
+      riskLevel: 'SAFE',
+      priority: 'HIGH',
+      explanation: '프로젝트 관련 파일 24개를 분석하여 주제별 폴더로 정리합니다. 대표님 승인 후에만 실행됩니다.',
+      status: 'PENDING',
+      timestamp: '10:24:05'
+    },
+    {
+      id: 'act-init-2',
+      actionType: 'SHELL_EXEC',
+      title: '시스템 리소스 및 메모리 최적화 점검',
+      command: 'Get-CimInstance Win32_OperatingSystem | Select-Object Caption, FreePhysicalMemory',
+      target: '시스템 프로세스 및 RAM',
+      coordinates: '해당 없음',
+      riskLevel: 'SAFE',
+      priority: 'MEDIUM',
+      explanation: '현재 PC에서 메모리 여유 공간과 상위 점유 프로세스를 실시간 스캔합니다.',
+      status: 'PENDING',
+      timestamp: '10:24:08'
+    },
+    {
+      id: 'act-init-3',
+      actionType: 'PYTHON_SCRIPT',
+      title: '블렌더 VFX 씬 쉐이더 캐시 스냅샷 백업',
+      command: 'python backup_blender_cache.py --scene vfx_main --compress zstd',
+      target: 'Blender VFX 캐시 디렉토리',
+      coordinates: '백그라운드 압축',
+      riskLevel: 'SAFE',
+      priority: 'LOW',
+      explanation: '렌더링 전 3D 쉐이더 및 볼륨 플루이드 시뮬레이션 캐시를 안전하게 스냅샷 백업합니다.',
+      status: 'PENDING',
+      timestamp: '10:24:12'
+    }
+  ],
 
   STT_ENGINE_OPTIONS: [
     {
@@ -235,30 +308,76 @@ window.AIStudioData = {
 
   TTS_ENGINE_OPTIONS: [
     {
-      id: 'gemini-3.8-flash-lite-tts',
-      name: 'Gemini 3.8 Flash Lite TTS',
-      provider: '24kHz 고음질 신경망 음성 합성',
-      latencyBadge: '0.25초',
-      costBadge: '기본 내장',
-      description: '차분하고 자연스러운 자비스 목소리(Charon, Kore, Puck, Fenrir, Zephyr)로 답변을 읽어줍니다.'
+      id: 'edge-neural-korean-tts',
+      name: '🏆 Edge Neural DragonHD (현수/선희/Andrew/Ava · 0.2초 무지연 · 기본 작동)',
+      provider: '24kHz 48kbps 초고음질 신경망 성우 스트리밍 (VRAM 0MB)',
+      latencyBadge: '0.18초',
+      costBadge: '₩0 완전 무료',
+      description: '설치나 GPU 메모리 점유 없이 영화 속 자비스(현수/Andrew)와 수석비서 소하(선희/Ava)의 자연스러운 호흡을 즉시 출력합니다.'
+    },
+    {
+      id: 'chatterbox-multilingual',
+      name: '🥇 Chatterbox Multilingual (resemble-ai/chatterbox · MIT 오픈소스 1위)',
+      provider: '내 목소리 10초 복제 · 23개 언어 원어민 억양 (유튜브 벤치마크 1위)',
+      latencyBadge: '0.45초 (GPU)',
+      costBadge: '₩0 MIT 오픈소스',
+      description: '유튜브 15개 성우 AI 비교 1위! 한국어 말투 간섭 없이 내 음색(유사도 0.75 vs ElevenLabs 0.67)만 추출해 23개 언어를 원어민 억양(9/10)으로 발화하며 감정 세기(exaggeration)를 조절합니다.'
+    },
+    {
+      id: 'qwen3-tts',
+      name: '🥈 Qwen3-TTS (QwenLM/Qwen3-TTS · 한국어/중국어 발음 명료도 최강)',
+      provider: 'Alibaba Qwen 오픈웨이트 멀티링구얼 TTS',
+      latencyBadge: '0.35초 (GPU)',
+      costBadge: '₩0 오픈웨이트',
+      description: '한국어와 동아시아 언어의 자모음 발음 정확도와 장문 낭독 안정성이 가장 뛰어난 오픈소스 TTS 모델입니다.'
+    },
+    {
+      id: 'cosyvoice-3',
+      name: '🥉 CosyVoice 3 (FunAudioLLM · 일본어 가나 & 감정 억양 특화)',
+      provider: 'FunAudioLLM 제로샷 보이스 클로닝 & 감정 제어',
+      latencyBadge: '0.40초 (GPU)',
+      costBadge: '₩0 오픈소스',
+      description: '일본어(가나 변환 시 9.5/10점) 및 세밀한 감정 호흡 표현에서 최고 점수를 기록한 오픈소스 음성 합성기입니다.'
+    },
+    {
+      id: 'voxcpm-2',
+      name: '⚡ VoxCPM2 (OpenBMB/VoxCPM · 비토크나이저 End-to-End)',
+      provider: 'OpenBMB 연속 오디오 표현 기반 문맥 인지 TTS',
+      latencyBadge: '0.30초',
+      costBadge: '₩0 오픈소스',
+      description: '이산 코덱(Discrete Tokenizer) 손실 없이 문맥에 맞춰 자연스러운 억양과 운율을 직접 생성하는 차세대 오픈모델입니다.'
     },
     {
       id: 'kokoro-82m-local',
-      name: 'Kokoro-82M / Piper Local TTS',
-      provider: '초경량 오픈소스 로컬 음성 합성',
-      latencyBadge: '0.09초',
-      costBadge: '100% 무료 오픈소스',
-      description: 'CPU만으로도 빠르게 자연스러운 음성을 합성하는 해외 인기 오픈웨이트 TTS입니다.'
-    },
-    {
-      id: 'browser-web-speech',
-      name: 'Web Speech Native TTS',
-      provider: '운영체제 기본 내장 음성 엔진',
-      latencyBadge: '0.01초',
-      costBadge: '100% 무료',
-      description: '네트워크 대기 시간 없이 컴퓨터 내장 음성을 즉시 출력합니다.'
+      name: '🪶 Kokoro-82M / OpenVoice v2 (초경량 CPU 로컬 TTS)',
+      provider: '82M 파라미터 초경량 ONNX/PyTorch 로컬 엔진',
+      latencyBadge: '0.09초 (CPU)',
+      costBadge: '₩0 초경량 로컬',
+      description: '외장 GPU 없이 CPU만으로도 0.1초 내에 음성을 합성하는 초경량 오픈웨이트 모델입니다.'
     }
   ],
+
+  OPEN_SOURCE_TTS_BENCHMARK: {
+    videoRef: 'https://www.youtube.com/watch?v=pnQUKnmPkFg&t=484s',
+    guideUrl: 'https://www.aicitybuilders.com/dubbing',
+    summaryKo: '유료 ElevenLabs(30분×6개국어 약 36만 원) 대신 내 PC/Colab에서 ₩0으로 구동하는 오픈소스 TTS 15종 실전 비교 결과, 다국어 보이스 클로닝은 【Chatterbox Multilingual(MIT)】, 실시간 한국어 비서 응답은 【Edge Neural HD + Qwen3-TTS】, 일본어는 【CosyVoice 3】 조합이 최고 성능을 기록했습니다.',
+    modelsCompared: [
+      { rank: '🏆 실시간 비서 1위', name: 'Edge Neural DragonHD (현수/선희/Andrew)', license: 'Free Neural Stream', timbreScore: '자연스러움 9.6/10', accentScore: '한국어/영어 9.7/10', vram: '0 MB (무지연)', bestFor: '자비스 & 소하 실시간 0.2초 음성 대화 (현재 즉시 작동)' },
+      { rank: '🥇 글로벌 더빙 1위', name: 'Chatterbox Multilingual (resemble-ai)', license: 'MIT 오픈소스', timbreScore: '0.75 (ElevenLabs 0.67 압도)', accentScore: '원어민 억양 9.0/10', vram: '3.8 GB', bestFor: '내 목소리 10~30초 복제 후 23개 언어 원어민 발음 더빙 (exaggeration 감정 조절)' },
+      { rank: '🥈 한국어 로컬 1위', name: 'Qwen3-TTS (QwenLM/Qwen3-TTS)', license: 'Apache-2.0', timbreScore: '0.72', accentScore: '한국어 발음 9.4/10 (영어 복제 시 한국 말투 4/10)', vram: '4.2 GB', bestFor: '한국어 단독 장문 브리핑 및 나레이션' },
+      { rank: '🥉 일본어 특화 1위', name: 'CosyVoice 3 (FunAudioLLM)', license: 'Apache-2.0', timbreScore: '0.73', accentScore: '일본어(가나) 9.5/10', vram: '4.0 GB', bestFor: '일본어·중국어 감성 보이스 클로닝' },
+      { rank: '4위 (End-to-End)', name: 'VoxCPM2 (OpenBMB/VoxCPM)', license: 'Apache-2.0', timbreScore: '0.70', accentScore: '문맥 운율 8.8/10', vram: '2.6 GB', bestFor: '토크나이저 없는 연속 파형 직접 합성' },
+      { rank: '5위 (음색 변환)', name: 'Seed-VC & Confucius4-TTS', license: 'MIT / Apache-2.0', timbreScore: '0.71', accentScore: '감정/노래 변환 8.7/10', vram: '2.2 GB', bestFor: '기존 오디오의 억양은 유지하고 음색만 내 목소리로 교체' }
+    ],
+    colabSixCells: [
+      { step: 'CELL 01 · 설치', cmd: '!pip install -q chatterbox-tts "setuptools<81"' },
+      { step: 'CELL 02 · 엔진 로드', cmd: 'from chatterbox.mtl_tts import ChatterboxMultilingualTTS\ntts = ChatterboxMultilingualTTS.from_pretrained(device="cuda")' },
+      { step: 'CELL 03 · 내 목소리 30초 정규화', cmd: 'ffmpeg -y -i my_sample.mp3 -ac 1 -ar 24000 -t 30 my_voice_24k.wav' },
+      { step: 'CELL 04 · 감정/차분함 조절 합성', cmd: 'wav = tts.generate(TEXT, language_id="ko", audio_prompt_path="my_voice_24k.wav", exaggeration=0.5, cfg_weight=0.45)' },
+      { step: 'CELL 05 · 23개국어 일괄 더빙', cmd: 'for lang, txt in SAY.items(): torchaudio.save(f"{lang}.wav", tts.generate(txt, language_id=lang, audio_prompt_path=VOICE).cpu(), tts.sr)' },
+      { step: 'CELL 06 · 로컬 자비스 TTS 서버 기동', cmd: 'python c:\\BSC_Javis_OS\\scripts\\local-open-tts-server.py --port 7860' }
+    ]
+  },
 
   SITUATIONAL_PRESETS: [
     {
@@ -611,6 +730,116 @@ window.AIStudioData = {
       ]
     }
   ],
+
+  // Ported from JarvisKnowledgeWikiStudio.tsx (6-Category Recursive Knowledge Wiki)
+  INITIAL_WIKI_NODES: [
+    {
+      id: 'wiki-ai-1',
+      title: 'Laya-421M & DeepSeek GRPO 강화학습 초고속 추론 아키텍처',
+      category: 'AI_TRENDS',
+      summaryKo: 'Laya-421M RLCD 및 DeepSeek-R1의 그룹 상대 정책 최적화(GRPO)를 결합하여 0.03초 만에 사용자 의도를 정밀 분류하고 소형 언어모델(SLM)을 자가 파인튜닝하는 오픈소스 트렌드입니다.',
+      detailsKo: '기존 DPO 방식 대비 GRPO는 별도의 평가 모델 없이 자가 보상 함수 점수 비교를 수행하여 VRAM을 70% 절감하고, Laya RLCD 확률 보정 헤드를 통해 확신 과잉(Brier Loss)을 억제합니다.',
+      keyInsights: ['VRAM 4.5GB 환경에서 3B급 SLM을 GRPO로 자가 학습 가능', 'Antigravity IDE & ADE 환경에서 연동 디버깅 정확도 98.4% 달성', 'System-1 빠른 반응과 System-2 심도 추론의 혼합 라우팅'],
+      relevanceScore: 99,
+      recursiveLevel: 4,
+      rlRewardScore: 2.85,
+      updatedAt: '2026-10-21',
+      sources: ['GitHub / ConvAI-Innovations', 'Unsloth AI Research', 'DeepSeek-R1 Paper']
+    },
+    {
+      id: 'wiki-econ-1',
+      title: '2026 글로벌 AI 하이테크 경제 & 반도체 공급망 동향',
+      category: 'ECONOMY_BUSINESS',
+      summaryKo: '글로벌 빅테크의 온디바이스 AI 및 소형 언어모델(SLM) 채택 급증으로 데이터센터 전력 자율화 및 HBM4 메모리 수요가 사상 최고치를 경신하고 있습니다.',
+      detailsKo: 'AI 에이전트 브릿지 소프트웨어 기업 및 온디바이스 AI 칩 설계사의 기업 가치가 가파르게 상승 중이며 초경량 0.4B~4B 모델 지배력이 확대되고 있습니다.',
+      keyInsights: ['AI 에이전트 인프라 시장 연평균 성장률(CAGR) 42.5% 예상', '전력 효율 중심의 초경량 0.4B~4B 모델(Laya/Gemma 4/Llama) 지배력 확대', '기업용 자율 PC 제어 및 IDE 에이전트 도입률 3배 증가'],
+      relevanceScore: 95,
+      recursiveLevel: 3,
+      rlRewardScore: 2.62,
+      updatedAt: '2026-10-21',
+      sources: ['Bloomberg AI Index', 'Financial Times Tech Insight', 'Wall Street Research']
+    },
+    {
+      id: 'wiki-stock-1',
+      title: '글로벌 AI 반도체 & 에이전트 소프트웨어 주식 및 자산 전략',
+      category: 'STOCKS_FINANCE',
+      summaryKo: 'NVDA, TSMC, MSFT 및 주요 AI 생태계 종목의 모멘텀 지수와 감성 분석 결과, 온디바이스 에이전트 연동 기술을 보유한 하이테크 종목에 자금이 집중되고 있습니다.',
+      detailsKo: '기술적 분석 결과 상대강도지수(RSI 62.4) 및 이동평균선(MA20) 상방 지지선이 견고하며, 로컬 SLM 및 프라이빗 AI 기술을 결합한 기업들의 실적 개선세가 두드러집니다.',
+      keyInsights: ['AI 에이전트 소프트웨어 섹터 수급 유입 지수 88/100', '반도체 밸류체인 및 자율형 개발 환경(ADE) 시장 가치 재평가', '변동성 완화를 위한 분산 포트폴리오 및 기술 지표 추적'],
+      relevanceScore: 92,
+      recursiveLevel: 3,
+      rlRewardScore: 2.48,
+      updatedAt: '2026-10-21',
+      sources: ['S&P 500 Tech Sector', 'KOSPI AI Leaders Index', 'TradingView Sentiment']
+    },
+    {
+      id: 'wiki-it-1',
+      title: '안티그래비티 IDE & 멀티 오픈모델 에이전트 통합 아키텍처',
+      category: 'IT_SOFTWARE_ARCHITECTURE',
+      summaryKo: '로컬 파일시스템 바인딩, 실시간 AST 구문 트리 자가치유 패치, 그리고 MAPS 4계층 메모리/펄스 데몬을 결합한 차세대 AI-OS 표준 아키텍처입니다.',
+      detailsKo: 'Chatterbox Multilingual 오픈소스 TTS와 Ollama Gemma 4(e2b/e4b/31b) 로컬 추론을 결합하여 0원의 운영비로 엔터프라이즈급 보안을 달성합니다.',
+      keyInsights: ['2-Hop 브레인 인덱싱으로 컨텍스트 토큰 88.5% 절감', 'Chatterbox MIT 라이선스 기반 23개국어 제로샷 보이스 클로닝', 'Human-in-the-Loop 대표님 승인 게이트웨이 100% 내장'],
+      relevanceScore: 98,
+      recursiveLevel: 4,
+      rlRewardScore: 2.91,
+      updatedAt: '2026-10-21',
+      sources: ['BSC_HQ Engineering', 'pavrus117/ai-os-maps-guide', 'resemble-ai/chatterbox']
+    }
+  ],
+
+  // Ported from TelemetryAndDataPanel.tsx
+  PRESET_TELEMETRY_DATASETS: [
+    {
+      id: 'gpu-inference',
+      name: '무료 오픈모델 속도 & 메모리 효율 비교 데이터',
+      sample: [
+        { 모델명: 'Laya-421M-RLCD (의도 분류)', 응답시간_ms: 33, 처리속도_TPS: 890, 메모리_GB: 0.8, 정확도: '99.1%' },
+        { 모델명: 'Gemma-4-e2b (로컬 Ollama)', 응답시간_ms: 1120, 처리속도_TPS: 145, 메모리_GB: 2.1, 정확도: '95.8%' },
+        { 모델명: 'Whisper-Large-v3 (음성 인식)', 응답시간_ms: 180, 처리속도_TPS: 295, 메모리_GB: 0.0, 정확도: '98.4%' },
+        { 모델명: 'Chatterbox-Multilingual (TTS)', 응답시간_ms: 380, 처리속도_TPS: 240, 메모리_GB: 4.2, 정확도: '99.0%' },
+        { 모델명: 'Phi-4-Mini-3.8B-SLM (강화학습)', 응답시간_ms: 150, 처리속도_TPS: 110, 메모리_GB: 2.8, 정확도: '94.7%' }
+      ]
+    },
+    {
+      id: 'workstation-processes',
+      name: '내 컴퓨터 프로그램별 메모리 & CPU 사용량',
+      sample: [
+        { 프로그램: 'ollama_local_server', 프로세스ID: 4821, CPU사용률: 22.4, 메모리_MB: 2840 },
+        { 프로그램: 'bsc_jarvis_os_node', 프로세스ID: 56008, CPU사용률: 4.1, 메모리_MB: 115 },
+        { 프로그램: 'local_open_tts_chatterbox', 프로세스ID: 7860, CPU사용률: 8.2, 메모리_MB: 620 }
+      ]
+    }
+  ],
+
+  // Ported from OpenSourceLabView.tsx / openSourceCatalog.ts
+  generateLocalBridgeScript(cfg) {
+    return `#!/usr/bin/env python3
+"""
+[BSC J.A.R.V.I.S. Local Bridge Daemon — jarvis_local_bridge.py]
+- Active STT Engine : ${cfg.sttEngine}
+- Active LLM Engine : ${cfg.llmEngine} (${cfg.localEndpointUrl})
+- Active TTS Engine : ${cfg.ttsEngine} (${cfg.localTtsServerUrl})
+- Safety Gate       : ${cfg.safeModeRequireApproval ? 'CEO Approval Required' : 'Auto'}
+"""
+import asyncio, json, subprocess, pyautogui
+from fastapi import FastAPI
+
+app = FastAPI(title="BSC J.A.R.V.I.S. Local Bridge")
+
+@app.get("/health")
+async def health():
+    return {"ok": True, "llm": "${cfg.llmEngine}", "tts": "${cfg.ttsEngine}"}
+
+@app.post("/os/execute")
+async def execute_safe_cmd(payload: dict):
+    cmd = payload.get("command", "")
+    return {"status": "QUEUED_FOR_CEO_APPROVAL", "command": cmd}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8765)
+`;
+  },
 
   // Script Generators from openSourceCatalog.ts
   generateRlFineTuningScript(params) {

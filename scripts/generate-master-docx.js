@@ -393,7 +393,11 @@ function generateDocumentXml() {
     { label: '9-7. 5대 멀티모달 감각 & 안전 PC 제어 엔진 (c:\\BSC_Javis_OS\\public\\js\\multimodal-engine.js)', path: path.join(WORKSPACE_ROOT, 'public', 'js', 'multimodal-engine.js') },
     { label: '9-8. 우측 J.A.R.V.I.S. 3D 리액터 코어 RING/CUBE/FACE (c:\\BSC_Javis_OS\\public\\js\\jarvis-core-3d.js)', path: path.join(WORKSPACE_ROOT, 'public', 'js', 'jarvis-core-3d.js') },
     { label: '9-9. 장로교 청지기 세계관 & 토큰 유량 컨트롤러 (c:\\BSC_Javis_OS\\public\\js\\worldview-together.js)', path: path.join(WORKSPACE_ROOT, 'public', 'js', 'worldview-together.js') },
-    { label: '9-10. 원클릭 런처 배치 스크립트 (c:\\BSC_Javis_OS\\Start-BSC-Jarvis.bat)', path: path.join(WORKSPACE_ROOT, 'Start-BSC-Jarvis.bat') }
+    { label: '9-10. 원클릭 런처 배치 스크립트 (c:\\BSC_Javis_OS\\Start-BSC-Jarvis.bat)', path: path.join(WORKSPACE_ROOT, 'Start-BSC-Jarvis.bat') },
+    { label: '9-11. Google AI Studio × 오픈모델 통합 카탈로그 & 도메인 컨트롤러 (c:\\BSC_Javis_OS\\public\\js\\aistudio-catalog-and-domains.js)', path: path.join(WORKSPACE_ROOT, 'public', 'js', 'aistudio-catalog-and-domains.js') },
+    { label: '9-12. 18대 홀로그램 스튜디오 · 11대 통합 설정 · OS 실행승인 큐 매니저 (c:\\BSC_Javis_OS\\public\\js\\aistudio-windows.js)', path: path.join(WORKSPACE_ROOT, 'public', 'js', 'aistudio-windows.js') },
+    { label: '9-13. 오픈소스 Chatterbox Multilingual (MIT) 23개국어 보이스 클로닝 데몬 (c:\\BSC_Javis_OS\\scripts\\local-open-tts-server.py)', path: path.join(WORKSPACE_ROOT, 'scripts', 'local-open-tts-server.py') },
+    { label: '9-14. 전 시스템 18개 항목 자동화 QA 검증 스위트 (c:\\BSC_Javis_OS\\scripts\\verify-full-system.js)', path: path.join(WORKSPACE_ROOT, 'scripts', 'verify-full-system.js') }
   ];
 
   for (const cf of codeFiles) {
@@ -439,7 +443,6 @@ function generateDocumentXml() {
 }
 
 function buildDocxPackage() {
-  fs.rmSync(BUILD_DIR, { recursive: true, force: true });
   fs.mkdirSync(WORD_DIR, { recursive: true });
   fs.mkdirSync(RELS_DIR, { recursive: true });
   fs.mkdirSync(WORD_RELS_DIR, { recursive: true });
@@ -487,17 +490,19 @@ function buildDocxPackage() {
   const docXml = generateDocumentXml();
   fs.writeFileSync(path.join(WORD_DIR, 'document.xml'), docXml, 'utf8');
 
-  // 6. Compress into .docx using PowerShell .NET ZipFile
+  // 6. Compress into .docx using .NET ZipArchive in Update mode
   const outDocx1 = path.join(WORKSPACE_ROOT, 'BSC_JARVIS_OS_Master_Encyclopedia_100p.docx');
-  const outDocx2 = 'C:\\BeausCreators\\01.BSC_HQ\\1.Documents\\01.보고서\\2026-10-20\\BSC_JARVIS_OS_Master_Encyclopedia_100p.docx';
-
-  if (fs.existsSync(outDocx1)) fs.unlinkSync(outDocx1);
-
-  const psCmd = `Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('${BUILD_DIR.replace(/'/g, "''")}', '${outDocx1.replace(/'/g, "''")}')`;
-  execSync(`powershell -NoProfile -Command "${psCmd}"`);
+  const outDocx2 = 'C:\\BeausCreators\\01.BSC_HQ\\1.Documents\\01.보고서\\2026-10-21\\BSC_JARVIS_OS_Master_Encyclopedia_100p.docx';
+  const outDocx3 = path.join(WORKSPACE_ROOT, 'docs', 'BSC_JARVIS_OS_Master_Encyclopedia_100p.docx');
 
   fs.mkdirSync(path.dirname(outDocx2), { recursive: true });
-  fs.copyFileSync(outDocx1, outDocx2);
+  fs.mkdirSync(path.dirname(outDocx3), { recursive: true });
+
+  const psCmd = `Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem; $fs = New-Object System.IO.FileStream('${outDocx2.replace(/'/g, "''")}', [System.IO.FileMode]::Create); $zip = New-Object System.IO.Compression.ZipArchive($fs, [System.IO.Compression.ZipArchiveMode]::Create); Get-ChildItem -Path '${BUILD_DIR.replace(/'/g, "''")}' -Recurse -Force | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $rel = $_.FullName.Substring('${BUILD_DIR.replace(/'/g, "''")}'.Length + 1).Replace('\\','/'); [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel) | Out-Null }; $zip.Dispose(); $fs.Dispose()`;
+  execSync(`powershell -NoProfile -Command "${psCmd}"`);
+
+  fs.copyFileSync(outDocx2, outDocx1);
+  fs.copyFileSync(outDocx2, outDocx3);
 
   const stat = fs.statSync(outDocx1);
   console.log(`[DOCX Generated Successfully]`);
