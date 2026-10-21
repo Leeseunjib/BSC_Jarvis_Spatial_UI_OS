@@ -3160,3 +3160,308 @@ body.theme-minimal-slate {
   .jarvis-orb-canvas-wrap { width: 110px; height: 110px; }
   #design-workspace-stage { left: 0; top: 52px; padding: 6px; }
 }
+
+
+/* ==========================================================================
+   ⚡ INTEGRATED SYSTEM RIBBON & EXISTING MODULES IN NEW MASTER DESIGN STYLE
+   Ensures 100% of existing systems (18 Studios, 6 Views, 4 Sensors, Core Shapes,
+   Inspector/Forces/TokenFlow, Spawner Orbs, Camera Links) are visible & active!
+   ========================================================================== */
+
+/* Keep Floating Studio Windows, Modals, Queue & Chat Drawer ABOVE Workspace Stage */
+#floating-windows-layer {
+  z-index: 9200 !important;
+}
+.os-queue-drawer {
+  z-index: 9550 !important;
+}
+.jarvis-modal-backdrop {
+  z-index: 9800 !important;
+}
+.agent-chat-drawer {
+  z-index: 9350 !important;
+}
+
+/* Top Bar Brand + 6 Brain View Switcher Integration */
+.mtb-brand-click {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  margin-right: 12px;
+}
+.mtb-view-switcher {
+  position: static !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.72) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 999px !important;
+  padding: 3px 6px !important;
+  box-shadow: none !important;
+}
+.mtb-view-switcher .view-pill {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* Top-Right Direct Camera & Queue Pills */
+.mtb-cam-pill {
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mtb-cam-pill.mobile {
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  color: #34d399;
+}
+.mtb-cam-pill.pc {
+  background: rgba(14, 165, 233, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+}
+.mtb-cam-pill.queue {
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #d8b4fe;
+}
+.mtb-cam-pill:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}
+
+/* Second-Row Sleek System Command Ribbon */
+#system-command-ribbon {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  right: 0;
+  height: 38px;
+  padding: 0 16px;
+  background: rgba(8, 14, 28, 0.82);
+  border-bottom: 1px solid rgba(125, 211, 252, 0.16);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  z-index: 79;
+}
+#system-command-ribbon::-webkit-scrollbar {
+  height: 3px;
+}
+.sys-rib-btn {
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.sys-rib-btn:hover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  color: #ffffff;
+}
+.sys-rib-btn.cyan {
+  border-color: rgba(0, 240, 255, 0.45);
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.12);
+}
+.sys-rib-btn.gold {
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+.sys-rib-btn.sky {
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.18);
+}
+.sys-rib-btn.primary {
+  border-color: #3b82f6;
+  color: #ffffff;
+  background: rgba(37, 99, 235, 0.32);
+}
+.sys-rib-btn.emerald {
+  border-color: rgba(52, 211, 153, 0.45);
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+}
+.sys-rib-div {
+  width: 1px;
+  height: 18px;
+  background: rgba(148, 163, 184, 0.22);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* Adjust Left Dock & Top-Left Card & Workspace Stage for the 2-Row Header (90px total) */
+#slim-left-dock {
+  top: 98px !important;
+  width: 58px !important;
+  padding: 8px 0 !important;
+}
+.slim-dock-btn {
+  width: 48px !important;
+  height: 44px !important;
+  flex-direction: column;
+  gap: 2px;
+}
+.sd-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.sd-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: inherit;
+}
+
+#node-preview-card {
+  top: 98px !important;
+  left: 84px !important;
+  width: 280px !important;
+  max-height: calc(100vh - 170px);
+  overflow-y: auto;
+}
+.np-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.np-expand-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.np-div {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.2);
+  margin: 10px 0 8px 0;
+}
+.np-stat-bar {
+  font-size: 10.5px;
+  color: #cbd5e1;
+}
+
+#design-workspace-stage {
+  top: 90px !important;
+  left: 76px !important;
+}
+
+/* Bottom-Right Orb Zone: Core Shape Tabs + 4 Multimodal Sensors */
+#jarvis-floating-orb-zone {
+  right: 20px !important;
+  bottom: 64px !important;
+  width: 242px !important;
+}
+.jsc-mini-btn.gold {
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+.jos-model-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  background: rgba(52, 211, 153, 0.16);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #34d399;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.orb-shape-row {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+.orb-shape-row .core-tab {
+  flex: 1;
+  font-size: 10px;
+  padding: 3px 0;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  color: #94a3b8;
+  cursor: pointer;
+}
+.orb-shape-row .core-tab.active {
+  border-color: #00f0ff;
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.15);
+  font-weight: 800;
+}
+.orb-sensor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.compact-sensor {
+  padding: 4px 8px !important;
+  border-radius: 8px !important;
+  background: rgba(12, 20, 38, 0.85) !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px !important;
+}
+
+/* Bottom-Right System Spawner Pills in Clean Bottom Bar */
+.cbb-system-orbs {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(10, 17, 32, 0.84);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  padding: 4px 10px;
+  backdrop-filter: blur(16px);
+}
+.cbb-orb-pill {
+  background: rgba(30, 41, 59, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.cbb-orb-pill:hover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  color: #ffffff;
+}
+.cbb-orb-pill.gold {
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}

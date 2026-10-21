@@ -82,10 +82,27 @@ window.JarvisDesignViews = {
       this.openWorkspace(target, sel);
     });
 
-    // Top-Left Brand Home Button
+    // Top-Left Brand Home Button & Ribbon Tycoon Office Button
     document.getElementById('btn-brand-home')?.addEventListener('click', () => {
       this.closeWorkspace();
     });
+    document.getElementById('btn-rib-tycoon-office')?.addEventListener('click', () => {
+      this.openWorkspace('TYCOON_OFFICE_WORKSPACE');
+    });
+
+    // Left Dock AI Studio Hub & Brain Inspector Toggle
+    document.getElementById('btn-dock-ai-studio-hub')?.addEventListener('click', () => {
+      this.closeWorkspace();
+      window.HUDWindowSpawner?.openAIStudioWindowByType('AI_STUDIO_HUB');
+    });
+    const toggleInspector = () => {
+      const drawer = document.getElementById('brain-inspector-drawer');
+      if (drawer) {
+        drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
+      }
+    };
+    document.getElementById('btn-dock-toggle-inspector')?.addEventListener('click', toggleInspector);
+    document.getElementById('btn-toggle-brain-details')?.addEventListener('click', toggleInspector);
 
     // Bottom-Right J.A.R.V.I.S. Orb Callout & "업무 현황 열기 →" Button
     document.getElementById('btn-open-work-status')?.addEventListener('click', () => {
@@ -93,6 +110,9 @@ window.JarvisDesignViews = {
     });
     document.getElementById('btn-orb-open-chat')?.addEventListener('click', () => {
       document.getElementById('btn-toggle-agent-chat')?.click();
+    });
+    document.getElementById('btn-orb-open-council')?.addEventListener('click', () => {
+      document.getElementById('btn-open-bsc-council')?.click();
     });
     document.getElementById('jarvis-orb-trigger')?.addEventListener('click', () => {
       document.getElementById('orb-voice-mic')?.click();
@@ -747,13 +767,15 @@ window.JarvisDesignViews = {
               <button class="tqj-pill ${scene === 'MEETING_ROOM' ? 'active' : ''}" data-tycoon-scene="MEETING_ROOM">👥 달빛 숲 회의실 (6인 협업)</button>
             </div>
 
-            <!-- Bottom Tycoon Dock Bar (🌐 브라우저 | 📊 주식 | 📰 뉴스레터 | 🎮 스튜디오) -->
+            <!-- Bottom Tycoon Dock Bar (🌐 브라우저 | 📊 주식 | 📰 뉴스레터 | 🎮 스튜디오 + Existing 18 AI Studios Integration) -->
             <div class="tycoon-bottom-dock">
-              <button class="tbd-btn ${scene === 'RESEARCH_NEWS' ? 'active' : ''}" data-tycoon-scene="RESEARCH_NEWS">🌐 브라우저</button>
-              <button class="tbd-btn" id="btn-tycoon-stock-bi">📊 주식 · 재무</button>
+              <button class="tbd-btn ${scene === 'RESEARCH_NEWS' ? 'active' : ''}" data-tycoon-scene="RESEARCH_NEWS">🌐 브라우저·리서치</button>
+              <button class="tbd-btn" id="btn-tycoon-stock-bi">📊 주식·ERP</button>
               <button class="tbd-btn ${scene === 'RESEARCH_NEWS' ? 'active' : ''}" data-tycoon-scene="RESEARCH_NEWS">📰 뉴스레터</button>
-              <button class="tbd-btn ${scene === 'MEETING_ROOM' ? 'active' : ''}" data-tycoon-scene="MEETING_ROOM">🎮 스튜디오</button>
-              <button class="tbd-btn gold" id="btn-tycoon-open-full-council">🏛️ BeausCreators 의논·회의·보고서 창</button>
+              <button class="tbd-btn" id="btn-tycoon-open-blender" title="캐릭터 360° 도면 & 블렌더 3D VFX 스튜디오 열기">🎮 게임·3D스튜디오</button>
+              <button class="tbd-btn" id="btn-tycoon-open-rea" title="MAPS 4계층 & REA 역공학 워크벤치 열기">🗺️ MAPS·REA</button>
+              <button class="tbd-btn" id="btn-tycoon-open-18hub" title="18대 AI 스튜디오 통합 허브 열기">⚡ 18대 스튜디오</button>
+              <button class="tbd-btn gold" id="btn-tycoon-open-full-council">🏛️ 의논·회의·보고서 창</button>
             </div>
           </div>
 
@@ -971,6 +993,15 @@ window.JarvisDesignViews = {
 
     document.getElementById('btn-tycoon-stock-bi')?.addEventListener('click', () => {
       this.openWorkspace('BSC_OS_WORKSPACE');
+    });
+    document.getElementById('btn-tycoon-open-blender')?.addEventListener('click', () => {
+      window.HUDWindowSpawner?.openAIStudioWindowByType('CREATIVE_BLENDER');
+    });
+    document.getElementById('btn-tycoon-open-rea')?.addEventListener('click', () => {
+      window.HUDWindowSpawner?.openAIStudioWindowByType('MAPS_REA_STUDIO');
+    });
+    document.getElementById('btn-tycoon-open-18hub')?.addEventListener('click', () => {
+      window.HUDWindowSpawner?.openAIStudioWindowByType('AI_STUDIO_HUB');
     });
 
     document.getElementById('btn-tycoon-open-full-council')?.addEventListener('click', () => {
