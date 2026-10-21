@@ -147,16 +147,34 @@
 <body>
   <header class="hdr">
     <div>
-      <h1>📱 J.A.R.V.I.S. 모바일 손동작·카메라 브릿지</h1>
-      <div style="font-size:10.5px;color:#94a3b8;">이건우 대표님 전용 · PC HUD 실시간 무선 연동</div>
+      <h1>📱 J.A.R.V.I.S. 카메라·손동작·시야공유(Co-Vision) 통합 컨트롤러</h1>
+      <div style="font-size:10.5px;color:#94a3b8;">이건우 대표님 전용 · PC 로컬 &amp; 스마트폰 Wi-Fi 무선 브릿지</div>
     </div>
     <span class="status-pill" id="conn-pill">● PC 연결됨</span>
   </header>
 
+  <!-- 🔗 1-Click URL & Mode Selector Bar -->
+  <section class="card" style="padding:10px 12px;border-color:#fbbf24;background:rgba(15,23,42,0.95);">
+    <div style="font-size:11.5px;font-weight:800;color:#fbbf24;margin-bottom:6px;">🔗 접속 주소 선택 (원하시는 모드를 클릭하세요)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <a href="http://192.168.219.239:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(52,211,153,0.18);border:1px solid #34d399;color:#34d399;font-size:11.5px;font-weight:800;text-align:center;">
+        📱 모바일 Wi-Fi 브릿지 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">192.168.219.239:7777/mobile-cam</span>
+      </a>
+      <a href="http://localhost:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(0,240,255,0.18);border:1px solid #00f0ff;color:#00f0ff;font-size:11.5px;font-weight:800;text-align:center;">
+        💻 PC 로컬 컨트롤러 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">localhost:7777/mobile-cam</span>
+      </a>
+    </div>
+    <div style="margin-top:6px;">
+      <a href="http://localhost:7777" target="_blank" style="display:block;text-decoration:none;padding:6px 10px;border-radius:8px;background:rgba(168,85,247,0.18);border:1px solid #c084fc;color:#c084fc;font-size:11px;font-weight:800;text-align:center;">
+        🌌 PC 메인 3D 자비스 HUD 전체 관제 화면 열기 (http://localhost:7777) ↗
+      </a>
+    </div>
+  </section>
+
   <section class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <span style="font-size:12px;font-weight:800;color:#00f0ff;">1. 모바일 카메라 21관절 AI &amp; 홀로그램 터치패드</span>
-      <span id="cam-mode-label" style="font-size:10.5px;color:#34d399;">터치 에어패드 + 카메라 대기</span>
+      <span style="font-size:12px;font-weight:800;color:#00f0ff;">1. 카메라 시야 공유 &amp; 21관절 손동작 인식</span>
+      <span id="cam-mode-label" style="font-size:10.5px;color:#34d399;">터치 에어패드 + 카메라/화면공유 대기</span>
     </div>
 
     <div class="cam-stage" id="touch-stage">
@@ -169,10 +187,11 @@
 
     <div class="btn-row">
       <button class="btn emerald" id="btn-start-mob-cam">📷 실시간 카메라 켜기</button>
+      <button class="btn" id="btn-start-screen-share" style="border-color:#38bdf8;color:#38bdf8;">🖥️ PC 내 화면 시야공유</button>
       <button class="btn" id="btn-switch-facing">🔄 전면/후면 전환</button>
       <label class="btn gold" style="display:inline-block;">
-        📸 사진 손모양 인식
-        <input type="file" id="inp-snap-cam" accept="image/*" capture="user" style="display:none;" />
+        📸 카메라 촬영/사진 선택
+        <input type="file" id="inp-snap-cam" accept="image/*" capture="environment" style="display:none;" />
       </label>
     </div>
     <div id="mob-cam-hint" style="font-size:10.5px;color:#94a3b8;margin-top:6px;line-height:1.4;">
@@ -305,8 +324,36 @@
       });
     }
 
+    let snappedImageB64 = '';
+
+    async function startScreenShare() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          document.getElementById('inp-snap-cam').click();
+          return;
+        }
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        video.srcObject = stream;
+        video.style.transform = 'none';
+        video.style.opacity = '0.88';
+        video.style.display = 'block';
+        await video.play();
+        modeLabel.textContent = '🟢 PC 실시간 화면 시야(Co-Vision) 공유 중';
+        poseTag.textContent = '🖥️ SHARED_SCREEN_ACTIVE (자비스 시야 공유 중)';
+        hintEl.innerHTML = '✅ <b>PC 화면 실시간 시야 공유 연결 완료:</b> 지금 보고 계신 화면을 자비스가 함께 보고 있습니다. 아래 대화창에 질문하시거나 6종 문서 생성을 눌러보십시오!';
+      } catch (e) {
+        hintEl.innerHTML = 'ℹ️ 화면 공유 창이 취소되었습니다. 다시 <b>[🖥️ PC 내 화면 시야공유]</b> 또는 <b>[📸 카메라 촬영/사진 선택]</b>을 눌러 시야를 공유하실 수 있습니다.';
+      }
+    }
+
     async function startMobileCamera() {
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          // Plain HTTP mobile browser fallback -> immediately open native mobile camera!
+          document.getElementById('inp-snap-cam').click();
+          return;
+        }
         await initMediaPipe();
         if (stream) stream.getTracks().forEach(t => t.stop());
         stream = await navigator.mediaDevices.getUserMedia({
@@ -314,10 +361,11 @@
           audio: false
         });
         video.srcObject = stream;
+        video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'none';
         video.style.display = 'block';
         await video.play();
         modeLabel.textContent = '🟢 실시간 카메라 AI 가동 중';
-        hintEl.innerHTML = '✅ <b>모바일 카메라 AI 연결 성공:</b> 카메라에 손을 비추면 21관절 좌표가 데스크톱 자비스 HUD로 실시간 전송됩니다!';
+        hintEl.innerHTML = '✅ <b>실시간 카메라 AI 연결 성공:</b> 카메라에 손을 비추거나 사물을 비추면 데스크톱 자비스 HUD로 실시간 전송됩니다!';
 
         const pump = async () => {
           if (!stream) return;
@@ -328,29 +376,40 @@
         };
         requestAnimationFrame(pump);
       } catch (err) {
-        hintEl.innerHTML = 'ℹ️ 모바일 브라우저 HTTP 보안 정책으로 실시간 스트림 대신 <b>[📸 사진 손모양 인식]</b> 또는 <b>홀로그램 터치 에어패드</b>로 PC 자비스를 실시간 제어합니다.';
+        // When PC has no physical USB camera plugged in yet -> automatically offer/start Screen Share!
+        modeLabel.textContent = '⚠️ 물리 카메라 미연결 -> PC 화면 시야공유 전환';
+        hintEl.innerHTML = '💡 현재 PC에 물리적 웹캠이 아직 연결되지 않아 <b>[🖥️ PC 내 화면 시야공유]</b> 모드로 자동 연결합니다. 공유할 화면/창을 선택해 주십시오!';
+        await startScreenShare();
       }
     }
 
     document.getElementById('btn-start-mob-cam').addEventListener('click', startMobileCamera);
+    document.getElementById('btn-start-screen-share').addEventListener('click', startScreenShare);
     document.getElementById('btn-switch-facing').addEventListener('click', () => {
       facingMode = facingMode === 'user' ? 'environment' : 'user';
       startMobileCamera();
     });
 
-    // Snapshot fallback for plain HTTP mobile browsers
+    // Snapshot / Photo upload for camera & vision
     document.getElementById('inp-snap-cam').addEventListener('change', async e => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       await initMediaPipe();
-      const img = new Image();
-      img.onload = async () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        if (mpHands) {
-          await mpHands.send({ image: img });
-        }
+      const reader = new FileReader();
+      reader.onload = () => {
+        snappedImageB64 = reader.result;
+        const img = new Image();
+        img.onload = async () => {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          modeLabel.textContent = '🟢 사진/카메라 시야 로드됨';
+          poseTag.textContent = '📸 SNAPSHOT_LOADED (시야 분석 준비 완료)';
+          if (mpHands) {
+            try { await mpHands.send({ image: img }); } catch (err) {}
+          }
+        };
+        img.src = snappedImageB64;
       };
-      img.src = URL.createObjectURL(file);
+      reader.readAsDataURL(file);
     });
 
     // Touch Air-Pad on canvas (streams real-time coordinates to PC HUD!)
@@ -381,32 +440,23 @@
       });
     });
 
-    // Remote Voice/Text Command
-    document.getElementById('mob-cmd-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const inp = document.getElementById('mob-cmd-input');
-      const val = inp.value.trim();
-      if (!val) return;
-      inp.value = '';
-      sendRemoteSignal({ commandText: val });
-      poseTag.textContent = `💬 명령 전송: "${val}"`;
-    });
-
-    // Mobile Co-Vision 6-Format Export
-    document.getElementById('btn-mob-covision-export').addEventListener('click', async () => {
+    async function executeCoVisionSession(customPrompt) {
       const inp = document.getElementById('mob-cmd-input');
       const resBox = document.getElementById('mob-covision-result');
-      const prompt = (inp && inp.value.trim()) || '모바일 카메라 시야 공동 분석 및 6종 문서(PNG/영상/MD/Word/PPT/PDF) 생성';
-      if (resBox) resBox.innerHTML = '⏳ 자비스가 시야를 분석하여 6종 문서를 생성하고 ADE·IDE·Google Drive에 저장 중입니다...';
+      const prompt = (customPrompt || (inp && inp.value.trim())) || '현재 보고 있는 시야의 핵심 내용을 분석하고 6종 문서(PNG/영상/MD/Word/PPT/PDF)로 정리해줘.';
+      if (inp) inp.value = '';
+      if (resBox) resBox.innerHTML = '⏳ <b>자비스(Gemma 4 Vision)</b>가 현재 시야를 분석하여 답변 및 6종 문서(PNG·영상·MD·Word·PPT·PDF)를 제작하고 ADE·IDE·Google Drive에 동기화 중입니다...';
 
-      let frameB64 = '';
+      let frameB64 = snappedImageB64 || '';
       if (stream && video.readyState >= 2) {
         const c = document.createElement('canvas');
-        c.width = 480;
-        c.height = 360;
+        c.width = 640;
+        c.height = 480;
         c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
         frameB64 = c.toDataURL('image/png');
       }
+
+      sendRemoteSignal({ commandText: prompt });
 
       try {
         const r = await fetch('/api/jarvis/covision-export', {
@@ -414,7 +464,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             prompt,
-            sourceType: frameB64 ? 'MOBILE_CAMERA_VISION' : 'SHARED_SCREEN_VISION',
+            sourceType: frameB64 ? 'CAMERA_OR_SCREEN_VISION' : 'SHARED_SCREEN_VISION',
             imageBase64: frameB64
           })
         });
@@ -422,21 +472,37 @@
         if (d && d.ok && d.session && resBox) {
           const f = d.session.files;
           resBox.innerHTML = `
-            <div style="padding:8px;background:#050811;border:1px solid #34d399;border-radius:8px;">
-              <div style="color:#34d399;font-weight:700;margin-bottom:4px;">✅ 6종 산출물 생성 &amp; ADE·IDE·Drive 저장 완료!</div>
-              <div style="margin-bottom:6px;">🤖 "${d.session.visionAnalysis}"</div>
-              <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                <a href="${f.image}" download style="color:#00f0ff;font-weight:700;">🖼️ PNG</a> ·
-                <a href="${f.video}" target="_blank" style="color:#fb7185;font-weight:700;">🎬 영상</a> ·
-                <a href="${f.md}" download style="color:#34d399;font-weight:700;">📝 MD</a> ·
-                <a href="${f.docx}" download style="color:#60a5fa;font-weight:700;">📘 Word</a> ·
-                <a href="${f.pptx}" download style="color:#fbbf24;font-weight:700;">📊 PPT</a> ·
-                <a href="${f.pdf}" download style="color:#c084fc;font-weight:700;">📕 PDF</a>
+            <div style="padding:10px;background:#050811;border:1px solid #34d399;border-radius:8px;">
+              <div style="color:#34d399;font-weight:800;margin-bottom:4px;">✅ 자비스 시야 대화 &amp; 6종 산출물 생성 완료 (ADE·IDE·Drive 저장됨)</div>
+              <div style="color:#fef3c7;font-weight:700;margin-bottom:3px;">👑 대표님: "${d.session.prompt}"</div>
+              <div style="margin-bottom:8px;color:#e2e8f0;line-height:1.45;">🤖 <b>자비스:</b> "${d.session.visionAnalysis}"</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <a href="${f.image}" download style="padding:4px 8px;background:rgba(0,240,255,0.15);border:1px solid #00f0ff;border-radius:6px;color:#00f0ff;font-weight:700;text-decoration:none;">🖼️ PNG 이미지</a>
+                <a href="${f.video}" target="_blank" style="padding:4px 8px;background:rgba(251,113,133,0.15);border:1px solid #fb7185;border-radius:6px;color:#fb7185;font-weight:700;text-decoration:none;">🎬 브리핑 영상</a>
+                <a href="${f.md}" download style="padding:4px 8px;background:rgba(52,211,153,0.15);border:1px solid #34d399;border-radius:6px;color:#34d399;font-weight:700;text-decoration:none;">📝 MD 문서</a>
+                <a href="${f.docx}" download style="padding:4px 8px;background:rgba(96,165,250,0.15);border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;font-weight:700;text-decoration:none;">📘 Word (.docx)</a>
+                <a href="${f.pptx}" download style="padding:4px 8px;background:rgba(251,191,36,0.15);border:1px solid #fbbf24;border-radius:6px;color:#fbbf24;font-weight:700;text-decoration:none;">📊 PPT (.pptx)</a>
+                <a href="${f.pdf}" download style="padding:4px 8px;background:rgba(192,132,252,0.15);border:1px solid #c084fc;border-radius:6px;color:#c084fc;font-weight:700;text-decoration:none;">📕 PDF (.pdf)</a>
               </div>
             </div>
           `;
         }
       } catch (e) {}
+    }
+
+    // Remote Voice/Text Command + Co-Vision Conversation
+    document.getElementById('mob-cmd-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const inp = document.getElementById('mob-cmd-input');
+      const val = inp.value.trim();
+      if (!val) return;
+      poseTag.textContent = `💬 시야 대화: "${val}"`;
+      await executeCoVisionSession(val);
+    });
+
+    // Mobile Co-Vision 6-Format Export Button
+    document.getElementById('btn-mob-covision-export').addEventListener('click', async () => {
+      await executeCoVisionSession();
     });
 
     // Render 21-joint hand skeleton on mobile canvas
