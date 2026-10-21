@@ -73,18 +73,8 @@ window.MultimodalEngine = {
       this.refreshCameraDeviceList(false);
     }
 
-    // Auto-Spawn the Unified 18-Studio Hub so both J.A.R.V.I.S. systems are immediately visible on screen
-    setTimeout(() => {
-      if (window.HUDWindowSpawner && window.HUDWindowSpawner.openAIStudioWindowByType) {
-        window.HUDWindowSpawner.openAIStudioWindowByType('AI_STUDIO_HUB');
-      } else {
-        window.HUDWindowSpawner.spawn({
-          windowType: 'LIVE_CONSOLE',
-          title: '💻 J.A.R.V.I.S. 실시간 동역 콘솔 & 토큰 유량(Token Flow) 모니터',
-          subtitle: 'Coram Deo & Together · BSC 28 Agents Orchestrator'
-        });
-      }
-    }, 650);
+    // Keep initial screen clean on the Star-Cluster Knowledge Galaxy (Mockup #1);
+    // Studios open immediately whenever 대표님 clicks any studio button in the ribbon or dock.
   },
 
   initSSE() {

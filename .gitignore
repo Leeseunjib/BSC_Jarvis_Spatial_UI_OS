@@ -5,6 +5,7 @@
 node_modules/
 research/docx_build/
 research/opensource_sources/
+research/repos/
 *.log
 .DS_Store
 Thumbs.db
