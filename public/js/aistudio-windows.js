@@ -251,6 +251,7 @@
             <button class="hud-mini-btn ${activeTab === 'REA' ? 'primary' : ''}" data-tab="REA">🔬 REA 오픈모델 역공학 (morluto/rea)</button>
             <button class="hud-mini-btn ${activeTab === 'WIKI' ? 'primary' : ''}" data-tab="WIKI">📚 재귀 지식 위키 (Knowledge Wiki)</button>
             <button class="hud-mini-btn ${activeTab === 'OS_LAB' ? 'primary' : ''}" data-tab="OS_LAB">🧪 오픈소스 랩 &amp; 로컬 브릿지 (.py)</button>
+            <button class="hud-mini-btn ${activeTab === 'HQ_SKILLS' ? 'primary' : ''}" data-tab="HQ_SKILLS" style="border-color:rgba(52,211,153,0.5);color:#34d399;">🏢 BSC 본사 5대 실무 스킬 실행기</button>
           </div>
           <div id="maps-sub-stage"></div>
         `;
@@ -431,6 +432,56 @@
             a.href = URL.createObjectURL(blob);
             a.download = 'jarvis_local_bridge.py';
             a.click();
+          });
+        } else if (activeTab === 'HQ_SKILLS') {
+          stage.innerHTML = `
+            <div class="ais-section-title" style="color:#34d399;">🏢 BeausCreators 본사(01.BSC_HQ) 5대 핵심 스킬 파이프라인 직결 실행기</div>
+            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+              <input type="text" id="inp-hq-skill-query" class="ais-select" value="자비스" placeholder="핀셋 지식 검색어 (예: 자비스, 출판, 보안)" style="width:180px;" />
+              <button class="hud-mini-btn primary btn-run-hq-skill" data-skill="micro-knowledge-query">🔍 micro-knowledge-query (0.01초 핀셋 추출)</button>
+              <button class="hud-mini-btn btn-run-hq-skill" data-skill="code-quality-gate">🛡️ code-quality-gate (구문·보안 QA 게이트)</button>
+              <button class="hud-mini-btn btn-run-hq-skill" data-skill="work-finalizer">📋 work-finalizer (작업일지 UTF-8 검수)</button>
+              <button class="hud-mini-btn btn-run-hq-skill" data-skill="epub-zero-builder">📚 epub-zero-builder (전자책/백서 점검)</button>
+              <button class="hud-mini-btn btn-run-hq-skill" data-skill="fast-data-sync">🔄 fast-data-sync (Hub↔Spoke 동기화 점검)</button>
+            </div>
+            <div id="hq-skill-result-box" class="ais-box" style="min-height:165px;">
+              <div style="color:#94a3b8;font-size:11.5px;">위 본사 스킬 버튼을 클릭하시면 <code>POST /api/jarvis/hq-skill</code> 엔드포인트가 실제 본사 및 로컬 자비스 자산을 즉시 스캔하여 보고합니다.</div>
+            </div>
+          `;
+          stage.querySelectorAll('.btn-run-hq-skill').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const skillId = btn.dataset.skill;
+              const q = stage.querySelector('#inp-hq-skill-query')?.value || '자비스';
+              const res = await fetch('/api/jarvis/hq-skill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ skillId, query: q })
+              });
+              const sData = await res.json();
+              const rBox = stage.querySelector('#hq-skill-result-box');
+              if (rBox && sData.ok) {
+                rBox.innerHTML = `
+                  <div style="font-weight:800;color:#34d399;font-size:12.5px;margin-bottom:4px;">${sData.title}</div>
+                  <div style="font-size:11.2px;color:#e2e8f0;margin-bottom:8px;">${sData.summary}</div>
+                  <table>
+                    <thead><tr><th>항목 / 파일명</th><th>도메인</th><th>상태 및 요약</th></tr></thead>
+                    <tbody>
+                      ${(sData.items || []).map(it => `
+                        <tr>
+                          <td style="font-weight:700;color:#00f0ff;">${it.label}</td>
+                          <td><span class="ais-tag">${it.area}</span></td>
+                          <td style="font-size:10.5px;color:#cbd5e1;">${it.note}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                `;
+              }
+              window.BSC_WORLDVIEW.showToast('🏢 BSC HQ Skill Executed', sData.summary || '본사 스킬 실행 완료');
+              if (window.MultimodalEngine && sData.summary) {
+                window.MultimodalEngine.speakStewardReply(sData.summary);
+              }
+            });
           });
         }
       };
@@ -959,10 +1010,18 @@
           const res = await fetch('/api/jarvis/vision', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: 'screen', prompt: '현재 화면 UI 요소 좌표 스캔' })
+            body: JSON.stringify({ mode: 'screen', captureRealScreen: true, prompt: '현재 화면 UI 요소 좌표 스캔' })
           });
           const vData = await res.json();
-          window.BSC_WORLDVIEW.showToast('👁️ OmniParser Vision', vData.summary || '화면 내 클릭 가능한 UI 요소 6개의 좌표를 추출했습니다.');
+          const resBox = bodyEl.querySelector('#vision-scan-result');
+          if (resBox && vData.imageUrl) {
+            resBox.innerHTML = `
+              <div style="margin-bottom:6px;font-weight:700;color:#34d399;">📸 실시간 Windows 데스크톱 화면 캡처 완료</div>
+              <img src="${vData.imageUrl}" alt="Desktop Capture" style="width:100%;max-height:115px;object-fit:cover;border-radius:6px;border:1px solid rgba(0,240,255,0.35);margin-bottom:6px;" />
+              <div style="font-size:10.5px;color:#cbd5e1;">${vData.summary}</div>
+            `;
+          }
+          window.BSC_WORLDVIEW.showToast('👁️ OmniParser Vision', vData.summary || '화면 내 클릭 가능한 UI 요소 좌표를 추출했습니다.');
         });
 
         bodyEl.querySelectorAll('.btn-sim-click').forEach(btn => {
@@ -1193,6 +1252,8 @@
                 <textarea id="tts-studio-sample-text" class="ais-textarea" style="height:82px;margin-top:4px;">대표님, 전 시스템 정상 가동 중입니다. 요청하신 18대 스튜디오와 오픈소스 보이스 엔진을 즉시 준비했습니다.</textarea>
                 <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
                   <button class="hud-mini-btn primary" id="btn-tts-studio-speak">🔊 선택한 보이스로 즉시 발화</button>
+                  <button class="hud-mini-btn" id="btn-play-ref-voice" style="border-color:#34d399;color:#34d399;">▶️ 24kHz 자비스 레퍼런스 샘플 재생</button>
+                  <button class="hud-mini-btn" id="btn-rec-clone-voice" style="border-color:#fbbf24;color:#fbbf24;">🎙️ 10초 음성 녹음 (보이스 클로닝 등록)</button>
                   <button class="hud-mini-btn" data-sample="Sir, all eighteen studios and the local Gemma 4 neural core are online and ready for your command.">🇺🇸 영문 영화 자비스</button>
                   <button class="hud-mini-btn" data-sample="대표님, 오전 일정과 핵심 브리핑 정리를 마쳤습니다. 바로 확인하시겠습니까?">👩‍💼 수석비서 소하 톤</button>
                 </div>
@@ -1247,6 +1308,41 @@
                 text,
                 voiceId: cfg.voiceId
               }, (window.MultimodalEngine.speechQueueToken = (window.MultimodalEngine.speechQueueToken || 0) + 1));
+            }
+          });
+          stage.querySelector('#btn-play-ref-voice')?.addEventListener('click', () => {
+            const audio = new Audio('/data/jarvis_reference_voice.mp3');
+            audio.play().catch(() => {});
+            window.BSC_WORLDVIEW.showToast('▶️ 24kHz Reference Voice', '대표님, 로컬에 저장된 24kHz 영화 속 자비스 레퍼런스 보이스 샘플을 재생합니다.');
+          });
+          stage.querySelector('#btn-rec-clone-voice')?.addEventListener('click', async () => {
+            const recBtn = stage.querySelector('#btn-rec-clone-voice');
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const recorder = new MediaRecorder(stream);
+              const chunks = [];
+              recBtn.textContent = '🔴 녹음 중... (5초 후 자동 등록)';
+              recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+              recorder.onstop = () => {
+                stream.getTracks().forEach(t => t.stop());
+                const blob = new Blob(chunks, { type: 'audio/wav' });
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                  const res = await fetch('/api/jarvis/voice-clone-upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audioBase64: reader.result })
+                  });
+                  const rData = await res.json();
+                  recBtn.textContent = '✅ 보이스 클로닝 등록 완료!';
+                  window.BSC_WORLDVIEW.showToast('🎙️ Chatterbox Voice Cloner', rData.message || '참조 음성이 등록되었습니다.');
+                };
+                reader.readAsDataURL(blob);
+              };
+              recorder.start();
+              setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 5000);
+            } catch (err) {
+              window.BSC_WORLDVIEW.showToast('🎙️ 마이크 권한 안내', '브라우저 마이크 권한을 허용해주시면 즉시 보이스 클로닝 녹음이 진행됩니다.');
             }
           });
         } else if (activeTab === 'BENCH') {
