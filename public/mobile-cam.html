@@ -206,11 +206,15 @@
   </section>
 
   <section class="card">
-    <div style="font-size:12px;font-weight:800;color:#00f0ff;margin-bottom:6px;">3. 모바일 음성/텍스트 원격 명령</div>
+    <div style="font-size:12px;font-weight:800;color:#00f0ff;margin-bottom:6px;">3. 시야 공유(Co-Vision) 대화 &amp; 6종 문서(MD·Word·PPT·PDF·PNG·영상) 제작</div>
     <form class="cmd-bar" id="mob-cmd-form">
-      <input type="text" id="mob-cmd-input" placeholder="자비스에게 원격 명령 (예: 오늘 브리핑 해줘)" autocomplete="off" />
-      <button type="submit" class="btn emerald" style="flex:0 0 76px;min-width:76px;">전송 ↵</button>
+      <input type="text" id="mob-cmd-input" placeholder="자비스와 지금 보는 시야 대화 (예: 이 화면 정리해서 워드·PPT로 만들어줘)" autocomplete="off" />
+      <button type="submit" class="btn emerald" style="flex:0 0 76px;min-width:76px;">대화 ↵</button>
     </form>
+    <button type="button" class="btn gold" id="btn-mob-covision-export" style="width:100%;margin-top:8px;">
+      🚀 현재 시야 분석 &amp; 6종 문서(PNG·영상·MD·Word·PPT·PDF) 제작 + ADE/IDE/Drive 저장
+    </button>
+    <div id="mob-covision-result" style="margin-top:8px;font-size:11px;color:#cbd5e1;"></div>
   </section>
 
   <script>
@@ -386,6 +390,53 @@
       inp.value = '';
       sendRemoteSignal({ commandText: val });
       poseTag.textContent = `💬 명령 전송: "${val}"`;
+    });
+
+    // Mobile Co-Vision 6-Format Export
+    document.getElementById('btn-mob-covision-export').addEventListener('click', async () => {
+      const inp = document.getElementById('mob-cmd-input');
+      const resBox = document.getElementById('mob-covision-result');
+      const prompt = (inp && inp.value.trim()) || '모바일 카메라 시야 공동 분석 및 6종 문서(PNG/영상/MD/Word/PPT/PDF) 생성';
+      if (resBox) resBox.innerHTML = '⏳ 자비스가 시야를 분석하여 6종 문서를 생성하고 ADE·IDE·Google Drive에 저장 중입니다...';
+
+      let frameB64 = '';
+      if (stream && video.readyState >= 2) {
+        const c = document.createElement('canvas');
+        c.width = 480;
+        c.height = 360;
+        c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+        frameB64 = c.toDataURL('image/png');
+      }
+
+      try {
+        const r = await fetch('/api/jarvis/covision-export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt,
+            sourceType: frameB64 ? 'MOBILE_CAMERA_VISION' : 'SHARED_SCREEN_VISION',
+            imageBase64: frameB64
+          })
+        });
+        const d = await r.json();
+        if (d && d.ok && d.session && resBox) {
+          const f = d.session.files;
+          resBox.innerHTML = `
+            <div style="padding:8px;background:#050811;border:1px solid #34d399;border-radius:8px;">
+              <div style="color:#34d399;font-weight:700;margin-bottom:4px;">✅ 6종 산출물 생성 &amp; ADE·IDE·Drive 저장 완료!</div>
+              <div style="margin-bottom:6px;">🤖 "${d.session.visionAnalysis}"</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                <a href="${f.image}" download style="color:#00f0ff;font-weight:700;">🖼️ PNG</a> ·
+                <a href="${f.video}" target="_blank" style="color:#fb7185;font-weight:700;">🎬 영상</a> ·
+                <a href="${f.md}" download style="color:#34d399;font-weight:700;">📝 MD</a> ·
+                <a href="${f.docx}" download style="color:#60a5fa;font-weight:700;">📘 Word</a> ·
+                <a href="${f.pptx}" download style="color:#fbbf24;font-weight:700;">📊 PPT</a> ·
+                <a href="${f.pdf}" download style="color:#c084fc;font-weight:700;">📕 PDF</a>
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {}
     });
 
     // Render 21-joint hand skeleton on mobile canvas

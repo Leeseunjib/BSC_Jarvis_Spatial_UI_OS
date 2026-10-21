@@ -916,10 +916,18 @@
     };
 
     // =========================================================================
-    // 6. VISION_FACE: Screen OmniParser + Face-to-Face Emotion & Gaze Studio
+    // 6. VISION_FACE: Co-Vision Shared Sight + 6-Format Exporter (PNG/VIDEO/MD/DOCX/PPTX/PDF) + ADE/IDE/Google Drive Sync + OmniParser
     // =========================================================================
     spawner.renderVisionFaceStudio = function (bodyEl) {
+      let activeSubTab = 'COVISION';
       let emotionIdx = 0;
+      let uploadedImageB64 = '';
+      let recordedVideoB64 = '';
+      let mediaRecorder = null;
+      let recChunks = [];
+      let isRecording = false;
+      let historySessions = [];
+
       const emotions = [
         { type: 'focused', label: '집중 (Focused · 95%)', fatigue: 14, focus: 95, reaction: '이건우 대표님, 매우 높은 집중도를 유지하고 계십니다! 자비스가 백그라운드에서 조용히 보좌하겠습니다.' },
         { type: 'happy', label: '기쁨/만족 (Happy · 92%)', fatigue: 10, focus: 90, reaction: '밝은 미소를 지으시네요, 대표님! 진행 중인 아키텍처 결과가 만족스러우신가요? 함께 다음 단계로 나아갑시다!' },
@@ -927,51 +935,237 @@
         { type: 'puzzled', label: '깊은 고찰 (Puzzled · 90%)', fatigue: 20, focus: 91, reaction: '복잡한 의사결정을 고민 중이시군요. 관련 옵시디언 지식 노드와 딥리서치 보고서를 함께 띄워드릴까요?' }
       ];
 
+      const fetchHistory = async () => {
+        try {
+          const r = await fetch('/api/jarvis/covision-history');
+          const d = await r.json();
+          if (d && Array.isArray(d.sessions)) historySessions = d.sessions;
+        } catch (e) {}
+      };
+
+      const captureCurrentWebcamOrCanvasB64 = () => {
+        if (uploadedImageB64) return uploadedImageB64;
+        const vid = document.getElementById('webcam-video');
+        if (vid && vid.srcObject && vid.readyState >= 2) {
+          const c = document.createElement('canvas');
+          c.width = 640;
+          c.height = 480;
+          c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+          return c.toDataURL('image/png');
+        }
+        return '';
+      };
+
       const render = () => {
         const cur = emotions[emotionIdx];
         bodyEl.innerHTML = `
-          <div class="ais-grid-2">
-            <!-- Left: Face-to-Face Emotion & Gaze Studio -->
-            <div class="ais-box">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span class="ais-badge-cyan">Face-to-Face Empathy Studio</span>
-                <button class="win-ctrl-btn" id="btn-cycle-emotion">🔄 표정/집중도 스캔 시뮬레이션</button>
-              </div>
-              <canvas id="face-empathy-canvas" width="330" height="170" style="width:100%;height:170px;background:#05080f;border:1px solid rgba(0,240,255,0.3);border-radius:8px;"></canvas>
-              <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:11.5px;">
-                <span>현재 상태: <strong style="color:#00f0ff;">${cur.label}</strong></span>
-                <span>집중도: <b style="color:#34d399;">${cur.focus}%</b> · 피로도: <b style="color:#fbbf24;">${cur.fatigue}%</b></span>
-              </div>
-              <div style="margin-top:6px;padding:8px;background:rgba(0,240,255,0.08);border-radius:8px;font-size:11.5px;color:#f1f5f9;">
-                🤖 <b>J.A.R.V.I.S. 교감 멘트:</b> "${cur.reaction}"
-              </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+            <div style="display:flex;gap:6px;">
+              <button class="hud-mini-btn ${activeSubTab === 'COVISION' ? 'primary' : ''}" id="tab-covision">👁️ 시야공유 대화 &amp; 6종 문서(MD·Word·PPT·PDF·이미지·영상) 제작</button>
+              <button class="hud-mini-btn ${activeSubTab === 'OMNI_EMPATHY' ? 'primary' : ''}" id="tab-omni">🖥️ OmniParser 화면 좌표 &amp; 표정 교감</button>
             </div>
-
-            <!-- Right: OmniParser Screen Vision & UI Coordinate Extractor -->
-            <div class="ais-box">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span class="ais-badge-cyan">Microsoft OmniParser Screen Vision</span>
-                <button class="win-ctrl-btn" id="btn-capture-screen" style="border-color:#00f0ff;color:#00f0ff;">🖥️ 현재 화면 비전 스캔</button>
-              </div>
-              <div id="vision-scan-result" style="font-size:11.5px;color:#cbd5e1;line-height:1.5;">
-                <p style="margin-bottom:6px;"><b>[OmniParser UI 좌표 자동 감지 결과]</b></p>
-                <table>
-                  <thead>
-                    <tr><th>감지된 UI 요소</th><th>신뢰도</th><th>좌표 (X, Y)</th><th>자동 제어</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>3D Galaxy 뷰 전환 버튼</td><td>99.4%</td><td>(44%, 2%)</td><td><button class="win-ctrl-btn btn-sim-click" data-target="3D Galaxy">클릭</button></td></tr>
-                    <tr><td>HOLO 에어터치 센서 스위치</td><td>98.7%</td><td>(92%, 68%)</td><td><button class="win-ctrl-btn btn-sim-click" data-target="HOLO Sensor">클릭</button></td></tr>
-                    <tr><td>하단 음성 마이크 오브</td><td>99.1%</td><td>(68%, 95%)</td><td><button class="win-ctrl-btn btn-sim-click" data-target="Voice Orb">클릭</button></td></tr>
-                  </tbody>
-                </table>
-                <code style="display:block;margin-top:8px;padding:6px;background:#05080f;border-radius:6px;color:#34d399;font-size:10.5px;">
-                  pyautogui.moveTo(960, 540, duration=0.25); pyautogui.click()
-                </code>
-              </div>
+            <div style="display:flex;gap:6px;font-size:10.5px;">
+              <a href="http://localhost:7777/mobile-cam" target="_blank" style="color:#00f0ff;font-weight:800;text-decoration:underline;padding:3px 7px;background:rgba(0,240,255,0.12);border-radius:6px;">💻 로컬 모바일창 열기 ↗</a>
+              <a href="http://192.168.219.239:7777/mobile-cam" target="_blank" style="color:#34d399;font-weight:800;text-decoration:underline;padding:3px 7px;background:rgba(52,211,153,0.12);border-radius:6px;">📱 Wi-Fi 모바일창 열기 (192.168.219.239) ↗</a>
             </div>
           </div>
+
+          ${activeSubTab === 'COVISION' ? `
+            <div class="ais-grid-2">
+              <!-- Left: Shared Sight Input & 6-Format Generator -->
+              <div class="ais-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="ais-badge-cyan">Gemma 4 Multimodal Co-Vision</span>
+                  <span style="font-size:10px;color:#34d399;">● ADE · IDE · BSC HQ · Google Drive 실시간 연동</span>
+                </div>
+
+                <div style="display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;">
+                  <button class="win-ctrl-btn" id="btn-covision-cam" style="border-color:#00f0ff;color:#00f0ff;">📷 PC 카메라 시야 켜기</button>
+                  <button class="win-ctrl-btn" id="btn-covision-rec" style="border-color:${isRecording ? '#fb7185' : '#fbbf24'};color:${isRecording ? '#fb7185' : '#fbbf24'};">
+                    ${isRecording ? '⏹️ 영상 녹화 종료' : '🎥 시야 영상 녹화'}
+                  </button>
+                  <label class="win-ctrl-btn" style="cursor:pointer;border-color:#34d399;color:#34d399;">
+                    🖼️ 사진/도면 불러오기
+                    <input type="file" id="inp-covision-img" accept="image/*" style="display:none;" />
+                  </label>
+                </div>
+
+                <div id="covision-preview-box" style="width:100%;height:135px;background:#05080f;border:1px solid rgba(0,240,255,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;position:relative;">
+                  ${uploadedImageB64
+                    ? `<img src="${uploadedImageB64}" style="width:100%;height:100%;object-fit:contain;" />`
+                    : `<div style="text-align:center;font-size:11px;color:#94a3b8;padding:10px;">
+                         👁️ <b>PC/모바일 카메라 시야</b> 또는 <b>현재 데스크톱 화면</b>을 자비스가 함께 봅니다.<br/>
+                         <span style="font-size:10px;color:#38bdf8;">(카메라 미연결 시 현재 보고 계신 PC 화면 전체를 자동 캡처하여 분석합니다)</span>
+                       </div>`
+                  }
+                </div>
+
+                <div style="font-size:11px;font-weight:700;color:#e2e8f0;margin-bottom:4px;">💬 자비스와 함께 보며 이야기하기 &amp; 6종 자료 생성 지시</div>
+                <textarea id="inp-covision-prompt" rows="2" style="width:100%;background:#050811;border:1px solid rgba(0,240,255,0.4);color:#fff;border-radius:8px;padding:7px;font-size:11.5px;resize:none;margin-bottom:6px;" placeholder="예: 자비스, 지금 내가 보고 있는 화면/사물을 분석해서 핵심 기획서를 이미지, 영상, MD, Word, PPT, PDF로 만들고 구글 드라이브와 IDE에 저장해줘."></textarea>
+
+                <button class="hud-mini-btn primary" id="btn-run-covision-export" style="width:100%;padding:8px;font-weight:800;font-size:11.5px;">
+                  🚀 시야 분석 대화 &amp; 6종 산출물(PNG·영상·MD·Word·PPT·PDF) 생성 + ADE/IDE/구글드라이브 저장
+                </button>
+              </div>
+
+              <!-- Right: Persistent Co-Vision Chat Log & 6-Format Download Cards -->
+              <div class="ais-box" style="max-height:385px;overflow-y:auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span style="font-size:12px;font-weight:800;color:#00f0ff;">📜 시야 공유 채팅 기록 &amp; 6종 문서 아카이브 (${historySessions.length}건)</span>
+                  <span style="font-size:10px;color:#fbbf24;">영구 보존됨</span>
+                </div>
+
+                <div id="covision-history-list" style="display:flex;flex-direction:column;gap:8px;">
+                  ${historySessions.length === 0 ? `
+                    <div style="padding:14px;text-align:center;color:#94a3b8;font-size:11px;background:rgba(0,0,0,0.35);border-radius:8px;">
+                      아직 생성된 Co-Vision 시야 기록이 없습니다. 좌측의 <b>[🚀 시야 분석 대화 &amp; 6종 산출물 생성]</b> 버튼을 눌러보십시오!
+                    </div>
+                  ` : historySessions.map(s => `
+                    <div style="padding:8px;background:rgba(5,10,22,0.9);border:1px solid rgba(0,240,255,0.28);border-radius:8px;">
+                      <div style="display:flex;justify-content:space-between;font-size:10px;color:#38bdf8;margin-bottom:4px;">
+                        <span>🕒 ${s.timestamp} · [${s.sourceType}]</span>
+                        <span style="color:#34d399;">✅ ADE·IDE·Drive 동기화됨</span>
+                      </div>
+                      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;">
+                        <img src="${s.files?.image || ''}" style="width:68px;height:48px;object-fit:cover;border-radius:5px;border:1px solid #00f0ff;flex-shrink:0;" onerror="this.style.display='none'" />
+                        <div style="font-size:11px;line-height:1.4;">
+                          <div style="color:#fef3c7;font-weight:700;">👑 대표님: "${s.prompt}"</div>
+                          <div style="color:#cbd5e1;margin-top:2px;">🤖 자비스: "${s.visionAnalysis}"</div>
+                        </div>
+                      </div>
+                      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
+                        <a href="${s.files?.image}" download class="win-ctrl-btn" style="text-decoration:none;font-size:10px;color:#00f0ff;">🖼️ PNG 이미지</a>
+                        <a href="${s.files?.video}" target="_blank" class="win-ctrl-btn" style="text-decoration:none;font-size:10px;color:#fb7185;">🎬 브리핑 영상</a>
+                        <a href="${s.files?.md}" download class="win-ctrl-btn" style="text-decoration:none;font-size:10px;color:#34d399;">📝 MD 문서</a>
+                        <a href="${s.files?.docx}" download class="win-ctrl-btn" style="text-decoration:none;font-size:10px;color:#60a5fa;">📘 Word (.docx)</a>
+                        <a href="${s.files?.pptx}" download class="win-ctrl-btn" style="text-decoration:none;font-size:10px;color:#fbbf24;">📊 PPT (.pptx)</a>
+                        <a href="${s.files?.pdf}" download class="win-ctrl-btn" style="text-decoration:none;font-size:10px;color:#c084fc;">📕 PDF (.pdf)</a>
+                      </div>
+                      <div style="font-size:9.5px;color:#64748b;font-family:monospace;">
+                        📂 저장됨: ${(s.syncedLocations || []).join(' | ')}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div class="ais-grid-2">
+              <!-- Left: Face-to-Face Emotion & Gaze Studio -->
+              <div class="ais-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="ais-badge-cyan">Face-to-Face Empathy Studio</span>
+                  <button class="win-ctrl-btn" id="btn-cycle-emotion">🔄 표정/집중도 스캔 시뮬레이션</button>
+                </div>
+                <canvas id="face-empathy-canvas" width="330" height="170" style="width:100%;height:170px;background:#05080f;border:1px solid rgba(0,240,255,0.3);border-radius:8px;"></canvas>
+                <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:11.5px;">
+                  <span>현재 상태: <strong style="color:#00f0ff;">${cur.label}</strong></span>
+                  <span>집중도: <b style="color:#34d399;">${cur.focus}%</b> · 피로도: <b style="color:#fbbf24;">${cur.fatigue}%</b></span>
+                </div>
+                <div style="margin-top:6px;padding:8px;background:rgba(0,240,255,0.08);border-radius:8px;font-size:11.5px;color:#f1f5f9;">
+                  🤖 <b>J.A.R.V.I.S. 교감 멘트:</b> "${cur.reaction}"
+                </div>
+              </div>
+
+              <!-- Right: OmniParser Screen Vision & UI Coordinate Extractor -->
+              <div class="ais-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="ais-badge-cyan">Microsoft OmniParser Screen Vision</span>
+                  <button class="win-ctrl-btn" id="btn-capture-screen" style="border-color:#00f0ff;color:#00f0ff;">🖥️ 현재 화면 비전 스캔</button>
+                </div>
+                <div id="vision-scan-result" style="font-size:11.5px;color:#cbd5e1;line-height:1.5;">
+                  <p style="margin-bottom:6px;"><b>[OmniParser UI 좌표 자동 감지 결과]</b></p>
+                  <table>
+                    <thead>
+                      <tr><th>감지된 UI 요소</th><th>신뢰도</th><th>좌표 (X, Y)</th><th>자동 제어</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>3D Galaxy 뷰 전환 버튼</td><td>99.4%</td><td>(44%, 2%)</td><td><button class="win-ctrl-btn btn-sim-click" data-target="3D Galaxy">클릭</button></td></tr>
+                      <tr><td>HOLO 에어터치 센서 스위치</td><td>98.7%</td><td>(92%, 68%)</td><td><button class="win-ctrl-btn btn-sim-click" data-target="HOLO Sensor">클릭</button></td></tr>
+                      <tr><td>하단 음성 마이크 오브</td><td>99.1%</td><td>(68%, 95%)</td><td><button class="win-ctrl-btn btn-sim-click" data-target="Voice Orb">클릭</button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `}
         `;
+
+        bodyEl.querySelector('#tab-covision')?.addEventListener('click', () => { activeSubTab = 'COVISION'; render(); });
+        bodyEl.querySelector('#tab-omni')?.addEventListener('click', () => { activeSubTab = 'OMNI_EMPATHY'; render(); });
+
+        bodyEl.querySelector('#btn-covision-cam')?.addEventListener('click', () => {
+          if (window.MultimodalEngine) {
+            window.MultimodalEngine.openHoloGesturePanel();
+          }
+        });
+
+        bodyEl.querySelector('#inp-covision-img')?.addEventListener('change', e => {
+          const f = e.target.files && e.target.files[0];
+          if (!f) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            uploadedImageB64 = reader.result;
+            render();
+          };
+          reader.readAsDataURL(f);
+        });
+
+        bodyEl.querySelector('#btn-covision-rec')?.addEventListener('click', async () => {
+          if (isRecording && mediaRecorder) {
+            mediaRecorder.stop();
+            isRecording = false;
+            render();
+            return;
+          }
+          try {
+            const vid = document.getElementById('webcam-video');
+            const str = (vid && vid.srcObject) ? vid.srcObject : await navigator.mediaDevices.getUserMedia({ video: true });
+            recChunks = [];
+            mediaRecorder = new MediaRecorder(str);
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+              const blob = new Blob(recChunks, { type: 'video/webm' });
+              const r = new FileReader();
+              r.onload = () => { recordedVideoB64 = r.result; };
+              r.readAsDataURL(blob);
+            };
+            mediaRecorder.start();
+            isRecording = true;
+            render();
+          } catch (e) {
+            window.BSC_WORLDVIEW.showToast('🎥 모션 브리핑 비디오 자동 합성', '물리적 웹캠이 미연결 상태이므로 캡처된 화면 시야 기반 HTML5 모션 브리핑 영상을 자동 생성합니다.');
+          }
+        });
+
+        bodyEl.querySelector('#btn-run-covision-export')?.addEventListener('click', async () => {
+          const promptEl = bodyEl.querySelector('#inp-covision-prompt');
+          const prompt = (promptEl && promptEl.value.trim()) || '자비스, 지금 내가 보고 있는 시야의 핵심 내용을 정리해서 6종 문서(이미지, 영상, MD, Word, PPT, PDF)로 만들고 ADE·IDE·구글 드라이브에 저장해줘.';
+          const btn = bodyEl.querySelector('#btn-run-covision-export');
+          if (btn) btn.textContent = '⏳ 자비스 시야 분석 & 6종 파일(MD/Word/PPT/PDF/PNG/영상) 제작 중...';
+
+          const frameB64 = captureCurrentWebcamOrCanvasB64();
+          const res = await fetch('/api/jarvis/covision-export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt,
+              sourceType: uploadedImageB64 ? 'UPLOADED_VISION' : (frameB64 ? 'CAMERA_VISION' : 'DESKTOP_SCREEN_VISION'),
+              imageBase64: frameB64,
+              videoBase64: recordedVideoB64
+            })
+          });
+          const data = await res.json();
+          await fetchHistory();
+          render();
+
+          if (data && data.ok && data.session) {
+            window.BSC_WORLDVIEW.showToast('👁️ Co-Vision 6종 문서 & 아카이빙 완료', data.session.visionAnalysis);
+            if (window.MultimodalEngine) {
+              window.MultimodalEngine.speakStewardReply(data.session.visionAnalysis, 'jarvis');
+            }
+          }
+        });
 
         // Draw Face Tracking Reticle
         const cvs = bodyEl.querySelector('#face-empathy-canvas');
@@ -1023,14 +1217,9 @@
           }
           window.BSC_WORLDVIEW.showToast('👁️ OmniParser Vision', vData.summary || '화면 내 클릭 가능한 UI 요소 좌표를 추출했습니다.');
         });
-
-        bodyEl.querySelectorAll('.btn-sim-click').forEach(btn => {
-          btn.addEventListener('click', () => {
-            window.BSC_WORLDVIEW.showToast('🖱️ PyAutoGUI Simulation', `화면 타겟 [${btn.dataset.target}] 좌표로 마우스 포인터를 이동하여 안전 클릭을 수행했습니다.`);
-          });
-        });
       };
-      render();
+
+      fetchHistory().then(render);
     };
 
     // =========================================================================

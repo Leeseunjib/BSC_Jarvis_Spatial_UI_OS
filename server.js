@@ -17,6 +17,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const { buildBrainGraph } = require('./scripts/build-brain-map');
+const { processCoVisionAndExport, loadHistory } = require('./scripts/co-vision-exporter');
 
 const PORT = process.env.JARVIS_PORT ? Number(process.env.JARVIS_PORT) : 7777;
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
@@ -498,15 +499,15 @@ async function processJarvisTurn(message, contextState = {}) {
     reply = '대표님, 오픈모델 양자화 속도 벤치마크 및 GRPO 강화학습 가중치 분석 스튜디오를 띄웠습니다.';
     sohaAddon = '레이어별 가중치 정규분포 히스토그램이 정상 수렴 중입니다!';
   }
-  // 1-F. OmniParser Screen Vision & Face-to-Face Empathy Studio
-  else if (/옴니파서|omniparser|얼굴\s*교감|표정|피로도|시선|비전\s*스튜디오|face-to-face/i.test(q)) {
+  // 1-F. Co-Vision Shared Sight & 6-Format Exporter (Image/Video/MD/Word/PPT/PDF) + OmniParser & Face Empathy Studio
+  else if (/옴니파서|omniparser|얼굴\s*교감|표정|피로도|시선|비전\s*스튜디오|face-to-face|시야|내가\s*보는|보고\s*있는|워드|docx|피티|ppt|구글\s*드라이브|문서로\s*만들/i.test(q)) {
     summonedWindows.push({
       windowType: 'VISION_FACE',
-      title: '👁️ OmniParser 화면 비전 좌표 추출 & Face-to-Face 표정/시선 교감 스튜디오',
-      subtitle: 'Consumer Psychology Feedback Loop · Live UI Coordinate & PyAutoGUI Generator'
+      title: '👁️ Co-Vision 카메라 시야공유 · 6종 산출물(이미지·영상·MD·Word·PPT·PDF) 제작 · ADE/IDE/Google Drive 스튜디오',
+      subtitle: 'Gemma 4 Multimodal Vision · Auto-Export (.png/.webm/.md/.docx/.pptx/.pdf) · 4-Way Archive Sync'
     });
-    reply = '대표님, OmniParser 화면 좌표 추출기와 실시간 카메라 표정 교감 스튜디오를 활성화했습니다.';
-    sohaAddon = '대표님의 집중도와 피로도를 실시간으로 분석해 보좌하겠습니다!';
+    reply = '대표님, 카메라 및 화면 공유 시야(Co-Vision)를 분석하여 이미지, 영상, 마크다운, 워드, 파워포인트, PDF 6종 문서를 동시 생성하고 ADE·IDE·구글 드라이브로 자동 아카이빙하는 스튜디오를 열었습니다.';
+    sohaAddon = '채팅창에 남겨주시는 모든 시각 대화 기록이 4대 저장소에 실시간으로 영구 보존됩니다!';
   }
   // 1-G. AlphaFold BioScience & Autonomous Simulation & Antigravity IDE Bridge
   else if (/바이오|알파폴드|alphafold|단백질|tp53|egfr|brca1|모의훈련|시뮬레이션|안티그래비티\s*ide|자가치유/i.test(q)) {
@@ -706,7 +707,12 @@ const MIME_TYPES = {
   '.glb': 'model/gltf-binary',
   '.woff2': 'font/woff2',
   '.pdf': 'application/pdf',
-  '.md': 'text/markdown; charset=utf-8'
+  '.md': 'text/markdown; charset=utf-8',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.webm': 'video/webm',
+  '.mp4': 'video/mp4',
+  '.mp3': 'audio/mpeg'
 };
 
 const server = http.createServer(async (req, res) => {
@@ -1230,6 +1236,24 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     broadcastEvent('remote_hand_gesture', body);
     return sendJson(res, 200, { ok: true, relayed: true });
+  }
+
+  // 10-J. Co-Vision Shared Sight History & 6-Format Exporter (Image/Video/MD/Word/PPT/PDF -> ADE/IDE/Google Drive)
+  if (req.method === 'GET' && pathname === '/api/jarvis/covision-history') {
+    return sendJson(res, 200, { ok: true, ...loadHistory() });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/covision-export') {
+    const body = await parseBody(req);
+    const result = await processCoVisionAndExport(body);
+    broadcastEvent('covision_created', result.session);
+    logConsoleStream(
+      'Co-Vision 6-Format Exporter',
+      `Created PNG/VIDEO/MD/DOCX/PPTX/PDF & synced to ADE/IDE/GoogleDrive: "${(body.prompt || '').slice(0, 32)}"`,
+      35,
+      2600
+    );
+    return sendJson(res, 200, result);
   }
 
   // 11. Serve BSC Agent Images from C:/BeausCreators/.cursor/agent_images/
