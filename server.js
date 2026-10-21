@@ -1202,6 +1202,36 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  // 10-H. Network Info & Mobile Camera Bridge URL (/api/jarvis/network-info)
+  if (req.method === 'GET' && pathname === '/api/jarvis/network-info') {
+    const os = require('os');
+    const nets = os.networkInterfaces();
+    let lanIp = '127.0.0.1';
+    for (const k of Object.keys(nets)) {
+      for (const n of nets[k] || []) {
+        if (n.family === 'IPv4' && !n.internal) {
+          lanIp = n.address;
+          break;
+        }
+      }
+      if (lanIp !== '127.0.0.1') break;
+    }
+    return sendJson(res, 200, {
+      ok: true,
+      lanIp,
+      port: PORT,
+      hudUrl: `http://${lanIp}:${PORT}`,
+      mobileCamUrl: `http://${lanIp}:${PORT}/mobile-cam`
+    });
+  }
+
+  // 10-I. Remote Mobile Hand Gesture & Camera Landmark Stream (/api/jarvis/remote-gesture)
+  if (req.method === 'POST' && pathname === '/api/jarvis/remote-gesture') {
+    const body = await parseBody(req);
+    broadcastEvent('remote_hand_gesture', body);
+    return sendJson(res, 200, { ok: true, relayed: true });
+  }
+
   // 11. Serve BSC Agent Images from C:/BeausCreators/.cursor/agent_images/
   if (req.method === 'GET' && pathname.startsWith('/agent_images/')) {
     const relImg = pathname.replace(/^\/agent_images\//, '');
@@ -1214,7 +1244,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 11. Static Files from public/
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+  const mappedRelPath = pathname === '/'
+    ? 'index.html'
+    : (pathname === '/mobile-cam' ? 'mobile-cam.html' : pathname);
+  let filePath = path.join(PUBLIC_DIR, mappedRelPath);
   if (!filePath.startsWith(PUBLIC_DIR)) {
     res.writeHead(403);
     return res.end('Forbidden');
@@ -1232,12 +1265,13 @@ const server = http.createServer(async (req, res) => {
   res.end('Not Found');
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================================`);
-  console.log(`🛡️  BSC J.A.R.V.I.S. (Autonomous Agent OS) is ONLINE`);
+  console.log(`🛡️  BSC J.A.R.V.I.S. (Autonomous Agent OS) is ONLINE (PC + Mobile)`);
   console.log(`✝️  Worldview: Coram Deo & Together (Stewardship, Truth, Temperance)`);
   console.log(`🧠  Local Brain: Ollama Gemma 4 (e2b / e4b / 31b) + Edge Neural Voices`);
-  console.log(`🌐  HUD URL : http://localhost:${PORT}`);
+  console.log(`🌐  PC HUD URL    : http://localhost:${PORT}`);
+  console.log(`📱  Mobile Cam URL: http://192.168.219.239:${PORT}/mobile-cam`);
   console.log(`====================================================================`);
 
   // Non-blocking warm-up of gemma4:e2b in VRAM (keep_alive: 30m) for instant 1s replies

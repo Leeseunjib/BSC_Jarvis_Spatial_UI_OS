@@ -213,7 +213,21 @@
     </div>
 
     <div id="holo-camera-alert-box" style="margin-bottom:6px;padding:6px 8px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;font-size:10.5px;color:#fef3c7;line-height:1.4;">
-      🔍 <b>하드웨어 진단:</b> 현재 데스크톱 PC에 연결된 물리적 USB 웹캠이 <b>0대</b>입니다. USB 웹캠이나 스마트폰 카메라 앱(Iriun/DroidCam/Link to Windows) 연결 후 <b>[📷 카메라 연결]</b>을 누르시면 마우스 개입이 100% 꺼지고 <b>Google MediaPipe 21관절 실제 손 모양(✋/🤏/✌️/👍/✊)</b>으로만 자동 작동합니다.
+      🔍 <b>PC 웹캠 Plug &amp; Play 대기 중:</b> PC에 USB 웹캠을 연결하시는 즉시 새로고침 없이 자동으로 감지하여 <b>Google MediaPipe 21관절 실제 손 인식 모드</b>로 자동 전환됩니다.
+    </div>
+
+    <!-- PC Camera Selector + Mobile Wireless Bridge Bar -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.3);border-radius:8px;">
+      <select id="holo-camera-select" style="flex:1;background:#050811;border:1px solid rgba(0,240,255,0.35);color:#e2e8f0;border-radius:6px;padding:3px 6px;font-size:10.5px;">
+        <option value="">📷 PC 웹캠 자동 감지 대기 중 (0대)</option>
+      </select>
+      <a id="link-mobile-cam" href="/mobile-cam" target="_blank" style="text-decoration:none;background:rgba(52,211,153,0.16);border:1px solid #34d399;color:#34d399;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;white-space:nowrap;">
+        📱 모바일 컨트롤러 열기
+      </a>
+    </div>
+    <div id="holo-mobile-url-bar" style="margin-bottom:6px;padding:4px 8px;background:rgba(0,240,255,0.08);border-radius:6px;font-size:10px;color:#38bdf8;font-family:monospace;display:flex;justify-content:space-between;align-items:center;">
+      <span>📱 스마트폰 접속: <b id="holo-mobile-url-text" style="color:#fff;">http://192.168.219.239:7777/mobile-cam</b></span>
+      <span style="color:#34d399;">Wi-Fi 연동 ON</span>
     </div>
 
     <!-- Live Hand Skeleton Visualizer + 4 Air-Touch Corner Zones -->

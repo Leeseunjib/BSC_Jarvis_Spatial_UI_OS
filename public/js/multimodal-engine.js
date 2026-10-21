@@ -41,6 +41,27 @@ window.MultimodalEngine = {
       })
       .catch(() => {});
 
+    // Load network info for Mobile Camera Bridge URL
+    fetch('/api/jarvis/network-info')
+      .then(r => r.json())
+      .then(info => {
+        if (info && info.mobileCamUrl) {
+          const urlText = document.getElementById('holo-mobile-url-text');
+          const linkEl = document.getElementById('link-mobile-cam');
+          if (urlText) urlText.textContent = info.mobileCamUrl;
+          if (linkEl) linkEl.href = info.mobileCamUrl;
+        }
+      })
+      .catch(() => {});
+
+    // Plug-and-Play Auto-Detection when PC USB Camera is plugged in!
+    if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+      navigator.mediaDevices.addEventListener('devicechange', () => {
+        this.refreshCameraDeviceList(true);
+      });
+      this.refreshCameraDeviceList(false);
+    }
+
     // Auto-Spawn the Unified 18-Studio Hub so both J.A.R.V.I.S. systems are immediately visible on screen
     setTimeout(() => {
       if (window.HUDWindowSpawner && window.HUDWindowSpawner.openAIStudioWindowByType) {
@@ -73,6 +94,42 @@ window.MultimodalEngine = {
         if (rep && rep.speechText) {
           window.BSC_WORLDVIEW.showToast(`🤖 ${rep.agent} 작업 완료 보고`, rep.speechText);
           this.speakStewardReply(rep.speechText, 'jarvis');
+        }
+      });
+      evtSource.addEventListener('remote_hand_gesture', e => {
+        const data = JSON.parse(e.data);
+        if (!data) return;
+        const panel = document.getElementById('holo-gesture-hud-panel');
+        if (panel && panel.style.display === 'none') {
+          panel.style.display = 'block';
+          this.startMiniHandSkeletonVisualizer();
+        }
+        const badgeEl = document.getElementById('holo-gesture-status-badge');
+        if (badgeEl) {
+          badgeEl.style.color = '#34d399';
+          badgeEl.textContent = '🟢 MOBILE CAMERA/TOUCH BRIDGE ON (스마트폰 실시간 연동 중)';
+        }
+        if (typeof data.normX === 'number' && typeof data.normY === 'number') {
+          this.holoCursor.x = data.normX * window.innerWidth;
+          this.holoCursor.y = data.normY * window.innerHeight;
+          if (window.BrainGraphEngine) {
+            window.BrainGraphEngine.rotY += (data.normX - 0.5) * 0.05;
+            const hit = window.BrainGraphEngine.findNodeAt(this.holoCursor.x, this.holoCursor.y);
+            if (hit) window.BrainGraphEngine.selectNode(hit, false);
+          }
+        }
+        if (Array.isArray(data.landmarks) && data.landmarks.length === 21) {
+          this.latestHandLandmarks = data.landmarks;
+        }
+        if (data.poseLabel) {
+          const labelEl = document.getElementById('holo-detected-gesture-label');
+          if (labelEl) labelEl.textContent = `📱 모바일 손 인식: ${data.poseLabel}`;
+        }
+        if (data.gesture) {
+          this.executeHandGestureAction(data.gesture);
+        }
+        if (data.commandText) {
+          this.sendCommandToJarvis(data.commandText);
         }
       });
     } catch (e) {}
@@ -346,21 +403,48 @@ window.MultimodalEngine = {
     }
   },
 
-  async startWebcamAndHolo(mode) {
+  async refreshCameraDeviceList(autoStartOnNewCamera = false) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(d => d.kind === 'videoinput');
+      const sel = document.getElementById('holo-camera-select');
+      if (sel) {
+        if (cams.length === 0) {
+          sel.innerHTML = '<option value="">📷 PC 웹캠 자동 감지 대기 중 (0대)</option>';
+        } else {
+          sel.innerHTML = cams.map((c, idx) => `<option value="${c.deviceId}">📷 ${c.label || `PC USB Camera #${idx + 1}`}</option>`).join('');
+        }
+      }
+      if (autoStartOnNewCamera && cams.length > 0 && !this.webcamStream) {
+        this.sensors.HOLO = true;
+        this.startWebcamAndHolo('HOLO', cams[0].deviceId);
+      }
+    } catch (e) {}
+  },
+
+  async startWebcamAndHolo(mode, preferredDeviceId = '') {
     const video = document.getElementById('webcam-video');
     const handCanvas = document.getElementById('holo-hand-canvas');
     const badgeEl = document.getElementById('holo-gesture-status-badge');
     const alertBox = document.getElementById('holo-camera-alert-box');
 
     try {
+      await this.refreshCameraDeviceList(false);
       const devices = navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
         ? await navigator.mediaDevices.enumerateDevices()
         : [];
       const cams = devices.filter(d => d.kind === 'videoinput');
 
-      if (!this.webcamStream) {
+      if (!this.webcamStream || preferredDeviceId) {
+        if (this.webcamStream) {
+          this.webcamStream.getTracks().forEach(t => t.stop());
+        }
+        const videoConstraints = preferredDeviceId
+          ? { deviceId: { exact: preferredDeviceId }, width: 640, height: 480 }
+          : { width: 640, height: 480 };
         this.webcamStream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480 },
+          video: videoConstraints,
           audio: false
         });
         video.srcObject = this.webcamStream;
@@ -610,46 +694,72 @@ window.MultimodalEngine = {
         hoverFrames = 0;
       }
 
-      // Draw 21-Keypoint MediaPipe-style Holographic Hand Skeleton at (hx, hy)
-      const cx = Math.max(55, Math.min(cvs.width - 55, hx || cvs.width / 2));
-      const cy = Math.max(45, Math.min(cvs.height - 20, hy || cvs.height / 2 + 15));
-      const palmX = cx;
-      const palmY = cy + 18;
+      // Draw 21-Keypoint MediaPipe Hand Skeleton (Real Camera 21 Landmarks if available, else Holographic Avatar)
+      if (Array.isArray(this.latestHandLandmarks) && this.latestHandLandmarks.length === 21) {
+        const lm = this.latestHandLandmarks;
+        const bones = [
+          [0,1],[1,2],[2,3],[3,4],
+          [0,5],[5,6],[6,7],[7,8],
+          [0,9],[9,10],[10,11],[11,12],
+          [0,13],[13,14],[14,15],[15,16],
+          [0,17],[17,18],[18,19],[19,20],
+          [5,9],[9,13],[13,17]
+        ];
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.8;
+        for (const [a, b] of bones) {
+          ctx.beginPath();
+          ctx.moveTo((1 - lm[a].x) * cvs.width, lm[a].y * cvs.height);
+          ctx.lineTo((1 - lm[b].x) * cvs.width, lm[b].y * cvs.height);
+          ctx.stroke();
+        }
+        for (let i = 0; i < 21; i++) {
+          ctx.fillStyle = (i === 4 || i === 8 || i === 12 || i === 16 || i === 20) ? '#fbbf24' : '#34d399';
+          ctx.beginPath();
+          ctx.arc((1 - lm[i].x) * cvs.width, lm[i].y * cvs.height, i % 4 === 0 ? 3.5 : 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        const cx = Math.max(55, Math.min(cvs.width - 55, hx || cvs.width / 2));
+        const cy = Math.max(45, Math.min(cvs.height - 20, hy || cvs.height / 2 + 15));
+        const palmX = cx;
+        const palmY = cy + 18;
 
-      const fingerTips = [
-        { dx: -28, dy: -4 + Math.sin(tick) * 2 },   // Thumb
-        { dx: -14, dy: -32 + Math.cos(tick) * 2 },  // Index
-        { dx: 0,   dy: -36 + Math.sin(tick) * 2 },  // Middle
-        { dx: 14,  dy: -31 + Math.cos(tick) * 2 },  // Ring
-        { dx: 26,  dy: -20 + Math.sin(tick) * 2 }   // Pinky
-      ];
+        const fingerTips = [
+          { dx: -28, dy: -4 + Math.sin(tick) * 2 },   // Thumb
+          { dx: -14, dy: -32 + Math.cos(tick) * 2 },  // Index
+          { dx: 0,   dy: -36 + Math.sin(tick) * 2 },  // Middle
+          { dx: 14,  dy: -31 + Math.cos(tick) * 2 },  // Ring
+          { dx: 26,  dy: -20 + Math.sin(tick) * 2 }   // Pinky
+        ];
 
-      ctx.strokeStyle = '#00f0ff';
-      ctx.lineWidth = 1.6;
-      for (const f of fingerTips) {
-        const midX = palmX + f.dx * 0.55;
-        const midY = palmY + f.dy * 0.55;
-        const tipX = palmX + f.dx;
-        const tipY = palmY + f.dy;
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.6;
+        for (const f of fingerTips) {
+          const midX = palmX + f.dx * 0.55;
+          const midY = palmY + f.dy * 0.55;
+          const tipX = palmX + f.dx;
+          const tipY = palmY + f.dy;
+          ctx.beginPath();
+          ctx.moveTo(palmX, palmY);
+          ctx.lineTo(midX, midY);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+
+          // Joints
+          ctx.fillStyle = '#34d399';
+          ctx.beginPath();
+          ctx.arc(midX, midY, 2.5, 0, Math.PI * 2);
+          ctx.arc(tipX, tipY, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Wrist/Palm center node
+        ctx.fillStyle = '#fbbf24';
         ctx.beginPath();
-        ctx.moveTo(palmX, palmY);
-        ctx.lineTo(midX, midY);
-        ctx.lineTo(tipX, tipY);
-        ctx.stroke();
-
-        // Joints
-        ctx.fillStyle = '#34d399';
-        ctx.beginPath();
-        ctx.arc(midX, midY, 2.5, 0, Math.PI * 2);
-        ctx.arc(tipX, tipY, 3.2, 0, Math.PI * 2);
+        ctx.arc(palmX, palmY, 4.5, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      // Wrist/Palm center node
-      ctx.fillStyle = '#fbbf24';
-      ctx.beginPath();
-      ctx.arc(palmX, palmY, 4.5, 0, Math.PI * 2);
-      ctx.fill();
 
       requestAnimationFrame(renderLoop);
     };
@@ -883,8 +993,13 @@ window.MultimodalEngine = {
       this.openHoloGesturePanel();
     });
     document.getElementById('btn-rescan-camera')?.addEventListener('click', () => {
+      const sel = document.getElementById('holo-camera-select');
       this.sensors.HOLO = true;
-      this.startWebcamAndHolo('HOLO');
+      this.startWebcamAndHolo('HOLO', sel ? sel.value : '');
+    });
+    document.getElementById('holo-camera-select')?.addEventListener('change', e => {
+      this.sensors.HOLO = true;
+      this.startWebcamAndHolo('HOLO', e.target.value || '');
     });
     document.getElementById('btn-close-holo-panel')?.addEventListener('click', () => {
       const panel = document.getElementById('holo-gesture-hud-panel');

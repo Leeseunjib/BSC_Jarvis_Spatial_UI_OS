@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>📱 J.A.R.V.I.S. Mobile Camera &amp; Hand Gesture Controller</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: radial-gradient(circle at 50% 15%, #0a192f 0%, #030712 100%);
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(6, 15, 32, 0.9);
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      border-radius: 12px;
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.18);
+    }
+    .hdr h1 { font-size: 14px; color: #00f0ff; letter-spacing: 0.5px; }
+    .status-pill {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: rgba(52, 211, 153, 0.18);
+      border: 1px solid #34d399;
+      color: #34d399;
+      font-weight: 700;
+    }
+    .card {
+      background: rgba(8, 15, 28, 0.92);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .cam-stage {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      background: #020617;
+      border: 1px solid #00f0ff;
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #mob-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      opacity: 0.65;
+      display: none;
+    }
+    #mob-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .cam-overlay-top {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+    .pose-tag {
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(0, 240, 255, 0.5);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #fbbf24;
+    }
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 110px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      background: rgba(0, 240, 255, 0.12);
+      color: #f8fafc;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn:active { transform: scale(0.97); background: rgba(0, 240, 255, 0.28); }
+    .btn.emerald { border-color: #34d399; background: rgba(52, 211, 153, 0.15); color: #34d399; }
+    .btn.gold { border-color: #fbbf24; background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .gesture-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .g-pad {
+      padding: 12px 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+    }
+    .g-pad:active { background: rgba(0, 240, 255, 0.25); }
+    .g-pad .title { font-size: 13px; font-weight: 800; margin-bottom: 3px; }
+    .g-pad .desc { font-size: 10.5px; color: #94a3b8; }
+    .cmd-bar {
+      display: flex;
+      gap: 6px;
+    }
+    .cmd-bar input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      background: #050811;
+      color: #fff;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div>
+      <h1>📱 J.A.R.V.I.S. 모바일 손동작·카메라 브릿지</h1>
+      <div style="font-size:10.5px;color:#94a3b8;">이건우 대표님 전용 · PC HUD 실시간 무선 연동</div>
+    </div>
+    <span class="status-pill" id="conn-pill">● PC 연결됨</span>
+  </header>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font-size:12px;font-weight:800;color:#00f0ff;">1. 모바일 카메라 21관절 AI &amp; 홀로그램 터치패드</span>
+      <span id="cam-mode-label" style="font-size:10.5px;color:#34d399;">터치 에어패드 + 카메라 대기</span>
+    </div>
+
+    <div class="cam-stage" id="touch-stage">
+      <video id="mob-video" autoplay playsinline muted></video>
+      <canvas id="mob-canvas" width="360" height="250"></canvas>
+      <div class="cam-overlay-top">
+        <span class="pose-tag" id="mob-pose-tag">✋ PALM_SWIPE (손가락/카메라 대기)</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn emerald" id="btn-start-mob-cam">📷 실시간 카메라 켜기</button>
+      <button class="btn" id="btn-switch-facing">🔄 전면/후면 전환</button>
+      <label class="btn gold" style="display:inline-block;">
+        📸 사진 손모양 인식
+        <input type="file" id="inp-snap-cam" accept="image/*" capture="user" style="display:none;" />
+      </label>
+    </div>
+    <div id="mob-cam-hint" style="font-size:10.5px;color:#94a3b8;margin-top:6px;line-height:1.4;">
+      💡 위 블랙 홀로그램 화면 위에서 손가락을 미끄러지듯 움직이거나 카메라를 켜고 손을 비추면 <b>데스크톱 PC 자비스의 3D 은하와 손 아바타가 실시간으로 함께 움직입니다!</b>
+    </div>
+  </section>
+
+  <section class="card">
+    <div style="font-size:12px;font-weight:800;color:#00f0ff;">2. 5대 손동작 제스처 원격 즉시 실행</div>
+    <div class="gesture-grid">
+      <button class="g-pad" data-g="PALM_SWIPE">
+        <div class="title" style="color:#00f0ff;">✋ 손바닥 스와이프</div>
+        <div class="desc">PC 3D 지식 은하 360° 회전</div>
+      </button>
+      <button class="g-pad" data-g="PINCH_CLICK">
+        <div class="title" style="color:#34d399;">🤏 엄지+검지 핀치</div>
+        <div class="desc">포커스된 지식 노드 상세 열기</div>
+      </button>
+      <button class="g-pad" data-g="VICTORY_BRIEF">
+        <div class="title" style="color:#fbbf24;">✌️ 브이(V) 포즈</div>
+        <div class="desc">15초 전사 모닝/마감 브리핑</div>
+      </button>
+      <button class="g-pad" data-g="THUMBS_APPROVE">
+        <div class="title" style="color:#c084fc;">👍 엄지 척 (승인)</div>
+        <div class="desc">대기 중인 OS/PC 안건 즉시 승인</div>
+      </button>
+      <button class="g-pad" data-g="FIST_RESET" style="grid-column:span 2;text-align:center;">
+        <div class="title" style="color:#fb7185;">✊ 주먹 쥐기 (Reset &amp; Fit) — 은하 중앙 정렬 및 음성 정지</div>
+      </button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div style="font-size:12px;font-weight:800;color:#00f0ff;margin-bottom:6px;">3. 모바일 음성/텍스트 원격 명령</div>
+    <form class="cmd-bar" id="mob-cmd-form">
+      <input type="text" id="mob-cmd-input" placeholder="자비스에게 원격 명령 (예: 오늘 브리핑 해줘)" autocomplete="off" />
+      <button type="submit" class="btn emerald" style="flex:0 0 76px;min-width:76px;">전송 ↵</button>
+    </form>
+  </section>
+
+  <script>
+    const video = document.getElementById('mob-video');
+    const canvas = document.getElementById('mob-canvas');
+    const ctx = canvas.getContext('2d');
+    const poseTag = document.getElementById('mob-pose-tag');
+    const hintEl = document.getElementById('mob-cam-hint');
+    const modeLabel = document.getElementById('cam-mode-label');
+
+    let stream = null;
+    let facingMode = 'user';
+    let mpHands = null;
+    let latestLandmarks = null;
+    let normX = 0.5, normY = 0.5;
+    let lastSentAt = 0;
+    let poseHold = 0, lastPose = '';
+
+    async function sendRemoteSignal(payload) {
+      try {
+        await fetch('/api/jarvis/remote-gesture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: 'mobile', ...payload })
+        });
+      } catch (e) {}
+    }
+
+    function classifyHand(lm) {
+      const pinch = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+      if (pinch < 0.055) return 'PINCH_CLICK';
+      const idxUp = lm[8].y < lm[6].y;
+      const midUp = lm[12].y < lm[10].y;
+      const rngUp = lm[16].y < lm[14].y;
+      const pnkUp = lm[20].y < lm[18].y;
+      const thbUp = lm[4].y < lm[3].y && lm[3].y < lm[2].y && lm[4].y < lm[6].y;
+      if (idxUp && midUp && !rngUp && !pnkUp) return 'VICTORY_BRIEF';
+      if (thbUp && !idxUp && !midUp && !rngUp && !pnkUp) return 'THUMBS_APPROVE';
+      if (!idxUp && !midUp && !rngUp && !pnkUp) return 'FIST_RESET';
+      return 'PALM_SWIPE';
+    }
+
+    async function initMediaPipe() {
+      if (mpHands || typeof window.Hands !== 'function') return;
+      mpHands = new window.Hands({
+        locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+      });
+      mpHands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
+      });
+      mpHands.onResults(res => {
+        if (res.multiHandLandmarks && res.multiHandLandmarks.length > 0) {
+          const lm = res.multiHandLandmarks[0];
+          latestLandmarks = lm;
+          normX = 1 - lm[8].x;
+          normY = lm[8].y;
+          const pose = classifyHand(lm);
+          poseTag.textContent = `📷 AI 인식: ${pose}`;
+
+          const now = Date.now();
+          let triggerGesture = null;
+          if (pose !== 'PALM_SWIPE') {
+            if (lastPose === pose) {
+              poseHold++;
+              if (poseHold === 12) triggerGesture = pose;
+            } else {
+              lastPose = pose;
+              poseHold = 1;
+            }
+          } else {
+            poseHold = 0;
+          }
+
+          if (triggerGesture || now - lastSentAt > 90) {
+            lastSentAt = now;
+            sendRemoteSignal({
+              normX,
+              normY,
+              landmarks: lm,
+              gesture: triggerGesture,
+              poseLabel: pose
+            });
+          }
+        }
+      });
+    }
+
+    async function startMobileCamera() {
+      try {
+        await initMediaPipe();
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: 480, height: 360 },
+          audio: false
+        });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        await video.play();
+        modeLabel.textContent = '🟢 실시간 카메라 AI 가동 중';
+        hintEl.innerHTML = '✅ <b>모바일 카메라 AI 연결 성공:</b> 카메라에 손을 비추면 21관절 좌표가 데스크톱 자비스 HUD로 실시간 전송됩니다!';
+
+        const pump = async () => {
+          if (!stream) return;
+          if (video.readyState >= 2 && mpHands) {
+            try { await mpHands.send({ image: video }); } catch (e) {}
+          }
+          requestAnimationFrame(pump);
+        };
+        requestAnimationFrame(pump);
+      } catch (err) {
+        hintEl.innerHTML = 'ℹ️ 모바일 브라우저 HTTP 보안 정책으로 실시간 스트림 대신 <b>[📸 사진 손모양 인식]</b> 또는 <b>홀로그램 터치 에어패드</b>로 PC 자비스를 실시간 제어합니다.';
+      }
+    }
+
+    document.getElementById('btn-start-mob-cam').addEventListener('click', startMobileCamera);
+    document.getElementById('btn-switch-facing').addEventListener('click', () => {
+      facingMode = facingMode === 'user' ? 'environment' : 'user';
+      startMobileCamera();
+    });
+
+    // Snapshot fallback for plain HTTP mobile browsers
+    document.getElementById('inp-snap-cam').addEventListener('change', async e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      await initMediaPipe();
+      const img = new Image();
+      img.onload = async () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        if (mpHands) {
+          await mpHands.send({ image: img });
+        }
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
+    // Touch Air-Pad on canvas (streams real-time coordinates to PC HUD!)
+    const handleTouchMove = e => {
+      e.preventDefault();
+      const t = e.touches ? e.touches[0] : e;
+      const rect = canvas.getBoundingClientRect();
+      normX = Math.max(0, Math.min(1, (t.clientX - rect.left) / rect.width));
+      normY = Math.max(0, Math.min(1, (t.clientY - rect.top) / rect.height));
+      poseTag.textContent = `✋ AIR_PAD (${Math.round(normX * 100)}%, ${Math.round(normY * 100)}%)`;
+      const now = Date.now();
+      if (now - lastSentAt > 60) {
+        lastSentAt = now;
+        sendRemoteSignal({ normX, normY, poseLabel: 'PALM_SWIPE' });
+      }
+    };
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('mousemove', e => {
+      if (e.buttons === 1) handleTouchMove(e);
+    });
+
+    // 5 Gesture Buttons
+    document.querySelectorAll('.g-pad').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const g = btn.dataset.g;
+        poseTag.textContent = `🚀 전송됨: ${g}`;
+        sendRemoteSignal({ normX, normY, gesture: g, poseLabel: g });
+      });
+    });
+
+    // Remote Voice/Text Command
+    document.getElementById('mob-cmd-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const inp = document.getElementById('mob-cmd-input');
+      const val = inp.value.trim();
+      if (!val) return;
+      inp.value = '';
+      sendRemoteSignal({ commandText: val });
+      poseTag.textContent = `💬 명령 전송: "${val}"`;
+    });
+
+    // Render 21-joint hand skeleton on mobile canvas
+    function renderLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (latestLandmarks) {
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        for (const lm of latestLandmarks) {
+          const x = (1 - lm.x) * canvas.width;
+          const y = lm.y * canvas.height;
+          ctx.fillStyle = '#34d399';
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        const cx = normX * canvas.width;
+        const cy = normY * canvas.height;
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(renderLoop);
+    }
+    requestAnimationFrame(renderLoop);
+  </script>
+</body>
+</html>
