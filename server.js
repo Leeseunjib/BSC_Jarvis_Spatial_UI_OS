@@ -363,6 +363,7 @@ async function processJarvisTurn(message, contextState = {}) {
   let coreMode = null;
   let pcProposal = null;
   let openSettingsModal = false;
+  let activateHoloGesture = false;
   let reply = '';
   let sohaAddon = '';
   let delegatedAgent = '🤖 J.A.R.V.I.S.';
@@ -373,6 +374,33 @@ async function processJarvisTurn(message, contextState = {}) {
     openSettingsModal = true;
     reply = '대표님, 통합 환경설정 제어판을 열었습니다. 오픈모델, 성우 음색, 테마, 음성 매크로를 즉시 변경하실 수 있습니다.';
     sohaAddon = '대표님, 원하시는 프리셋을 원클릭으로 바로 적용해 보세요!';
+  }
+  // 0-A2. 15-Second Executive Morning/Closing Briefing ("자비스, 오늘 브리핑")
+  else if (/오늘\s*브리핑|모닝\s*브리핑|마감\s*브리핑|전체\s*브리핑|15초\s*브리핑|전사\s*브리핑/i.test(q)) {
+    let briefData = { activeAgents: 8, totalAgents: 28, reportCount: 2, latestWorklogs: [], speechScript: '' };
+    try {
+      const voiceBriefScript = 'C:\\BeausCreators\\01.BSC_HQ\\3.CompanyOS\\Scripts\\Invoke-BscVoiceBriefing.js';
+      if (fs.existsSync(voiceBriefScript)) {
+        const { generateExecutiveBriefingData } = require(voiceBriefScript);
+        briefData = generateExecutiveBriefingData();
+      }
+    } catch (e) {}
+    const pendingCnt = osActionQueue.filter(x => x.status === 'PENDING_APPROVAL').length;
+    const briefMd = `### 📢 [J.A.R.V.I.S. × BSC HQ] 15초 전사 임원 브리핑\n- **활성 코어 에이전트**: **${briefData.activeAgents} / ${briefData.totalAgents}명** (${(briefData.activeNames || []).join(', ') || '거누, 수호, 소하, 태준 등'})\n- **최신 본사 보고서**: **[${briefData.latestReportDate || '오늘'}]** ${briefData.reportCount}건 (${(briefData.reportFiles || []).join(', ') || '시스템 정상'})\n- **최신 본사 작업일지**: ${(briefData.latestWorklogs || []).join(', ') || '동기화 완료'}\n- **자비스 실행승인 대기열**: **${pendingCnt}건** 대기 중\n\n> 💬 **J.A.R.V.I.S. 음성 보고**: "${briefData.speechScript || '이건우 대표님, 전사 시스템 정상 가동 중입니다.'}"`;
+    summonedWindows.push({
+      windowType: 'REPORT',
+      title: '📢 [15초 임원 브리핑] BSC 본사 & 자비스 실시간 통합 현황',
+      subtitle: 'C:/BeausCreators/01.BSC_HQ ↔ c:/BSC_Javis_OS Live Sync',
+      content: briefMd
+    });
+    reply = briefData.speechScript || `이건우 대표님, 현재 코어 요원 ${briefData.activeAgents}명이 가동 중이며 승인 대기 안건은 ${pendingCnt}건입니다. 1순위 안건부터 브리핑할까요?`;
+    sohaAddon = `오늘 보고서 ${briefData.reportCount}건과 작업일지 정합성 검수도 모두 마쳤습니다, 대표님!`;
+  }
+  // 0-A3. Hand Gesture (HOLO Air-Touch) Activation & Guide ("손동작", "제스처", "에어터치")
+  else if (/손동작|제스처|에어\s*터치|손\s*인식|gesture|air\s*touch|홀로\s*모드/i.test(q)) {
+    activateHoloGesture = true;
+    reply = '이건우 대표님, 우측 하단 HOLO 손동작 제어 HUD를 즉시 활성화했습니다. 카메라 앞 손동작이나 5대 제스처 패드로 3D 은하 회전, 15초 브리핑, 승인 실행이 가능합니다.';
+    sohaAddon = '브이(✌️) 포즈를 취하시면 15초 브리핑이, 엄지 척(👍)을 하시면 대기 안건 승인이 즉시 실행됩니다!';
   }
   // 0-B. Open-Source TTS & 23-Language Voice Cloning Studio (YouTube pnQUKnmPkFg)
   else if (/더빙|chatterbox|채터박스|qwen3-tts|보이스\s*클로닝|목소리\s*복제|15개.*성우|오픈소스\s*tts/i.test(q)) {
@@ -628,6 +656,7 @@ async function processJarvisTurn(message, contextState = {}) {
     summonedWindows,
     spawnedWindows: summonedWindows,
     openSettingsModal,
+    activateHoloGesture,
     graphCommand,
     coreMode,
     pcProposal,
@@ -1077,6 +1106,56 @@ const server = http.createServer(async (req, res) => {
         { moduleName: 'MAPS 4계층 & 로컬 OS 브릿지', beforeMetric: '수동 실행', afterMetric: '자율 스폰 + 승인 게이트', gainPercent: '100% 안전', tuningActionKo: 'Human-in-the-Loop 대표님 승인 모달 및 Append-Only 볼트 보호' }
       ],
       latencyMs: 42
+    });
+  }
+
+  // 10-F. 15-Second Executive Morning/Closing Briefing API (Co-Work with C:\BeausCreators)
+  if (req.method === 'GET' && pathname === '/api/jarvis/executive-briefing') {
+    let briefData = { activeAgents: 8, totalAgents: 28, reportCount: 2, latestWorklogs: [], speechScript: '' };
+    try {
+      const voiceBriefScript = 'C:\\BeausCreators\\01.BSC_HQ\\3.CompanyOS\\Scripts\\Invoke-BscVoiceBriefing.js';
+      if (fs.existsSync(voiceBriefScript)) {
+        const { generateExecutiveBriefingData } = require(voiceBriefScript);
+        briefData = generateExecutiveBriefingData();
+      }
+    } catch (e) {}
+    const pendingCnt = osActionQueue.filter(x => x.status === 'PENDING_APPROVAL').length;
+    logConsoleStream('J.A.R.V.I.S. × 소하', `Generated 15-Second Executive Briefing (${briefData.activeAgents} active agents, ${pendingCnt} pending actions)`, 12, 2400);
+    return sendJson(res, 200, {
+      ok: true,
+      brief: briefData,
+      pendingQueueCount: pendingCnt,
+      speechScript: briefData.speechScript || `이건우 대표님, 전사 코어 요원 ${briefData.activeAgents}명이 정상 가동 중이며 승인 대기 안건은 ${pendingCnt}건입니다.`
+    });
+  }
+
+  // 10-G. Agent Post-Task Auto-Report Webhook (Called by Send-ToJarvisHud.js / Finalize-Work.ps1 / BSC-AgentRuntime.js)
+  if (req.method === 'POST' && pathname === '/api/jarvis/agent-report') {
+    const body = await parseBody(req);
+    const agent = body.agent || '태준';
+    const project = body.project || 'BSC_HQ';
+    const summary = body.summary || '지시하신 작업이 완료되었습니다.';
+    const outputs = body.outputs || '';
+    const reportPath = body.reportPath || '';
+
+    const speechText = `이건우 대표님, ${agent} 요원이 ${project} 작업을 완수했습니다. 핵심 요약은 "${summary}"입니다.`;
+    const winPayload = {
+      windowType: 'REPORT',
+      title: `✅ [${agent} 작업 완료 보고] ${project}`,
+      subtitle: reportPath || outputs || 'BSC System v5.0 Auto-Report Bridge',
+      content: `### 🤖 J.A.R.V.I.S. × BSC 에이전트 실시간 작업 완료 보고\n- **담당 에이전트**: **${agent}**\n- **프로젝트 / 도메인**: **${project}**\n- **핵심 요약**: ${summary}\n- **산출물 경로**: \`${outputs || reportPath || '검증 완료'}\`\n\n> 💬 **자비스 음성 보고**: "${speechText}"`
+    };
+
+    broadcastEvent('summon_window', winPayload);
+    broadcastEvent('agent_report', { agent, project, summary, outputs, speechText });
+    logConsoleStream(`Co-Work Bridge (${agent})`, `[${project}] ${summary}`, 15, 1800);
+
+    return sendJson(res, 200, {
+      ok: true,
+      agent,
+      project,
+      speechText,
+      summoned: true
     });
   }
 

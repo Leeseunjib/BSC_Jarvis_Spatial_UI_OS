@@ -37,6 +37,8 @@
   <nav id="unified-workspace-bar" aria-label="통합 자비스 스튜디오 및 환경설정 바">
     <button class="uni-tab-btn primary" data-ais-win="AI_STUDIO_HUB" title="18대 스튜디오 & 9대 오픈모델 통합 관제 허브">⚡ 18대 통합 허브</button>
     <button class="uni-tab-btn emerald" data-ais-win="OPEN_TTS_STUDIO" title="Chatterbox Multilingual (MIT) & Qwen3-TTS 오픈소스 보이스 스튜디오">🎙️ 오픈소스 TTS·보이스</button>
+    <button class="uni-tab-btn emerald" id="btn-exec-briefing" title="본사 보고서·작업일지·에이전트 현황 15초 음성 브리핑 즉시 실행">📢 15초 브리핑</button>
+    <button class="uni-tab-btn emerald" id="btn-holo-gesture-hud" title="웹캠 21관절 손동작 인식 & 5대 에어터치 작업 실행기 열기">✋ 손동작 제어 (HOLO)</button>
     <button class="uni-tab-btn emerald" data-ais-win="MAPS_REA_STUDIO" data-ais-subtab="HQ_SKILLS" title="BeausCreators 본사 5대 핵심 스킬 파이프라인 직결 실행기">🏢 본사 5대 스킬</button>
     <button class="uni-tab-btn" data-ais-win="VISION_FACE" title="OmniParser 화면 좌표 추출 & 웹캠 표정/시선 교감">👁️ 비전·얼굴교감</button>
     <button class="uni-tab-btn" data-ais-win="AGENT_REGISTRY" title="SRP 6대 에이전트 레지스트리 & 페르소나 슬라이더 & 일괄 토글">🤖 에이전트·페르소나</button>
@@ -195,6 +197,53 @@
 
   <!-- AUTONOMOUS FLOATING HUD WINDOW CONTAINER (Spawns Manual, Report, Live Console, Gen Studio) -->
   <main id="floating-windows-layer"></main>
+
+  <!-- ✋ HOLO HAND GESTURE & 21-JOINT AIR-TOUCH ACTION HUD PANEL -->
+  <aside id="holo-gesture-hud-panel" style="display:none;position:fixed;right:270px;bottom:86px;width:390px;background:rgba(6,11,22,0.95);border:1px solid #00f0ff;border-radius:14px;padding:12px;z-index:9400;box-shadow:0 0 28px rgba(0,240,255,0.28);backdrop-filter:blur(16px);color:#f1f5f9;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid rgba(0,240,255,0.25);padding-bottom:6px;">
+      <div>
+        <span style="font-size:12.5px;font-weight:800;color:#00f0ff;">✋ HOLO 손동작 &amp; 에어터치 작업 실행기</span>
+        <div id="holo-gesture-status-badge" style="font-size:10px;color:#34d399;font-family:monospace;">● 21-Keypoint Hand Skeleton &amp; Optical Air-Touch ACTIVE</div>
+      </div>
+      <button id="btn-close-holo-panel" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#cbd5e1;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;">✕ 닫기</button>
+    </div>
+
+    <!-- Live Hand Skeleton Visualizer + 4 Air-Touch Corner Zones -->
+    <div style="position:relative;width:100%;height:155px;background:#030712;border:1px solid rgba(0,240,255,0.35);border-radius:10px;overflow:hidden;margin-bottom:8px;">
+      <canvas id="holo-mini-skeleton-canvas" width="366" height="155" style="width:100%;height:155px;display:block;cursor:crosshair;"></canvas>
+      <div style="position:absolute;top:6px;left:8px;font-size:10px;font-family:monospace;color:#00f0ff;background:rgba(0,0,0,0.65);padding:2px 6px;border-radius:4px;">
+        인식된 제스처: <b id="holo-detected-gesture-label" style="color:#fbbf24;">✋ PALM_MOVE (은하 360° 회전 대기)</b>
+      </div>
+    </div>
+
+    <div style="font-size:10.5px;color:#94a3b8;margin-bottom:6px;line-height:1.4;">
+      💡 <b>작동 방식:</b> 웹캠 앞에서 손을 움직이거나 아래 <b>5대 손동작 패드</b>에 손을 올리면(또는 클릭하면) 자비스가 즉시 해당 작업을 실행합니다.
+    </div>
+
+    <!-- 5 Actionable Hand Gestures -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="PALM_SWIPE" style="text-align:left;padding:6px 8px;border-color:rgba(0,240,255,0.4);">
+        <div style="font-weight:800;color:#00f0ff;font-size:11px;">✋ 손바닥 스와이프</div>
+        <div style="font-size:9.5px;color:#cbd5e1;">3D 지식 은하 360° 회전</div>
+      </button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="PINCH_CLICK" style="text-align:left;padding:6px 8px;border-color:rgba(52,211,153,0.4);">
+        <div style="font-weight:800;color:#34d399;font-size:11px;">🤏 엄지+검지 핀치</div>
+        <div style="font-size:9.5px;color:#cbd5e1;">가리킨 노드 선택·보고서 열기</div>
+      </button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="VICTORY_BRIEF" style="text-align:left;padding:6px 8px;border-color:rgba(251,191,36,0.45);">
+        <div style="font-weight:800;color:#fbbf24;font-size:11px;">✌️ 브이(V) 포즈</div>
+        <div style="font-size:9.5px;color:#cbd5e1;">15초 전사 모닝/마감 브리핑</div>
+      </button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="THUMBS_APPROVE" style="text-align:left;padding:6px 8px;border-color:rgba(168,85,247,0.45);">
+        <div style="font-weight:800;color:#c084fc;font-size:11px;">👍 엄지 척 (승인)</div>
+        <div style="font-size:9.5px;color:#cbd5e1;">대기 중인 OS/PC 안건 즉시 승인</div>
+      </button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="FIST_RESET" style="grid-column:span 2;text-align:center;padding:5px 8px;border-color:rgba(244,63,94,0.4);">
+        <span style="font-weight:800;color:#fb7185;font-size:11px;">✊ 주먹 쥐기 (Reset &amp; Fit)</span>
+        <span style="font-size:9.5px;color:#cbd5e1;margin-left:6px;">— 3D 은하 중앙 정렬(⊙ Fit) 및 음성 발화 즉시 정지</span>
+      </button>
+    </div>
+  </aside>
 
   <!-- CEO HUMAN-IN-THE-LOOP APPROVAL MODAL FOR COMPUTER USE -->
   <div id="pc-approval-modal" class="approval-modal" style="display:none;">

@@ -68,6 +68,13 @@ window.MultimodalEngine = {
           window.BSC_WORLDVIEW.updateTelemetryUI(payload.telemetry);
         }
       });
+      evtSource.addEventListener('agent_report', e => {
+        const rep = JSON.parse(e.data);
+        if (rep && rep.speechText) {
+          window.BSC_WORLDVIEW.showToast(`🤖 ${rep.agent} 작업 완료 보고`, rep.speechText);
+          this.speakStewardReply(rep.speechText, 'jarvis');
+        }
+      });
     } catch (e) {}
   },
 
@@ -261,6 +268,9 @@ window.MultimodalEngine = {
       if (data.openSettingsModal && window.HUDWindowSpawner && window.HUDWindowSpawner.openMasterSettingsModal) {
         window.HUDWindowSpawner.openMasterSettingsModal();
       }
+      if (data.activateHoloGesture) {
+        this.openHoloGesturePanel();
+      }
       if (data.graphCommand && window.BrainGraphEngine) {
         window.BrainGraphEngine.setViewMode(data.graphCommand);
       }
@@ -358,9 +368,12 @@ window.MultimodalEngine = {
         window.BSC_WORLDVIEW.showToast('👁️ EYES (재석/모션 인지)', msg);
         this.speakStewardReply(msg);
       } else if (mode === 'HOLO') {
-        const msg = 'HOLO 에어터치 모드가 켜졌습니다. 카메라 앞에서 손을 움직여 3D 지식 은하를 회전시키고 노드를 가리켜 보십시오.';
-        window.BSC_WORLDVIEW.showToast('✋ HOLO (카메라 에어터치)', msg);
+        const msg = '이건우 대표님, HOLO 손동작 제어 HUD가 켜졌습니다. 웹캠 앞 손동작이나 5대 제스처 패드로 3D 은하 회전, 15초 브리핑, 승인 실행을 제어하실 수 있습니다.';
+        window.BSC_WORLDVIEW.showToast('✋ HOLO (21관절 손동작 & 에어터치)', msg);
         this.speakStewardReply(msg);
+        const panel = document.getElementById('holo-gesture-hud-panel');
+        if (panel) panel.style.display = 'block';
+        this.startMiniHandSkeletonVisualizer();
       }
 
       this.runOpticalHandTracker(video, handCanvas);
@@ -369,20 +382,241 @@ window.MultimodalEngine = {
       handCanvas.style.display = 'block';
       handCanvas.width = window.innerWidth;
       handCanvas.height = window.innerHeight;
-      window.BSC_WORLDVIEW.showToast('✋ HOLO (시뮬레이션 보조 모드)', '카메라 장치 접근 권한이 없거나 사용 중이어서 마우스 연동 HOLO 에어터치 HUD 오버레이를 가동합니다.');
+      if (mode === 'HOLO') {
+        const panel = document.getElementById('holo-gesture-hud-panel');
+        if (panel) panel.style.display = 'block';
+        this.startMiniHandSkeletonVisualizer();
+      }
+      window.BSC_WORLDVIEW.showToast('✋ HOLO (손동작 & 에어터치 HUD)', '카메라 또는 마우스 연동 21관절 HOLO 손동작 제어기를 가동합니다. 우측 하단 5대 제스처 패드로 즉시 실행이 가능합니다.');
       this.runMouseHoloOverlay(handCanvas);
+    }
+  },
+
+  openHoloGesturePanel() {
+    const holoBtn = document.getElementById('toggle-holo');
+    if (holoBtn && !this.sensors.HOLO) {
+      this.toggleSensor('HOLO', holoBtn);
+    } else {
+      const panel = document.getElementById('holo-gesture-hud-panel');
+      if (panel) panel.style.display = 'block';
+      this.startMiniHandSkeletonVisualizer();
+    }
+  },
+
+  startMiniHandSkeletonVisualizer() {
+    const cvs = document.getElementById('holo-mini-skeleton-canvas');
+    if (!cvs || this._miniSkeletonRunning) return;
+    this._miniSkeletonRunning = true;
+    const ctx = cvs.getContext('2d');
+    let tick = 0;
+
+    // 4 Corner Air-Touch Zones inside the mini visualizer
+    const zones = [
+      { id: 'PALM_SWIPE', x: 10, y: 28, w: 80, h: 36, label: '✋ 회전', color: '#00f0ff' },
+      { id: 'VICTORY_BRIEF', x: 276, y: 28, w: 80, h: 36, label: '✌️ 브리핑', color: '#fbbf24' },
+      { id: 'PINCH_CLICK', x: 10, y: 110, w: 80, h: 36, label: '🤏 노드클릭', color: '#34d399' },
+      { id: 'THUMBS_APPROVE', x: 276, y: 110, w: 80, h: 36, label: '👍 즉시승인', color: '#c084fc' }
+    ];
+
+    let hoverZone = null;
+    let hoverFrames = 0;
+
+    cvs.addEventListener('mousemove', e => {
+      const rect = cvs.getBoundingClientRect();
+      this.holoCursor.x = ((e.clientX - rect.left) / rect.width) * window.innerWidth;
+      this.holoCursor.y = ((e.clientY - rect.top) / rect.height) * window.innerHeight;
+    });
+
+    cvs.addEventListener('click', e => {
+      const rect = cvs.getBoundingClientRect();
+      const mx = ((e.clientX - rect.left) / rect.width) * cvs.width;
+      const my = ((e.clientY - rect.top) / rect.height) * cvs.height;
+      for (const z of zones) {
+        if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
+          this.executeHandGestureAction(z.id);
+          return;
+        }
+      }
+      this.executeHandGestureAction('PINCH_CLICK');
+    });
+
+    const renderLoop = () => {
+      const panel = document.getElementById('holo-gesture-hud-panel');
+      if (!panel || panel.style.display === 'none') {
+        this._miniSkeletonRunning = false;
+        return;
+      }
+      tick += 0.05;
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+      // Draw webcam background if stream is active
+      const video = document.getElementById('webcam-video');
+      if (this.webcamStream && video && video.readyState >= 2) {
+        ctx.save();
+        ctx.translate(cvs.width, 0);
+        ctx.scale(-1, 1);
+        ctx.globalAlpha = 0.45;
+        ctx.drawImage(video, 0, 0, cvs.width, cvs.height);
+        ctx.restore();
+      }
+
+      // Draw 4 Air-Touch Corner Action Pads
+      const hx = (this.holoCursor.x / Math.max(1, window.innerWidth)) * cvs.width;
+      const hy = (this.holoCursor.y / Math.max(1, window.innerHeight)) * cvs.height;
+
+      let currentZone = null;
+      for (const z of zones) {
+        const isHit = hx >= z.x && hx <= z.x + z.w && hy >= z.y && hy <= z.y + z.h;
+        if (isHit) currentZone = z;
+        ctx.strokeStyle = z.color;
+        ctx.lineWidth = isHit ? 2.2 : 1.1;
+        ctx.fillStyle = isHit ? 'rgba(0, 240, 255, 0.22)' : 'rgba(5, 10, 20, 0.65)';
+        ctx.beginPath();
+        ctx.roundRect(z.x, z.y, z.w, z.h, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = z.color;
+        ctx.font = 'bold 10.5px sans-serif';
+        ctx.fillText(z.label, z.x + 10, z.y + 22);
+      }
+
+      // Dwell Air-Touch Trigger (Hold hand in corner zone for ~45 frames = 0.75s)
+      if (currentZone) {
+        if (hoverZone === currentZone.id) {
+          hoverFrames++;
+          // Progress bar on zone
+          ctx.fillStyle = currentZone.color;
+          ctx.fillRect(currentZone.x, currentZone.y + currentZone.h - 4, (currentZone.w * Math.min(hoverFrames, 45)) / 45, 4);
+          if (hoverFrames === 45) {
+            this.executeHandGestureAction(currentZone.id);
+            hoverFrames = 0;
+          }
+        } else {
+          hoverZone = currentZone.id;
+          hoverFrames = 1;
+        }
+      } else {
+        hoverZone = null;
+        hoverFrames = 0;
+      }
+
+      // Draw 21-Keypoint MediaPipe-style Holographic Hand Skeleton at (hx, hy)
+      const cx = Math.max(55, Math.min(cvs.width - 55, hx || cvs.width / 2));
+      const cy = Math.max(45, Math.min(cvs.height - 20, hy || cvs.height / 2 + 15));
+      const palmX = cx;
+      const palmY = cy + 18;
+
+      const fingerTips = [
+        { dx: -28, dy: -4 + Math.sin(tick) * 2 },   // Thumb
+        { dx: -14, dy: -32 + Math.cos(tick) * 2 },  // Index
+        { dx: 0,   dy: -36 + Math.sin(tick) * 2 },  // Middle
+        { dx: 14,  dy: -31 + Math.cos(tick) * 2 },  // Ring
+        { dx: 26,  dy: -20 + Math.sin(tick) * 2 }   // Pinky
+      ];
+
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.6;
+      for (const f of fingerTips) {
+        const midX = palmX + f.dx * 0.55;
+        const midY = palmY + f.dy * 0.55;
+        const tipX = palmX + f.dx;
+        const tipY = palmY + f.dy;
+        ctx.beginPath();
+        ctx.moveTo(palmX, palmY);
+        ctx.lineTo(midX, midY);
+        ctx.lineTo(tipX, tipY);
+        ctx.stroke();
+
+        // Joints
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.arc(midX, midY, 2.5, 0, Math.PI * 2);
+        ctx.arc(tipX, tipY, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Wrist/Palm center node
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(palmX, palmY, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(renderLoop);
+    };
+    requestAnimationFrame(renderLoop);
+  },
+
+  async executeHandGestureAction(gestureType) {
+    const labelEl = document.getElementById('holo-detected-gesture-label');
+    if (gestureType === 'PALM_SWIPE') {
+      if (labelEl) labelEl.textContent = '✋ PALM_SWIPE -> 3D 지식 은하 360° 회전 실행!';
+      if (window.BrainGraphEngine) {
+        window.BrainGraphEngine.setViewMode('3d');
+        window.BrainGraphEngine.rotY += 0.85;
+      }
+      const msg = '손바닥 스와이프 제스처를 인식하여 3D 지식 은하를 회전시켰습니다.';
+      window.BSC_WORLDVIEW.showToast('✋ Gesture: PALM_SWIPE', msg);
+      this.speakStewardReply(msg, 'jarvis');
+    } else if (gestureType === 'PINCH_CLICK') {
+      if (labelEl) labelEl.textContent = '🤏 PINCH_CLICK -> 가리킨 지식 노드 선택 & 상세 보고서 열기!';
+      if (window.BrainGraphEngine) {
+        const node = window.BrainGraphEngine.selectedNode || (window.BrainGraphEngine.nodes && window.BrainGraphEngine.nodes[0]);
+        if (node) {
+          window.BrainGraphEngine.selectNode(node, true);
+        }
+      }
+      const msg = '핀치 클릭 제스처를 인식하여 포커스된 지식 노드의 홀로그램 상세 창을 열었습니다.';
+      window.BSC_WORLDVIEW.showToast('🤏 Gesture: PINCH_CLICK', msg);
+      this.speakStewardReply(msg, 'jarvis');
+    } else if (gestureType === 'VICTORY_BRIEF') {
+      if (labelEl) labelEl.textContent = '✌️ VICTORY_BRIEF -> 15초 전사 모닝/마감 브리핑 즉시 실행!';
+      this.sendCommandToJarvis('자비스, 오늘 브리핑 해줘');
+    } else if (gestureType === 'THUMBS_APPROVE') {
+      if (labelEl) labelEl.textContent = '👍 THUMBS_APPROVE -> 대기 안건 즉시 승인 실행!';
+      if (this.pendingPcActionKey) {
+        this.executeApprovedPcAction(this.pendingPcActionKey);
+      } else {
+        try {
+          const qRes = await fetch('/api/jarvis/action-queue');
+          const qData = await qRes.json();
+          const pending = (qData.queue || []).find(item => item.status === 'PENDING_APPROVAL');
+          if (pending) {
+            await fetch('/api/jarvis/action-queue', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ op: 'approve', id: pending.id })
+            });
+            const msg = `엄지 척 승인 제스처를 인식하여 대기열 1순위 작업 [${pending.title}]을 즉시 승인 및 실행했습니다.`;
+            window.BSC_WORLDVIEW.showToast('👍 Gesture: THUMBS_APPROVE', msg);
+            this.speakStewardReply(msg, 'jarvis');
+          } else {
+            const msg = '엄지 척 제스처를 인식했습니다. 현재 승인 대기 중인 보류 안건이 없어 전 시스템 정상 가동 상태를 유지합니다.';
+            window.BSC_WORLDVIEW.showToast('👍 Gesture: THUMBS_APPROVE', msg);
+            this.speakStewardReply(msg, 'jarvis');
+          }
+        } catch (e) {}
+      }
+    } else if (gestureType === 'FIST_RESET') {
+      if (labelEl) labelEl.textContent = '✊ FIST_RESET -> 3D 은하 중앙 정렬(Fit) & 음성 정지!';
+      this.stopAllSpeech();
+      if (window.BrainGraphEngine && window.BrainGraphEngine.fitGraph) {
+        window.BrainGraphEngine.fitGraph();
+      }
+      window.BSC_WORLDVIEW.showToast('✊ Gesture: FIST_RESET', '주먹 쥐기 제스처를 인식하여 음성을 멈추고 3D 지식 은하를 중앙 정렬(Fit)했습니다.');
     }
   },
 
   stopWebcamAndHolo() {
     const video = document.getElementById('webcam-video');
     const handCanvas = document.getElementById('holo-hand-canvas');
+    const panel = document.getElementById('holo-gesture-hud-panel');
     if (this.webcamStream) {
       this.webcamStream.getTracks().forEach(t => t.stop());
       this.webcamStream = null;
     }
     if (video) video.style.display = 'none';
     if (handCanvas) handCanvas.style.display = 'none';
+    if (panel) panel.style.display = 'none';
   },
 
   runOpticalHandTracker(video, handCanvas) {
@@ -528,6 +762,23 @@ window.MultimodalEngine = {
       const btn = document.getElementById(`toggle-${id}`);
       btn?.addEventListener('click', () => {
         this.toggleSensor(btn.dataset.sensor, btn);
+      });
+    });
+
+    // Top Bar: 15-Second Executive Briefing & HOLO Hand Gesture Control HUD
+    document.getElementById('btn-exec-briefing')?.addEventListener('click', () => {
+      this.sendCommandToJarvis('자비스, 오늘 브리핑 해줘');
+    });
+    document.getElementById('btn-holo-gesture-hud')?.addEventListener('click', () => {
+      this.openHoloGesturePanel();
+    });
+    document.getElementById('btn-close-holo-panel')?.addEventListener('click', () => {
+      const panel = document.getElementById('holo-gesture-hud-panel');
+      if (panel) panel.style.display = 'none';
+    });
+    document.querySelectorAll('.holo-gesture-trigger').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.executeHandGestureAction(btn.dataset.gesture);
       });
     });
 
