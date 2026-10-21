@@ -5,7 +5,7 @@
  * Architectural Separation (Per CEO 이건우 대표님 Directive):
  *  1. Main J.A.R.V.I.S. OS Channel:
  *     - 100% Pure J.A.R.V.I.S. ONLY (Single Voice: `ko-KR-HyunsuMultilingualNeural`, Zero other agents mixed in).
- *     - Powered by Local Ollama `gemma4:e4b` + Google Research Harness² (Propose -> Probe -> Compose & Experience Library R).
+ *     - 대화 재귀는 scripts/jarvis-recursion.js 가 맡는다. Harness^2 엔진은 이 파일에서 호출하지 않는다.
  *  2. Separate Dedicated UI Window (`🏢 BeausCreators 에이전트 의논·회의·보고서 채팅창`):
  *     - Dedicated multi-agent workspace where BSC HQ Agents (소하, 태준, 거누, 재호, 유나, 우진) conduct:
  *       * 💬 의논 (Discussion)
@@ -18,13 +18,20 @@ const fs = require('fs');
 const path = require('path');
 
 const HQ_HARNESS2_SCRIPT = 'C:\\BeausCreators\\01.BSC_HQ\\3.CompanyOS\\Scripts\\Invoke-Harness2Engine.js';
-let harness2Engine = null;
-try {
-  if (fs.existsSync(HQ_HARNESS2_SCRIPT)) {
-    harness2Engine = require(HQ_HARNESS2_SCRIPT);
-    harness2Engine.ensureHarness2Surface();
-  }
-} catch (e) {}
+const harness2Present = fs.existsSync(HQ_HARNESS2_SCRIPT);
+
+const {
+  probeDraft,
+  composeLocally,
+  needsModelRepair,
+  buildRepairPrompt,
+  recordLesson,
+  selectLessons
+} = require('./jarvis-recursion');
+const {
+  getLiveIdeAndProjectsSnapshot,
+  buildLiveIdeAndProjectPromptContext
+} = require('./ide-project-live-sync');
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -100,16 +107,6 @@ function ensureDirs() {
   const vaultDir = path.dirname(IDE_BRIDGE_FILE);
   if (!fs.existsSync(vaultDir)) fs.mkdirSync(vaultDir, { recursive: true });
   if (!fs.existsSync(LOCAL_HARNESS2_DIR)) fs.mkdirSync(LOCAL_HARNESS2_DIR, { recursive: true });
-
-  if (harness2Engine) {
-    const surface = harness2Engine.readHarness2Surface();
-    for (const [k, v] of Object.entries(surface)) {
-      const fp = path.join(LOCAL_HARNESS2_DIR, k);
-      const fpDir = path.dirname(fp);
-      if (!fs.existsSync(fpDir)) fs.mkdirSync(fpDir, { recursive: true });
-      if (!fs.existsSync(fp)) fs.writeFileSync(fp, v, 'utf8');
-    }
-  }
 }
 
 function loadChatHistory() {
@@ -133,21 +130,54 @@ function loadChatHistory() {
     return initial;
   }
   try {
-    return JSON.parse(fs.readFileSync(CHAT_HISTORY_FILE, 'utf8'));
+    const parsed = JSON.parse(fs.readFileSync(CHAT_HISTORY_FILE, 'utf8'));
+    if (!Array.isArray(parsed.messages)) parsed.messages = [];
+
+    // Automatically merge new Antigravity IDE <USER_REQUEST> chats into J.A.R.V.I.S. memory
+    try {
+      const snap = getLiveIdeAndProjectsSnapshot();
+      const ideReqs = snap.latestUserChats || [];
+      let added = false;
+      for (const req of ideReqs) {
+        if (!req.text) continue;
+        const alreadyExists = parsed.messages.some(m => m.text && m.text.includes(req.text.slice(0, 48)));
+        if (!alreadyExists) {
+          parsed.messages.push({
+            id: `ide-sync-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            timestamp: req.createdAt ? new Date(req.createdAt).toLocaleTimeString('ko-KR') : new Date().toLocaleTimeString('ko-KR'),
+            role: 'user',
+            speaker: '👑 이건우 대표님 (Antigravity IDE 실시간 연동)',
+            text: req.text
+          });
+          added = true;
+        }
+      }
+      if (added) {
+        if (parsed.messages.length > 60) parsed.messages = parsed.messages.slice(-60);
+        parsed.updatedAt = new Date().toISOString();
+        fs.writeFileSync(CHAT_HISTORY_FILE, JSON.stringify(parsed, null, 2), 'utf8');
+      }
+    } catch (e) {}
+
+    return parsed;
   } catch (e) {
     return { updatedAt: new Date().toISOString(), messages: [] };
   }
 }
 
-function appendChatMessage(msgObj) {
+function appendChatMessages(msgList) {
   const hist = loadChatHistory();
-  hist.messages.push(msgObj);
+  for (const msgObj of msgList) hist.messages.push(msgObj);
   if (hist.messages.length > 60) {
     hist.messages = hist.messages.slice(-60);
   }
   hist.updatedAt = new Date().toISOString();
   fs.writeFileSync(CHAT_HISTORY_FILE, JSON.stringify(hist, null, 2), 'utf8');
   return hist;
+}
+
+function appendChatMessage(msgObj) {
+  return appendChatMessages([msgObj]);
 }
 
 function loadBscCouncilHistory() {
@@ -195,7 +225,12 @@ function appendBscCouncilSession(sessionObj) {
   return data;
 }
 
+let bridgeStatusCache = { at: 0, value: null };
+
 function getAdeIdeBridgeStatus() {
+  if (bridgeStatusCache.value && Date.now() - bridgeStatusCache.at < 8000) {
+    return bridgeStatusCache.value;
+  }
   const adeExists = fs.existsSync(ADE_HQ_ROOT);
   const ideExists = fs.existsSync(path.join(__dirname, '..', 'server.js'));
   let activeAgentsCount = 8;
@@ -224,11 +259,12 @@ function getAdeIdeBridgeStatus() {
 
   const today = new Date().toISOString().slice(0, 10);
   const todayWorklogPath = path.join(ADE_WORKLOG_DIR, `${today}_Jarvis_OS_WorkLog.md`);
+  const ideLiveSync = getLiveIdeAndProjectsSnapshot();
 
-  return {
+  const status = {
     ok: true,
     harness2: {
-      enabled: Boolean(harness2Engine),
+      enabled: harness2Present,
       version: 'Google Research Harness² (arXiv:2610.14224)',
       mode: 'Task-Level (Propose-Probe-Compose) + Harnessing-Level (Experience Library R)',
       activeModel: '요청 모델 우선, 없으면 gemma4:e4b 다음 gemma4:e2b',
@@ -247,13 +283,19 @@ function getAdeIdeBridgeStatus() {
       connected: ideExists,
       workspacePath: path.resolve(__dirname, '..'),
       liveBridgeDoc: IDE_BRIDGE_FILE,
-      brainNodesCount
+      brainNodesCount,
+      activeConversationId: ideLiveSync.activeConversationId,
+      totalProjectsCount: ideLiveSync.totalProjectsCount,
+      latestIdeChatsCount: (ideLiveSync.latestUserChats || []).length
     },
+    ideLiveSync,
     googleDrive: {
       connected: fs.existsSync('C:\\BeausCreators\\06.BSC_DataCenter\\GoogleDrive_Sync\\BSC_Jarvis_CoVision'),
       syncPath: 'C:\\BeausCreators\\06.BSC_DataCenter\\GoogleDrive_Sync\\BSC_Jarvis_CoVision'
     }
   };
+  bridgeStatusCache = { at: Date.now(), value: status };
+  return status;
 }
 
 function syncTurnToAdeAndIde(userMessage, primaryAgent, primaryReply) {
@@ -280,24 +322,12 @@ function syncTurnToAdeAndIde(userMessage, primaryAgent, primaryReply) {
   } catch (e) {}
 }
 
-/**
- * Harness² Experience Reflector: If CEO gives feedback/critique in chat, automatically evolve EXPERIENCE.md
- */
 function checkAndRecordExperienceFromUserFeedback(userMessage) {
-  if (!harness2Engine) return null;
   if (/멍청|답답|대화가\s*안|티키타카|소통이|기계적|딱딱|설정된\s*값|중간에\s*멈추|끝까지\s*읽/i.test(userMessage)) {
-    const res = harness2Engine.recordHarness2Experience({
-      domain: 'tiki_taka_and_voice_integrity',
-      component: 'systemprompt.md',
-      cue: `대표님 피드백: "${userMessage.slice(0, 80)}"`,
-      lesson: '자비스 메인 시스템에서는 오직 자비스 목소리만 사용하며 문장을 중간에 끊지 않고 끝까지 완독한다. 타 에이전트와의 의논·회의·보고서는 별도 전용 UI 창으로 분리한다.',
-      evidence: 'Resolved 320-char TTS truncation bug, isolated pure J.A.R.V.I.S. voice channel, and separated BSC Agent Council UI.'
-    });
-    try {
-      const surface = harness2Engine.readHarness2Surface();
-      fs.writeFileSync(path.join(LOCAL_HARNESS2_DIR, 'EXPERIENCE.md'), surface['EXPERIENCE.md'] || '', 'utf8');
-    } catch (e) {}
-    return res;
+    return recordLesson(
+      userMessage.slice(0, 80),
+      '답은 2~4문장으로 하고, 대표님이 쓴 용어를 바꾸지 말며, 끝내지 않은 일을 끝냈다고 말하지 않는다.'
+    );
   }
   return null;
 }
@@ -317,7 +347,12 @@ function pickInstalledOllamaModel(preferred, installed) {
   return names.find(name => /gemma/i.test(name)) || names[0];
 }
 
+let installedModelCache = { at: 0, names: null };
+
 async function listInstalledOllamaModels() {
+  if (installedModelCache.names && Date.now() - installedModelCache.at < 60000) {
+    return installedModelCache.names;
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 2500);
   try {
@@ -325,10 +360,12 @@ async function listInstalledOllamaModels() {
     clearTimeout(timer);
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.models || []).map(model => model.name).filter(Boolean);
+    const names = (data.models || []).map(model => model.name).filter(Boolean);
+    installedModelCache = { at: Date.now(), names };
+    return names;
   } catch (e) {
     clearTimeout(timer);
-    return [];
+    return installedModelCache.names || [];
   }
 }
 
@@ -336,23 +373,27 @@ function recordDeterministicJarvisTurn(userMessage, replyText) {
   ensureDirs();
   const text = String(replyText || '').replace(/\*\*/g, '').trim();
   const stamp = Date.now();
-  appendChatMessage({
-    id: `msg-${stamp}-u`,
-    timestamp: new Date().toLocaleTimeString('ko-KR'),
-    role: 'user',
-    speaker: '👑 이건우 대표님 (CEO)',
-    text: userMessage
+  appendChatMessages([
+    {
+      id: `msg-${stamp}-u`,
+      timestamp: new Date().toLocaleTimeString('ko-KR'),
+      role: 'user',
+      speaker: '👑 이건우 대표님 (CEO)',
+      text: userMessage
+    },
+    {
+      id: `msg-${stamp}-a`,
+      timestamp: new Date().toLocaleTimeString('ko-KR'),
+      role: 'assistant',
+      agentId: 'jarvis',
+      speaker: '🤖 J.A.R.V.I.S.',
+      avatar: JARVIS_PERSONA.avatar,
+      text
+    }
+  ]);
+  setImmediate(() => {
+    try { syncTurnToAdeAndIde(userMessage, JARVIS_PERSONA, text); } catch (e) {}
   });
-  appendChatMessage({
-    id: `msg-${stamp}-a`,
-    timestamp: new Date().toLocaleTimeString('ko-KR'),
-    role: 'assistant',
-    agentId: 'jarvis',
-    speaker: '🤖 J.A.R.V.I.S.',
-    avatar: JARVIS_PERSONA.avatar,
-    text
-  });
-  syncTurnToAdeAndIde(userMessage, JARVIS_PERSONA, text);
   return {
     chatHistory: loadChatHistory().messages,
     bridgeStatus: getAdeIdeBridgeStatus()
@@ -402,7 +443,9 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
     '4. [2단계: 알맹이 있는 팩트/해법] 돌려 말하지 말고 정확한 기술 팩트와 구체적인 실행 방법을 명확한 구어체로 말씀하세요.',
     '5. [3단계: 티키타카 공 넘기기] 마지막 문장에는 대화가 자연스럽게 이어지도록 대표님의 생각을 묻는 센스 있는 짧은 질문이나 다음 행동 제안을 한 마디 던지세요.',
     '6. 전체 답변 길이는 2~4문장 이내로 호흡이 빠르고 쫀쫀해야 합니다.',
-    ...domainFacts
+    buildLiveIdeAndProjectPromptContext(),
+    ...domainFacts,
+    ...selectLessons(userMessage, 2).map(item => `[교훈] ${item.lesson}`)
   ].filter(Boolean).join('\n');
 
   const cleanRecentMessages = (history.messages || [])
@@ -410,7 +453,7 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
       m.id !== 'msg-welcome' &&
       !/523개\s*지식\s*노드|양방향\s*동기화\s*중입니다|스튜디오를\s*소환했습니다|Real-time Environment Analysis|원하시는\s*방향으로\s*즉시\s*진행하겠습니다/.test(m.text || '')
     )
-    .slice(-8);
+    .slice(-4);
 
   const ollamaMessages = [{ role: 'system', content: systemPrompt }];
   for (const m of cleanRecentMessages) {
@@ -420,14 +463,6 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
     });
   }
   ollamaMessages.push({ role: 'user', content: userMessage });
-
-  appendChatMessage({
-    id: `msg-${Date.now()}-u`,
-    timestamp: new Date().toLocaleTimeString('ko-KR'),
-    role: 'user',
-    speaker: '👑 이건우 대표님 (CEO)',
-    text: userMessage
-  });
 
   let primaryText = '';
   let usedModel = selectedModel;
@@ -455,9 +490,9 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
           think: false,
           keep_alive: '30m',
           options: {
-            num_predict: 260,
-            temperature: 0.75,
-            top_p: 0.92
+            num_predict: 180,
+            temperature: 0.7,
+            top_p: 0.9
           },
           messages: ollamaMessages
         })
@@ -478,20 +513,49 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
     }
   }
 
-  // Task-Level Recursion only when a real draft exists. An empty draft must not be rewritten into a completed task.
-  let harness2Notes = `Harness² Direct Pass (${usedModel})`;
-  if (primaryText && harness2Engine && harness2Engine.runProposeProbeCompose) {
-    const ppc = await harness2Engine.runProposeProbeCompose({
-      userMessage,
-      draftReply: primaryText,
-      agentName: primary.name,
-      model: usedModel
-    });
-    if (ppc && ppc.composedReply) {
-      primaryText = ppc.composedReply.replace(/\*\*/g, '').trim();
-      if (ppc.recursionApplied) {
-        harness2Notes = ppc.stageNotes;
+  let harness2Notes = `jarvis recursion pass (${usedModel})`;
+  if (primaryText) {
+    const probe = probeDraft(userMessage, primaryText);
+    if (!probe.pass && needsModelRepair(probe)) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      try {
+        const res = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: usedModel,
+            stream: false,
+            think: false,
+            keep_alive: '30m',
+            options: { num_predict: 120, temperature: 0.4 },
+            messages: [{ role: 'user', content: buildRepairPrompt(userMessage, primaryText, probe.issues) }]
+          })
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          const repaired = String(data?.message?.content || '').replace(/\*\*/g, '').trim();
+          if (repaired) {
+            primaryText = composeLocally(repaired, probeDraft(userMessage, repaired));
+            harness2Notes = `jarvis recursion repair (${probe.issues.join(',')})`;
+          } else {
+            primaryText = composeLocally(primaryText, probe);
+            harness2Notes = `jarvis recursion local (${probe.issues.join(',')})`;
+          }
+        } else {
+          primaryText = composeLocally(primaryText, probe);
+          harness2Notes = `jarvis recursion local (${probe.issues.join(',')})`;
+        }
+      } catch (e) {
+        clearTimeout(timeoutId);
+        primaryText = composeLocally(primaryText, probe);
+        harness2Notes = `jarvis recursion local (${probe.issues.join(',')})`;
       }
+    } else if (!probe.pass) {
+      primaryText = composeLocally(primaryText, probe);
+      harness2Notes = `jarvis recursion local (${probe.issues.join(',')})`;
     }
   }
 
@@ -501,17 +565,28 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
     primaryText = '대표님, 로컬 두뇌가 지금 응답하지 않았습니다. 같은 말씀을 한 번만 다시 주시면 이어서 답하겠습니다.';
   }
 
-  appendChatMessage({
-    id: `msg-${Date.now()}-a1`,
-    timestamp: new Date().toLocaleTimeString('ko-KR'),
-    role: 'assistant',
-    agentId: 'jarvis',
-    speaker: '🤖 J.A.R.V.I.S.',
-    avatar: primary.avatar,
-    text: primaryText
+  const stamp = Date.now();
+  appendChatMessages([
+    {
+      id: `msg-${stamp}-u`,
+      timestamp: new Date().toLocaleTimeString('ko-KR'),
+      role: 'user',
+      speaker: '👑 이건우 대표님 (CEO)',
+      text: userMessage
+    },
+    {
+      id: `msg-${stamp}-a`,
+      timestamp: new Date().toLocaleTimeString('ko-KR'),
+      role: 'assistant',
+      agentId: 'jarvis',
+      speaker: '🤖 J.A.R.V.I.S.',
+      avatar: primary.avatar,
+      text: primaryText
+    }
+  ]);
+  setImmediate(() => {
+    try { syncTurnToAdeAndIde(userMessage, primary, primaryText); } catch (e) {}
   });
-
-  syncTurnToAdeAndIde(userMessage, primary, primaryText);
 
   return {
     modelUsed: usedModel,
@@ -552,6 +627,7 @@ async function generateBscAgentCouncilSession(topic, mode = 'MEETING', contextSt
     `대표님 발의 안건: "${cleanTopic}"`,
     '',
     '[참고 기술 팩트]',
+    buildLiveIdeAndProjectPromptContext(),
     '- Google Research Harness²(arXiv:2610.14224): 8대 하네스 표면(systemprompt, context_policy, LongTermMEMORY, tool_guidance, sub_agents, guardrails, scripts, plugin) + Task-Level(Propose->Probe->Compose) + Harnessing-Level(Experience Library R).',
     '- REA(morluto/rea): Ghidra/ILSpy/Il2CppDumper 기반 바이너리 및 Unity 게임(Mono Assembly-CSharp.dll / IL2CPP GameAssembly.dll) 역공학 엔진.',
     '- 자비스 메인 채널은 자비스 단독 보이스/1:1 티키타카를 전담하고, 본 워룸 창은 BeausCreators 에이전트들의 의논·회의·보고서를 전담함.',

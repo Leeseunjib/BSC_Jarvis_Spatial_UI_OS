@@ -72,6 +72,36 @@ const SCAN_ROOTS = [
     color: '#ec4899', // Pink
     dir: 'C:\\BeausCreators\\01.BSC_HQ\\1.Documents',
     maxFiles: 90
+  },
+  {
+    id: 'hub_branch_projects',
+    label: 'BSC Branch & Real Projects (소풍·웹·게임)',
+    area: '02.BSC_Branch',
+    layer: 'apps',
+    kind: 'project',
+    color: '#00f0ff',
+    dir: 'C:\\BeausCreators\\02.BSC_Branch',
+    maxFiles: 80
+  },
+  {
+    id: 'hub_publisher_os',
+    label: 'Publishing OS (출판사 OS · 아름다운 세상)',
+    area: '04.Publishing',
+    layer: 'apps',
+    kind: 'project',
+    color: '#fbbf24',
+    dir: 'C:\\BeausCreators\\04.Publisher',
+    maxFiles: 50
+  },
+  {
+    id: 'hub_antigravity_ide',
+    label: 'Antigravity IDE Live Chats & Artifacts',
+    area: 'IDE Live Brain',
+    layer: 'runs',
+    kind: 'run',
+    color: '#38bdf8',
+    dir: 'C:\\Users\\USER\\.gemini\\antigravity\\brain',
+    maxFiles: 50
   }
 ];
 

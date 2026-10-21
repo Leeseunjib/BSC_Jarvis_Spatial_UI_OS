@@ -654,6 +654,19 @@ window.JarvisDesignViews = {
                   <div class="tl-step"><b>5/02</b> 정식 오픈</div>
                 </div>
               </div>
+
+              <!-- 🔗 Live Antigravity IDE Chats & All C:\BeausCreators Projects Real-Time Sync Panel -->
+              <div class="bos-panel-card" style="margin-top:14px;background:#f0f9ff;border-color:#bae6fd;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <div class="bos-panel-title" style="margin-bottom:0;color:#0369a1;">
+                    🔗 Antigravity IDE 실시간 채팅 &amp; 전사 프로젝트 자동 동기화 (<span id="bos-live-proj-cnt">스캔 중...</span>)
+                  </div>
+                  <span style="font-size:11px;font-weight:700;color:#15803d;background:#dcfce7;padding:2px 8px;border-radius:999px;">● 실시간 양방향 연동됨</span>
+                </div>
+                <div id="bos-live-ide-sync-box" style="font-size:12px;color:#1e293b;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                  <div>로딩 중...</div>
+                </div>
+              </div>
             </main>
           </div>
         </section>
@@ -700,6 +713,36 @@ window.JarvisDesignViews = {
       this.activeTycoonScene = 'OFFICE_MAIN';
       this.openWorkspace('TYCOON_OFFICE_WORKSPACE');
     });
+
+    // Populate Live Antigravity IDE Chats & All BeausCreators Projects
+    fetch('/api/jarvis/ide-project-sync')
+      .then(r => r.json())
+      .then(snap => {
+        const cntEl = document.getElementById('bos-live-proj-cnt');
+        const boxEl = document.getElementById('bos-live-ide-sync-box');
+        if (cntEl && snap.ok) {
+          cntEl.textContent = `프로젝트 ${snap.totalProjectsCount}개 · IDE 대화방 ${snap.totalConversationsScanned}개`;
+        }
+        if (boxEl && snap.ok) {
+          const chatsHtml = (snap.latestUserChats || []).slice(-4).reverse().map(c =>
+            `<div style="padding:5px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:7px;margin-bottom:4px;"><b>👑 대표님 (IDE):</b> ${c.text}</div>`
+          ).join('');
+          const projsHtml = (snap.projects || []).slice(0, 8).map(p =>
+            `<span style="display:inline-block;padding:3px 8px;background:#fff;border:1px solid #cbd5e1;border-radius:999px;font-size:11px;margin:2px;">📁 ${p.name}</span>`
+          ).join('');
+          boxEl.innerHTML = `
+            <div>
+              <div style="font-weight:800;font-size:11.5px;color:#0284c7;margin-bottom:4px;">💬 최근 Antigravity IDE 채팅 내역</div>
+              ${chatsHtml || '<div>동기화 완료</div>'}
+            </div>
+            <div>
+              <div style="font-weight:800;font-size:11.5px;color:#0284c7;margin-bottom:4px;">📂 실시간 감지된 전사 프로젝트 (${snap.totalProjectsCount}개)</div>
+              <div>${projsHtml}</div>
+            </div>
+          `;
+        }
+      })
+      .catch(() => {});
   },
 
   /* ============================================================================

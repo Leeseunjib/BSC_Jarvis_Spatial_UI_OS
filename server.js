@@ -27,6 +27,7 @@ const {
   recordDeterministicJarvisTurn
 } = require('./scripts/live-agent-chat-engine');
 const { runFullSystemAuditAndVerification } = require('./scripts/jarvis-system-verifier');
+const { getLiveIdeAndProjectsSnapshot } = require('./scripts/ide-project-live-sync');
 
 let harness2Engine = null;
 try {
@@ -327,7 +328,8 @@ function parseBody(req) {
 // Allowed roots for strictly read-only file preview ("Show, don't store")
 const ALLOWED_READ_ROOTS = [
   path.resolve(__dirname).toLowerCase(),
-  'c:\\beauscreators\\01.bsc_hq'
+  'c:\\beauscreators',
+  'c:\\users\\user\\.gemini\\antigravity\\brain'
 ];
 
 function isPathAllowedForRead(targetPath) {
@@ -1298,6 +1300,11 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, getAdeIdeBridgeStatus());
   }
 
+  // 10-K2. Live Antigravity IDE Transcripts & All-Projects Real-Time Sync API (/api/jarvis/ide-project-sync)
+  if (req.method === 'GET' && pathname === '/api/jarvis/ide-project-sync') {
+    return sendJson(res, 200, getLiveIdeAndProjectsSnapshot(true));
+  }
+
   // 10-L. Google Harness² (arXiv:2610.14224) 8-Component Surface & Experience Library R API
   if (pathname === '/api/jarvis/harness2') {
     if (req.method === 'GET') {
@@ -1380,9 +1387,10 @@ const server = http.createServer(async (req, res) => {
   }
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     const ext = path.extname(filePath).toLowerCase();
+    const vendorAsset = filePath.includes(`${path.sep}vendor${path.sep}`);
     res.writeHead(200, {
       'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
-      'Cache-Control': 'no-cache'
+      'Cache-Control': vendorAsset ? 'public, max-age=86400' : 'no-cache'
     });
     return fs.createReadStream(filePath).pipe(res);
   }
