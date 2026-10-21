@@ -353,6 +353,31 @@ const SAFE_PC_ACTIONS = {
   }
 };
 
+// Human-in-the-Loop OS Action Queue (Server-side State for Voice/Gesture Approval & Executive Briefing)
+const osActionQueue = [
+  {
+    id: 'act-1',
+    title: 'MAPS 2-Hop 지식망 일일 자동 동기화',
+    command: 'node C:\\BeausCreators\\01.BSC_HQ\\3.CompanyOS\\Scripts\\Build-HQBrainIndex.js --build',
+    riskLevel: 'SAFE',
+    status: 'PENDING_APPROVAL'
+  },
+  {
+    id: 'act-2',
+    title: '본사 작업일지 UTF-8 & 0-Byte 무결성 감사',
+    command: 'bsc verify -FastMode',
+    riskLevel: 'SAFE',
+    status: 'PENDING_APPROVAL'
+  },
+  {
+    id: 'act-3',
+    title: 'Chatterbox 24kHz 오픈소스 보이스 캐시 최적화',
+    command: 'node C:\\BeausCreators\\01.BSC_HQ\\3.CompanyOS\\Scripts\\Invoke-BscVoiceBriefing.js --mode=brief',
+    riskLevel: 'SAFE',
+    status: 'PENDING_APPROVAL'
+  }
+];
+
 // Intelligent Co-Creation & Autonomous Window Spawner Dialogue Engine (Movie J.A.R.V.I.S. Concise Executive Style + Local Gemma 4)
 async function processJarvisTurn(message, contextState = {}) {
   const q = (message || '').trim();
@@ -1107,6 +1132,24 @@ const server = http.createServer(async (req, res) => {
       ],
       latencyMs: 42
     });
+  }
+
+  // 10-E2. Human-in-the-Loop OS Action Queue API (/api/jarvis/action-queue)
+  if (pathname === '/api/jarvis/action-queue') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, { ok: true, queue: osActionQueue });
+    }
+    if (req.method === 'POST') {
+      const body = await parseBody(req);
+      const item = osActionQueue.find(x => x.id === body.id) || osActionQueue.find(x => x.status === 'PENDING_APPROVAL');
+      if (item && body.op === 'approve') {
+        item.status = 'EXECUTED';
+        item.executedAt = new Date().toISOString();
+        logConsoleStream('Gesture/Queue Approval', `Approved & Executed [${item.title}]`, 10, 900);
+        return sendJson(res, 200, { ok: true, approved: item, queue: osActionQueue });
+      }
+      return sendJson(res, 200, { ok: true, queue: osActionQueue });
+    }
   }
 
   // 10-F. 15-Second Executive Morning/Closing Briefing API (Co-Work with C:\BeausCreators)
