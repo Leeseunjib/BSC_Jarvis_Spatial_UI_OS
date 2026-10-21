@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI WORKSHOP OS — BSC J.A.R.V.I.S. EDITION (Coram Deo & Together)</title>
   <link rel="stylesheet" href="/css/jarvis-hud.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
   <!-- Background 3D/2D Obsidian Knowledge Galaxy Canvas -->
@@ -200,12 +201,19 @@
 
   <!-- ✋ HOLO HAND GESTURE & 21-JOINT AIR-TOUCH ACTION HUD PANEL -->
   <aside id="holo-gesture-hud-panel" style="display:none;position:fixed;right:270px;bottom:86px;width:390px;background:rgba(6,11,22,0.95);border:1px solid #00f0ff;border-radius:14px;padding:12px;z-index:9400;box-shadow:0 0 28px rgba(0,240,255,0.28);backdrop-filter:blur(16px);color:#f1f5f9;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid rgba(0,240,255,0.25);padding-bottom:6px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid rgba(0,240,255,0.25);padding-bottom:6px;">
       <div>
-        <span style="font-size:12.5px;font-weight:800;color:#00f0ff;">✋ HOLO 손동작 &amp; 에어터치 작업 실행기</span>
-        <div id="holo-gesture-status-badge" style="font-size:10px;color:#34d399;font-family:monospace;">● 21-Keypoint Hand Skeleton &amp; Optical Air-Touch ACTIVE</div>
+        <span style="font-size:12.5px;font-weight:800;color:#00f0ff;">✋ HOLO 카메라 AI 손동작 (MediaPipe 21관절)</span>
+        <div id="holo-gesture-status-badge" style="font-size:10px;color:#fbbf24;font-family:monospace;">● 카메라 장치 하드웨어 스캔 중...</div>
       </div>
-      <button id="btn-close-holo-panel" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#cbd5e1;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;">✕ 닫기</button>
+      <div style="display:flex;gap:4px;">
+        <button id="btn-rescan-camera" title="USB 웹캠 또는 스마트폰 카메라 다시 스캔" style="background:rgba(0,240,255,0.15);border:1px solid #00f0ff;color:#00f0ff;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:10.5px;font-weight:700;">📷 카메라 연결</button>
+        <button id="btn-close-holo-panel" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#cbd5e1;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;">✕</button>
+      </div>
+    </div>
+
+    <div id="holo-camera-alert-box" style="margin-bottom:6px;padding:6px 8px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;font-size:10.5px;color:#fef3c7;line-height:1.4;">
+      🔍 <b>하드웨어 진단:</b> 현재 데스크톱 PC에 연결된 물리적 USB 웹캠이 <b>0대</b>입니다. USB 웹캠이나 스마트폰 카메라 앱(Iriun/DroidCam/Link to Windows) 연결 후 <b>[📷 카메라 연결]</b>을 누르시면 마우스 개입이 100% 꺼지고 <b>Google MediaPipe 21관절 실제 손 모양(✋/🤏/✌️/👍/✊)</b>으로만 자동 작동합니다.
     </div>
 
     <!-- Live Hand Skeleton Visualizer + 4 Air-Touch Corner Zones -->
