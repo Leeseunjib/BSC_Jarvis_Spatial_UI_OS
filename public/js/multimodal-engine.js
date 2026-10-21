@@ -493,8 +493,17 @@ window.MultimodalEngine = {
     await this.playSingleNeuralTurn({ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text: fullText }, myToken);
   },
 
+  speakText(text) {
+    this.speakStewardReply(text);
+  },
+
   speakStewardReply(text) {
     if (!text) return;
+    const calloutEl = document.getElementById('jarvis-orb-callout-text');
+    if (calloutEl) {
+      const cleanShort = String(text).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+      calloutEl.textContent = `"${cleanShort.slice(0, 88)}${cleanShort.length > 88 ? '...' : ''}"`;
+    }
     this.speakNeuralTurns([{ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text }], text);
   },
 

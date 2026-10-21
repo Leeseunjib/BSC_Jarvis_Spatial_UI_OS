@@ -1,15 +1,15 @@
 /**
- * ⚛️ BSC J.A.R.V.I.S. OS — Right-Rail Holographic Arc Reactor Core
- * Supports 3 Core Shapes matching the AI Workshop OS screenshot:
- *  1. RING (Iron-Man Arc Reactor Concentric Rotating Rings)
- *  2. CUBE (Rotating 4D/3D Holographic Tesseract Cube)
- *  3. FACE (Neural Particle Mask that pulses when J.A.R.V.I.S. speaks)
+ * ⚛️ BSC J.A.R.V.I.S. OS — Bottom-Right Glowing Cyan Voice Equalizer Waveform Orb
+ * Implements CEO Lee Geon-woo's Master Design Mockup #1:
+ *  - Concentric glowing cyan holographic rings + dark cosmic inner sphere
+ *  - Vertical glowing cyan audio equalizer bars (`| ||| ||||| ||| |`) inside the orb
+ *  - Also supports RING / CUBE / FACE modes for backward compatibility
  */
 
 window.JarvisReactorCore = {
   canvas: null,
   ctx: null,
-  shape: 'RING',
+  shape: 'WAVE',
   speakingIntensity: 0,
   tick: 0,
 
@@ -20,7 +20,7 @@ window.JarvisReactorCore = {
 
     document.querySelectorAll('.core-shape-tabs .core-tab').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.setShape(btn.dataset.shape || 'RING');
+        this.setShape(btn.dataset.shape || 'WAVE');
       });
     });
 
@@ -35,65 +35,111 @@ window.JarvisReactorCore = {
   },
 
   pulseSpeech(energy = 1.0) {
-    this.speakingIntensity = Math.min(1.5, Math.max(this.speakingIntensity, energy));
+    this.speakingIntensity = Math.min(1.6, Math.max(this.speakingIntensity, energy));
   },
 
   render() {
+    if (!this.canvas || !this.ctx) return;
     const ctx = this.ctx;
     const W = this.canvas.width;
     const H = this.canvas.height;
     const cx = W / 2;
     const cy = H / 2;
-    this.tick += 0.022;
-    this.speakingIntensity *= 0.93;
+    this.tick += 0.032;
+    this.speakingIntensity *= 0.94;
 
     ctx.clearRect(0, 0, W, H);
-    const pulse = 1 + this.speakingIntensity * 0.18 + Math.sin(this.tick * 2) * 0.03;
+    const pulse = 1 + this.speakingIntensity * 0.14 + Math.sin(this.tick * 1.6) * 0.025;
 
-    if (this.shape === 'RING') {
-      // Outer Cyan Tick Ring
+    if (this.shape === 'WAVE' || this.shape === 'RING') {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.scale(pulse, pulse);
 
-      for (let i = 0; i < 48; i++) {
-        const ang = (i / 48) * Math.PI * 2 + this.tick * 0.35;
-        const r1 = 84;
-        const r2 = i % 4 === 0 ? 94 : 89;
-        ctx.strokeStyle = i % 4 === 0 ? '#00f0ff' : 'rgba(56, 189, 248, 0.45)';
-        ctx.lineWidth = i % 4 === 0 ? 2 : 1.2;
+      // 1. Outer ambient cyan radial aura
+      const outerR = Math.min(cx, cy) * 0.94;
+      const aura = ctx.createRadialGradient(0, 0, outerR * 0.25, 0, 0, outerR);
+      aura.addColorStop(0, 'rgba(0, 240, 255, 0.28)');
+      aura.addColorStop(0.55, 'rgba(14, 165, 233, 0.14)');
+      aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(0, 0, outerR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Dark glass sphere core
+      const sphereR = outerR * 0.62;
+      const coreGrad = ctx.createRadialGradient(-sphereR * 0.2, -sphereR * 0.25, 4, 0, 0, sphereR);
+      coreGrad.addColorStop(0, 'rgba(12, 34, 64, 0.92)');
+      coreGrad.addColorStop(0.7, 'rgba(5, 14, 30, 0.96)');
+      coreGrad.addColorStop(1, 'rgba(0, 210, 255, 0.32)');
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, sphereR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. Concentric Glowing Cyan Rings (Mockup #1 style)
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.85)';
+      ctx.lineWidth = 2.0;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(0, 0, sphereR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.42)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, 0, sphereR * 1.16, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Rotating segmented outer arc
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(0, 0, sphereR * 1.08, this.tick * 0.45, this.tick * 0.45 + 1.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, sphereR * 1.08, this.tick * 0.45 + Math.PI, this.tick * 0.45 + Math.PI + 1.9);
+      ctx.stroke();
+
+      // 4. Center Vertical Audio Equalizer Waveform Bars (Exact Mockup #1 look)
+      const barCount = 15;
+      const barSpacing = (sphereR * 1.26) / barCount;
+      const startX = -((barCount - 1) * barSpacing) / 2;
+
+      for (let i = 0; i < barCount; i++) {
+        const centerDist = 1 - Math.abs(i - (barCount - 1) / 2) / ((barCount - 1) / 2);
+        const idleWave = Math.sin(this.tick * 3.4 + i * 0.65) * 0.35 + 0.65;
+        const speechBoost = 1 + this.speakingIntensity * 1.35 * Math.abs(Math.sin(this.tick * 7 + i));
+        const halfH = Math.max(3, sphereR * 0.56 * Math.pow(centerDist, 1.15) * idleWave * speechBoost);
+        const bx = startX + i * barSpacing;
+
+        const barGrad = ctx.createLinearGradient(bx, -halfH, bx, halfH);
+        barGrad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+        barGrad.addColorStop(0.5, '#ffffff');
+        barGrad.addColorStop(1, 'rgba(56, 189, 248, 0.25)');
+
+        ctx.strokeStyle = barGrad;
+        ctx.lineWidth = i === Math.floor(barCount / 2) ? 2.8 : 2.1;
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(Math.cos(ang) * r1, Math.sin(ang) * r1);
-        ctx.lineTo(Math.cos(ang) * r2, Math.sin(ang) * r2);
+        ctx.moveTo(bx, -halfH);
+        ctx.lineTo(bx, halfH);
         ctx.stroke();
       }
 
-      // Counter-rotating Gold & Cyan Segmented Arcs
-      ctx.lineWidth = 3.2;
-      ctx.strokeStyle = '#00f0ff';
+      // Horizontal glowing equator line
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+      ctx.lineWidth = 1.0;
       ctx.beginPath();
-      ctx.arc(0, 0, 74, -this.tick * 0.8, -this.tick * 0.8 + 1.8);
+      ctx.moveTo(-sphereR * 0.78, 0);
+      ctx.lineTo(sphereR * 0.78, 0);
       ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(0, 0, 74, -this.tick * 0.8 + 3.1, -this.tick * 0.8 + 4.6);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 2.6;
-      ctx.beginPath();
-      ctx.arc(0, 0, 63, this.tick * 1.1, this.tick * 1.1 + 2.1);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#34d399';
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.arc(0, 0, 52, -this.tick * 1.4, -this.tick * 1.4 + 4.2);
-      ctx.stroke();
-
+      ctx.shadowBlur = 0;
       ctx.restore();
     } else if (this.shape === 'CUBE') {
-      // Rotating 3D Tesseract Dual Cube
       const verts = [
         [-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
         [-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]
@@ -123,19 +169,18 @@ window.JarvisReactorCore = {
         }
       };
 
-      drawCube(46, '#00f0ff', 1.0);
-      drawCube(24, '#fbbf24', -1.4);
+      drawCube(38, '#00f0ff', 1.0);
+      drawCube(20, '#fbbf24', -1.4);
     } else if (this.shape === 'FACE') {
-      // Neural Holographic Face / Waveform Mask
       ctx.save();
       ctx.translate(cx, cy);
       for (let ring = 1; ring <= 4; ring++) {
-        const r = ring * 18 * pulse;
-        ctx.strokeStyle = ring % 2 === 0 ? 'rgba(0, 240, 255, 0.55)' : 'rgba(52, 211, 153, 0.55)';
+        const r = ring * 15 * pulse;
+        ctx.strokeStyle = ring % 2 === 0 ? 'rgba(0, 240, 255, 0.65)' : 'rgba(52, 211, 153, 0.65)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.15) {
-          const wave = Math.sin(a * 6 + this.tick * 3) * (3 + this.speakingIntensity * 8);
+          const wave = Math.sin(a * 6 + this.tick * 3) * (2.5 + this.speakingIntensity * 7);
           const px = Math.cos(a) * (r + wave * 0.75);
           const py = Math.sin(a) * (r * 1.12 + wave);
           if (a === 0) ctx.moveTo(px, py);

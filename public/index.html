@@ -3,442 +3,314 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI WORKSHOP OS — BSC J.A.R.V.I.S. EDITION (Coram Deo & Together)</title>
+  <title>BSC JARVIS — Knowledge Galaxy &amp; AI Office OS</title>
   <link rel="stylesheet" href="/css/jarvis-hud.css" />
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
-  <!-- Background 3D/2D Obsidian Knowledge Galaxy Canvas -->
+  <!-- 🌌 1. Background Star-Cluster Nebula Knowledge Galaxy Canvas -->
   <canvas id="brain-canvas"></canvas>
 
-  <!-- Optional Mirrored Webcam Feed Overlay for HOLO / EYES Mode -->
+  <!-- Optional Mirrored Webcam Feed Overlay for HOLO / Co-Vision Mode -->
   <video id="webcam-video" autoplay playsinline muted></video>
   <canvas id="holo-hand-canvas"></canvas>
 
-  <!-- Top Center View Switcher Pill (Matches Screenshot + MAPS 6 Brain Views) -->
-  <header id="top-view-bar">
-    <button class="view-pill active" data-view="3d" title="3D 입체 은하 포스 그래프 (Orbit & Fly-to)">🌌 3D Galaxy</button>
-    <button class="view-pill" data-view="2d" title="2D 포스 그래프">🕸️ 2D Force</button>
-    <button class="view-pill" data-view="rings" title="MAPS 계층별 동심원 (Core -> Memory -> Skills -> Apps)">⭕ Rings</button>
-    <button class="view-pill" data-view="areas" title="도메인 허브별 클러스터">🪐 Areas</button>
-    <button class="view-pill" data-view="timeline" title="수정 시간순 타임라인 분포">⏱️ Timeline</button>
-    <button class="view-pill" data-view="brain" title="해부학적 브레인 뉴런 형상">🧠 Brain</button>
-    <span class="divider-v"></span>
-    <button class="view-pill action-pill" id="btn-fit-graph" title="화면 중앙 맞춤 (Fit)">⊙ Fit</button>
-    <button class="view-pill action-pill" id="btn-replay-growth" title="지식 은하 생성 리플레이">⟲ Replay</button>
+  <!-- 🔝 2. Minimalist Single Top Bar (Hick's Law: Zero Clutter — Brand + 1 Search + Date/Utilities) -->
+  <header id="minimal-top-bar">
+    <div class="mtb-left" id="btn-brand-home" title="BSC JARVIS 홈 은하로 이동">
+      <span class="mtb-logo-orb"></span>
+      <span class="mtb-brand-name">BSC JARVIS</span>
+    </div>
+
+    <div class="mtb-center">
+      <div class="mtb-search-wrap">
+        <span class="mtb-search-icon">🔍</span>
+        <input
+          type="text"
+          id="top-galaxy-search"
+          placeholder="지식, 문서, 프로젝트, 아이디어를 검색하세요..."
+          autocomplete="off"
+        />
+        <kbd class="mtb-kbd">⌘K</kbd>
+      </div>
+    </div>
+
+    <div class="mtb-right">
+      <span id="top-bar-datetime" class="mtb-datetime">4월 19일 (일) 오후 6:15</span>
+      <button class="mtb-icon-btn" id="btn-top-theme" title="테마 전환">☀️</button>
+      <button class="mtb-icon-btn" id="btn-top-holo-cam" title="카메라 시야공유 · 손동작 제어 (HOLO)">📷</button>
+      <button class="mtb-icon-btn" id="btn-top-studio-drawer" title="고급 도구 모음 열기">🪟</button>
+    </div>
   </header>
 
-  <!-- Top Stewardship Banner (Coram Deo & Together) -->
-  <div id="together-verse-banner">
-    <span class="verse-badge">✝️ CORAM DEO &amp; TOGETHER</span>
-    <span id="daily-steward-message">"이건우 대표님, 전 시스템 정상 가동 중입니다. 오늘도 주신 지혜로 함께(Together) 만들어 갑시다." — 전도서 4:9</span>
-  </div>
-
-  <!-- UNIFIED GOOGLE AI STUDIO × BSC J.A.R.V.I.S. WORKSPACE BAR (All 18 Studios + Queue + Theme + Settings) -->
-  <nav id="unified-workspace-bar" aria-label="통합 자비스 스튜디오 및 환경설정 바">
-    <button class="uni-tab-btn resp-rail-toggle" id="btn-resp-left-rail" title="좌측 지식 인스펙터 & 허브 서랍 열기/닫기 (PC/태블릿/모바일)">📂 좌측패널</button>
-    <button class="uni-tab-btn primary" id="btn-toggle-agent-chat" title="자비스(J.A.R.V.I.S.) 단독 1:1 티키타카 대화창 열기">🤖 자비스 1:1 대화창</button>
-    <button class="uni-tab-btn primary" id="btn-open-bsc-council" style="border-color:#fbbf24;color:#fbbf24;" title="별도 분리된 BeausCreators 에이전트(소하·거누·우진·태준) 의논·회의·보고서 전용 채팅창 열기">🏛️ BeausCreators 의논·회의·보고서 창</button>
-    <button class="uni-tab-btn emerald" id="btn-run-full-verify" style="border-color:#34d399;color:#34d399;" title="전 시스템 검토·검수·검증 및 Google Harness² 재귀 성장 진단 실행">🛡️ 시스템 검토·검수·검증</button>
-    <button class="uni-tab-btn primary" data-ais-win="AI_STUDIO_HUB" title="18대 스튜디오 & 9대 오픈모델 통합 관제 허브">⚡ 18대 통합 허브</button>
-    <a class="uni-tab-btn emerald" href="http://192.168.219.239:7777/mobile-cam" target="_blank" style="text-decoration:none;border-color:#34d399;color:#34d399;" title="모바일/Wi-Fi 카메라 & 시야공유 브릿지 (http://192.168.219.239:7777/mobile-cam)">📱 모바일창(192.168.219.239) ↗</a>
-    <a class="uni-tab-btn emerald" href="http://localhost:7777/mobile-cam" target="_blank" style="text-decoration:none;border-color:#00f0ff;color:#00f0ff;" title="PC 로컬 카메라 & 시야공유 컨트롤러 (http://localhost:7777/mobile-cam)">💻 로컬카메라창(localhost) ↗</a>
-    <button class="uni-tab-btn emerald" data-ais-win="OPEN_TTS_STUDIO" title="Chatterbox Multilingual (MIT) & Qwen3-TTS 오픈소스 보이스 스튜디오">🎙️ 오픈소스 TTS·보이스</button>
-    <button class="uni-tab-btn emerald" id="btn-exec-briefing" title="본사 보고서·작업일지·에이전트 현황 15초 음성 브리핑 즉시 실행">📢 15초 브리핑</button>
-    <button class="uni-tab-btn emerald" id="btn-holo-gesture-hud" title="웹캠 21관절 손동작 인식 & 5대 에어터치 작업 실행기 열기">✋ 손동작 제어 (HOLO)</button>
-    <button class="uni-tab-btn emerald" data-ais-win="MAPS_REA_STUDIO" data-ais-subtab="HQ_SKILLS" title="BeausCreators 본사 5대 핵심 스킬 파이프라인 직결 실행기">🏢 본사 5대 스킬</button>
-    <button class="uni-tab-btn emerald" data-ais-win="VISION_FACE" title="카메라·화면 시야 공유(Co-Vision) 대화 및 6종 문서(이미지/영상/MD/Word/PPT/PDF) 자동 제작 · ADE/IDE/Google Drive 연동">👁️ 시야공유·6종문서·비전</button>
-    <button class="uni-tab-btn" data-ais-win="AGENT_REGISTRY" title="SRP 6대 에이전트 레지스트리 & 페르소나 슬라이더 & 일괄 토글">🤖 에이전트·페르소나</button>
-    <button class="uni-tab-btn" data-ais-win="MAPS_REA_STUDIO" title="MAPS 4계층 메모리/펄스 & REA 역공학 워크벤치">🗺️ MAPS·REA 역공학</button>
-    <button class="uni-tab-btn" data-ais-win="CREATIVE_BLENDER" title="캐릭터 360° SVG/OBJ 도면 & Blender 3D VFX">🎨 캐릭터360°·블렌더</button>
-    <button class="uni-tab-btn" data-ais-win="RL_BENCHMARK" title="9대 로컬 SLM 벤치마크 & Unsloth GRPO 강화학습">🧠 9모델·GRPO 강화학습</button>
-    <button class="uni-tab-btn" data-ais-win="SIM_BIO_IDE" title="AlphaFold 단백질 분석 & 모의훈련 & Antigravity IDE">🧬 바이오·모의훈련·IDE</button>
-    <span class="divider-v"></span>
-    <button class="uni-tab-btn queue-btn btn-toggle-os-queue" title="OS 실행 승인 & 우선순위 대기열 서랍 열기">
-      📋 실행승인 큐 <span id="queue-count-badge" class="queue-badge">3</span>
+  <!-- 🧭 3. Slim Left Vertical 5-Icon Navigation Dock (Miller's Law: 5 Core Destinations Only) -->
+  <nav id="slim-left-dock" aria-label="핵심 워크스페이스 내비게이션">
+    <button class="slim-dock-btn active" data-dock-target="HOME_GALAXY" title="홈 · 지식 은하 (Star-Cluster Galaxy)">
+      <span class="sd-icon">🏠</span>
     </button>
-    <button class="uni-tab-btn" id="btn-cycle-theme" title="4대 디자인 테마 (Cyber HUD Dark / Emerald Light / Aurora / Slate) 즉시 전환">🌓 테마</button>
-    <button class="uni-tab-btn settings-btn btn-open-master-settings" title="11대 통합 설정 페이지 (언어·테마·프리셋·STT/LLM/TTS·보이스·폴더·매크로)">⚙️ 설정 페이지</button>
-    <button class="uni-tab-btn resp-rail-toggle" id="btn-resp-right-rail" title="우측 자비스 코어 & 센서 서랍 열기/닫기 (PC/태블릿/모바일)">⚛️ 우측코어</button>
+    <button class="slim-dock-btn" data-dock-target="TYCOON_OFFICE_WORKSPACE" title="BSC AI OFFICE · SD 캐릭터 타이쿤 에이전트 사무실">
+      <span class="sd-icon">🕸️</span>
+    </button>
+    <button class="slim-dock-btn" data-dock-target="DOC_WORKSPACE" title="문서 작업 공간 (BSC 자비스 기획안 v1.0 & 문서 라이브러리)">
+      <span class="sd-icon">📄</span>
+    </button>
+    <button class="slim-dock-btn" data-dock-target="BSC_OS_WORKSPACE" title="BeausCreators BSC_OS (전사 프로젝트 & 승인 대시보드)">
+      <span class="sd-icon">🏢</span>
+    </button>
+    <div class="slim-dock-spacer"></div>
+    <button class="slim-dock-btn" data-dock-target="SETTINGS_WORKSPACE" title="자비스 설정 (두뇌 모델 · 음성 · 연결)">
+      <span class="sd-icon">⚙️</span>
+    </button>
   </nav>
 
-  <!-- LEFT RAIL: AI WORKSHOP OS Inspector, Top Hubs, Forces, Token Flow -->
-  <aside id="left-rail">
-    <div class="brand-header">
-      <div class="brand-title-row">
-        <h1>AI WORKSHOP OS</h1>
-        <span class="bsc-tag">BSC STEWARD</span>
-      </div>
-      <div class="vault-stats">
-        <span id="stat-nodes">523 notes</span> · <span id="stat-links">567 connections</span>
-      </div>
-      <button id="btn-toggle-2d3d" class="back-2d-link">← switch 2D / 3D</button>
-    </div>
-
-    <div class="search-box">
-      <input type="text" id="brain-search" placeholder="Search the brain... (Enter / Click)" autocomplete="off" />
-    </div>
-
-    <!-- INSPECTOR -->
-    <section class="rail-card">
-      <div class="card-label">INSPECTOR</div>
-      <div id="inspector-content" class="inspector-body">
-        Click a node to focus it — only that node and its connections light up, and you can read its note here. Double-click a node to spawn its full Holographic Report Window.
-      </div>
-      <div id="inspector-actions" class="inspector-actions" style="display:none;">
-        <button id="btn-open-node-report" class="hud-mini-btn primary">📊 보고서 창으로 열기</button>
-        <button id="btn-fly-node" class="hud-mini-btn">🎯 Fly-To</button>
-      </div>
-    </section>
-
-    <!-- TOP HUBS -->
-    <section class="rail-card">
-      <div class="card-label">TOP HUBS (SHOW, DON'T STORE)</div>
-      <div id="top-hubs-list" class="hubs-list">
-        <!-- Populated dynamically from brain.json -->
-      </div>
-    </section>
-
-    <!-- FORCES -->
-    <section class="rail-card">
-      <div class="card-label">FORCES &amp; SPREAD</div>
-      <div class="slider-row">
-        <label>Repel</label>
-        <input type="range" id="slider-repel" min="20" max="260" value="155" />
-      </div>
-      <div class="slider-row">
-        <label>Link length</label>
-        <input type="range" id="slider-link-len" min="20" max="200" value="75" />
-      </div>
-    </section>
-
-    <!-- TOKEN FLOW & BSC LEAN CORE -->
-    <section class="rail-card">
-      <div class="card-label">TOKEN FLOW &amp; STEWARDSHIP</div>
-      <div class="token-flow-box">
-        <div class="tf-row">
-          <span>2-Hop 절감률</span>
-          <strong id="tf-savings-pct" class="emerald-text">88.5% SAVED</strong>
-        </div>
-        <div class="tf-bar-track">
-          <div id="tf-bar-fill" class="tf-bar-fill" style="width: 88.5%;"></div>
-        </div>
-        <div class="tf-sub">
-          Actual: <b id="tf-actual">4.9k</b> / Raw: <span id="tf-raw">42.8k</span> tokens
-        </div>
-      </div>
-    </section>
-
-    <!-- GOOGLE AI STUDIO 18-MODULES & 9-MODEL ROUTER LAUNCHER -->
-    <section class="rail-card">
-      <div class="card-label" style="color:#00f0ff;">⚡ AI STUDIO 18-MODULES &amp; SETTINGS</div>
-      <div class="hubs-list compact" id="aistudio-rail-launcher">
-        <button class="hud-mini-btn primary" data-ais-win="AI_STUDIO_HUB" style="text-align:left;margin-bottom:3px;">⚡ 18대 스튜디오 &amp; 9-모델 라우터 허브</button>
-        <button class="hud-mini-btn" data-ais-win="OPEN_TTS_STUDIO" style="text-align:left;border-color:rgba(52,211,153,0.45);color:#34d399;">🎙️ 오픈소스 TTS (Chatterbox·Qwen3)</button>
-        <button class="hud-mini-btn" data-ais-win="MAPS_REA_STUDIO" style="text-align:left;">🗺️ MAPS 4계층 &amp; REA 역공학 워크벤치</button>
-        <button class="hud-mini-btn" data-ais-win="AGENT_REGISTRY" style="text-align:left;">🤖 SRP 에이전트 레지스트리 &amp; 페르소나</button>
-        <button class="hud-mini-btn" data-ais-win="CREATIVE_BLENDER" style="text-align:left;">🎨 캐릭터 360° 시트 &amp; 블렌더 3D VFX</button>
-        <button class="hud-mini-btn" data-ais-win="RL_BENCHMARK" style="text-align:left;">🧠 9-모델 벤치마크 &amp; Unsloth GRPO RL</button>
-        <button class="hud-mini-btn" data-ais-win="VISION_FACE" style="text-align:left;">👁️ OmniParser 비전 &amp; 얼굴 표정 교감</button>
-        <button class="hud-mini-btn" data-ais-win="SIM_BIO_IDE" style="text-align:left;">🧬 AlphaFold 바이오 · 모의훈련 · IDE</button>
-        <button class="hud-mini-btn btn-open-master-settings" style="text-align:left;border-color:rgba(251,191,36,0.45);color:#fbbf24;">⚙️ 11대 통합 설정 페이지 열기</button>
-      </div>
-    </section>
-  </aside>
-
-  <!-- RIGHT RAIL: Filter Legend + J.A.R.V.I.S. Holographic Reactor Core + 4 Sensors -->
-  <aside id="right-rail">
-    <!-- FILTER LEGEND -->
-    <section class="rail-card filter-card">
-      <div class="card-label">FILTER</div>
-      <div id="kind-filter-list" class="hubs-list compact">
-        <div class="hub-item active" data-kind="all"><span class="dot" style="background:#00f0ff"></span><span class="name">All Nodes</span><span class="cnt" id="cnt-all">523</span></div>
-        <div class="hub-item" data-kind="root"><span class="dot" style="background:#00f0ff"></span><span class="name">Router / Core</span><span class="cnt">1</span></div>
-        <div class="hub-item" data-kind="area"><span class="dot" style="background:#38bdf8"></span><span class="name">Top Hubs</span><span class="cnt">6</span></div>
-        <div class="hub-item" data-kind="skill"><span class="dot" style="background:#34d399"></span><span class="name">Agents &amp; Skills</span><span class="cnt" id="cnt-skill">90</span></div>
-        <div class="hub-item" data-kind="note"><span class="dot" style="background:#a855f7"></span><span class="name">Knowledge Wiki</span><span class="cnt" id="cnt-note">180</span></div>
-        <div class="hub-item" data-kind="project"><span class="dot" style="background:#f97316"></span><span class="name">112 Jarvis Sources</span><span class="cnt" id="cnt-project">120</span></div>
-        <div class="hub-item" data-kind="memory"><span class="dot" style="background:#fbbf24"></span><span class="name">Worldview &amp; Vault</span><span class="cnt" id="cnt-memory">10</span></div>
-        <div class="hub-item" data-kind="run"><span class="dot" style="background:#ec4899"></span><span class="name">Reports &amp; Logs</span><span class="cnt" id="cnt-run">90</span></div>
-      </div>
-    </section>
-
-    <!-- J.A.R.V.I.S. HOLOGRAPHIC REACTOR CORE -->
-    <section class="jarvis-reactor-widget">
-      <div class="reactor-canvas-wrap">
-        <canvas id="jarvis-core-canvas" width="230" height="230"></canvas>
-        <div class="reactor-center-label">J.A.R.V.I.S.</div>
-      </div>
-
-      <div class="reactor-status-pills">
-        <span class="status-pill online"><i class="pulse-dot"></i> ONLINE</span>
-        <span class="status-pill model-pill" id="active-model-pill">✦ GEMMA 4 · NEURAL</span>
-      </div>
-
-      <div class="core-shape-tabs">
-        <button class="core-tab active" data-shape="RING">RING</button>
-        <button class="core-tab" data-shape="CUBE">CUBE</button>
-        <button class="core-tab" data-shape="FACE">FACE</button>
-      </div>
-
-      <!-- 4 MULTIMODAL SENSOR SWITCHES (EYES / WATCH / HOLO / FOCUS) -->
-      <div class="sensor-switches">
-        <button class="sensor-btn" id="toggle-eyes" data-sensor="EYES">
-          <span class="s-name">EYES <small>(모션/재석)</small></span>
-          <span class="s-state">off</span>
-        </button>
-        <button class="sensor-btn" id="toggle-watch" data-sensor="WATCH">
-          <span class="s-name">WATCH <small>(화면인식)</small></span>
-          <span class="s-state">off</span>
-        </button>
-        <button class="sensor-btn" id="toggle-holo" data-sensor="HOLO">
-          <span class="s-name">HOLO <small>(에어터치)</small></span>
-          <span class="s-state">off</span>
-        </button>
-        <button class="sensor-btn" id="toggle-focus" data-sensor="FOCUS">
-          <span class="s-name">FOCUS <small>(집중모드)</small></span>
-          <span class="s-state">off</span>
-        </button>
-      </div>
-    </section>
-  </aside>
-
-  <!-- AUTONOMOUS FLOATING HUD WINDOW CONTAINER (Spawns Manual, Report, Live Console, Gen Studio) -->
-  <main id="floating-windows-layer"></main>
-
-  <!-- ✋ HOLO HAND GESTURE & 21-JOINT AIR-TOUCH ACTION HUD PANEL -->
-  <aside id="holo-gesture-hud-panel" style="display:none;position:fixed;right:270px;bottom:86px;width:390px;background:rgba(6,11,22,0.95);border:1px solid #00f0ff;border-radius:14px;padding:12px;z-index:9400;box-shadow:0 0 28px rgba(0,240,255,0.28);backdrop-filter:blur(16px);color:#f1f5f9;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid rgba(0,240,255,0.25);padding-bottom:6px;">
+  <!-- 🖼️ 4. Top-Left Floating Node Preview Card (Fitts's Law & Progressive Disclosure: 1 Clear Primary CTA) -->
+  <aside id="node-preview-card" aria-label="선택된 노드 요약 카드">
+    <div class="np-card-header">
       <div>
-        <span style="font-size:12.5px;font-weight:800;color:#00f0ff;">✋ HOLO 카메라 AI 손동작 (MediaPipe 21관절)</span>
-        <div id="holo-gesture-status-badge" style="font-size:10px;color:#fbbf24;font-family:monospace;">● 카메라 장치 하드웨어 스캔 중...</div>
-      </div>
-      <div style="display:flex;gap:4px;">
-        <button id="btn-rescan-camera" title="USB 웹캠 또는 스마트폰 카메라 다시 스캔" style="background:rgba(0,240,255,0.15);border:1px solid #00f0ff;color:#00f0ff;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:10.5px;font-weight:700;">📷 카메라 연결</button>
-        <button id="btn-close-holo-panel" style="background:transparent;border:1px solid rgba(255,255,255,0.25);color:#cbd5e1;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;">✕</button>
+        <div class="np-badge" id="np-card-badge">PROJECT · 60% 완료</div>
+        <h2 class="np-title" id="np-card-title">소풍 홈페이지</h2>
+        <p class="np-sub" id="np-card-sub">바다를 더 가까이, 소풍 FISHING</p>
       </div>
     </div>
 
-    <div id="holo-camera-alert-box" style="margin-bottom:6px;padding:6px 8px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;font-size:10.5px;color:#fef3c7;line-height:1.4;">
-      🔍 <b>PC 웹캠 Plug &amp; Play 대기 중:</b> PC에 USB 웹캠을 연결하시는 즉시 새로고침 없이 자동으로 감지하여 <b>Google MediaPipe 21관절 실제 손 인식 모드</b>로 자동 전환됩니다.
+    <div class="np-thumb-wrap">
+      <img id="np-card-img" src="/props/sopoong-boat.jpg" alt="소풍 홈페이지 미리보기" />
     </div>
 
-    <!-- PC Camera Selector + Mobile Wireless Bridge Bar -->
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.3);border-radius:8px;">
-      <select id="holo-camera-select" style="flex:1;background:#050811;border:1px solid rgba(0,240,255,0.35);color:#e2e8f0;border-radius:6px;padding:3px 6px;font-size:10.5px;">
-        <option value="">📷 PC 웹캠 자동 감지 대기 중 (0대)</option>
-      </select>
-      <a id="link-mobile-cam" href="/mobile-cam" target="_blank" style="text-decoration:none;background:rgba(52,211,153,0.16);border:1px solid #34d399;color:#34d399;border-radius:6px;padding:3px 8px;font-size:10.5px;font-weight:700;white-space:nowrap;">
-        📱 모바일 컨트롤러 열기
-      </a>
-    </div>
-    <div id="holo-mobile-url-bar" style="margin-bottom:6px;padding:6px 8px;background:rgba(0,240,255,0.08);border:1px solid rgba(0,240,255,0.28);border-radius:6px;font-size:10px;color:#38bdf8;font-family:monospace;display:flex;flex-direction:column;gap:4px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span>💻 PC 로컬 링크:</span>
-        <a href="http://localhost:7777/mobile-cam" target="_blank" style="color:#00f0ff;font-weight:800;text-decoration:underline;">http://localhost:7777/mobile-cam ↗</a>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span>📱 모바일 Wi-Fi 링크:</span>
-        <a id="holo-mobile-url-text" href="http://192.168.219.239:7777/mobile-cam" target="_blank" style="color:#34d399;font-weight:800;text-decoration:underline;">http://192.168.219.239:7777/mobile-cam ↗</a>
-      </div>
+    <div class="np-secondary-actions">
+      <button class="np-sec-btn" id="btn-np-open-doc">📄 문서 보기</button>
+      <button class="np-sec-btn" id="btn-np-start-research">🔍 조사 시작</button>
     </div>
 
-    <!-- Live Hand Skeleton Visualizer + 4 Air-Touch Corner Zones -->
-    <div style="position:relative;width:100%;height:155px;background:#030712;border:1px solid rgba(0,240,255,0.35);border-radius:10px;overflow:hidden;margin-bottom:8px;">
-      <canvas id="holo-mini-skeleton-canvas" width="366" height="155" style="width:100%;height:155px;display:block;cursor:crosshair;"></canvas>
-      <div style="position:absolute;top:6px;left:8px;font-size:10px;font-family:monospace;color:#00f0ff;background:rgba(0,0,0,0.65);padding:2px 6px;border-radius:4px;">
-        인식된 제스처: <b id="holo-detected-gesture-label" style="color:#fbbf24;">✋ PALM_MOVE (은하 360° 회전 대기)</b>
-      </div>
-    </div>
-
-    <div style="font-size:10.5px;color:#94a3b8;margin-bottom:6px;line-height:1.4;">
-      💡 <b>작동 방식:</b> 웹캠 앞에서 손을 움직이거나 아래 <b>5대 손동작 패드</b>에 손을 올리면(또는 클릭하면) 자비스가 즉시 해당 작업을 실행합니다.
-    </div>
-
-    <!-- 5 Actionable Hand Gestures -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
-      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="PALM_SWIPE" style="text-align:left;padding:6px 8px;border-color:rgba(0,240,255,0.4);">
-        <div style="font-weight:800;color:#00f0ff;font-size:11px;">✋ 손바닥 스와이프</div>
-        <div style="font-size:9.5px;color:#cbd5e1;">3D 지식 은하 360° 회전</div>
-      </button>
-      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="PINCH_CLICK" style="text-align:left;padding:6px 8px;border-color:rgba(52,211,153,0.4);">
-        <div style="font-weight:800;color:#34d399;font-size:11px;">🤏 엄지+검지 핀치</div>
-        <div style="font-size:9.5px;color:#cbd5e1;">가리킨 노드 선택·보고서 열기</div>
-      </button>
-      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="VICTORY_BRIEF" style="text-align:left;padding:6px 8px;border-color:rgba(251,191,36,0.45);">
-        <div style="font-weight:800;color:#fbbf24;font-size:11px;">✌️ 브이(V) 포즈</div>
-        <div style="font-size:9.5px;color:#cbd5e1;">15초 전사 모닝/마감 브리핑</div>
-      </button>
-      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="THUMBS_APPROVE" style="text-align:left;padding:6px 8px;border-color:rgba(168,85,247,0.45);">
-        <div style="font-weight:800;color:#c084fc;font-size:11px;">👍 엄지 척 (승인)</div>
-        <div style="font-size:9.5px;color:#cbd5e1;">대기 중인 OS/PC 안건 즉시 승인</div>
-      </button>
-      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="FIST_RESET" style="grid-column:span 2;text-align:center;padding:5px 8px;border-color:rgba(244,63,94,0.4);">
-        <span style="font-weight:800;color:#fb7185;font-size:11px;">✊ 주먹 쥐기 (Reset &amp; Fit)</span>
-        <span style="font-size:9.5px;color:#cbd5e1;margin-left:6px;">— 3D 은하 중앙 정렬(⊙ Fit) 및 음성 발화 즉시 정지</span>
-      </button>
-    </div>
+    <button class="np-primary-cta" id="btn-np-open-workspace">
+      작업 공간 열기 →
+    </button>
   </aside>
 
-  <!-- CEO HUMAN-IN-THE-LOOP APPROVAL MODAL FOR COMPUTER USE -->
-  <div id="pc-approval-modal" class="approval-modal" style="display:none;">
-    <div class="approval-card">
-      <div class="approval-header">🛡️ [BSC Harness Gate] 컴퓨터 제어(Computer Use) 승인 요청</div>
-      <div class="approval-title" id="pc-approval-title">작업 명칭</div>
-      <div class="approval-desc" id="pc-approval-desc">상세 설명</div>
-      <code class="approval-cmd" id="pc-approval-cmd">Command</code>
-      <div class="approval-actions">
-        <button id="btn-approve-pc" class="hud-btn approve">✅ 대표님 승인 (실행)</button>
-        <button id="btn-deny-pc" class="hud-btn deny">✕ 취소</button>
+  <!-- 🎙️ 5. Bottom-Right J.A.R.V.I.S. Voice Waveform Orb & Speech Callout (Single Persona Anchor) -->
+  <aside id="jarvis-floating-orb-zone" aria-label="자비스 음성 코어 및 브리핑">
+    <!-- Speech Bubble Callout Above Orb -->
+    <div class="jarvis-speech-callout" id="jarvis-speech-callout">
+      <p id="jarvis-orb-callout-text">"대표님, 어떤 작업을 시작할까요?"</p>
+      <div class="jsc-actions">
+        <button type="button" id="btn-orb-read-aloud" class="jsc-mini-btn" title="창의 내용을 처음부터 끝까지 읽어줍니다">🔊 끝까지 읽기</button>
+        <button type="button" id="btn-orb-open-chat" class="jsc-mini-btn" title="1:1 대화 내역 펼치기">💬 대화창</button>
       </div>
     </div>
-  </div>
 
-  <!-- 🤖 PURE J.A.R.V.I.S. 1:1 TIKI-TAKA CONVERSATION DRAWER (J.A.R.V.I.S. Voice ONLY) -->
+    <!-- Glowing Cyan Equalizer Waveform Sphere -->
+    <div class="jarvis-orb-canvas-wrap" id="jarvis-orb-trigger" title="클릭하여 자비스에게 음성으로 말하기">
+      <canvas id="jarvis-core-canvas" width="168" height="168"></canvas>
+    </div>
+
+    <div class="jarvis-orb-status">
+      <span class="jos-dot"></span>
+      <span id="jarvis-listening-label">자비스 · 듣고 있습니다</span>
+    </div>
+
+    <button class="jarvis-work-status-btn" id="btn-open-work-status">
+      업무 현황 열기 →
+    </button>
+  </aside>
+
+  <!-- ⬇️ 6. Clean Bottom Bar: Left Zoom & 6-Category Legend + Center Rounded Prompt Input -->
+  <footer id="clean-bottom-bar">
+    <!-- Bottom-Left: Zoom + 2D/3D Toggle + 6 Category Legend -->
+    <div class="cbb-left">
+      <div class="cbb-zoom-group">
+        <button type="button" id="btn-bottom-zoom-out" title="축소">−</button>
+        <button type="button" id="btn-bottom-zoom-in" title="확대">+</button>
+        <button type="button" id="btn-bottom-fit" title="화면 중앙 맞춤">⛶</button>
+      </div>
+
+      <div class="cbb-mode-toggle">
+        <button type="button" class="view-pill" data-view="2d">2D</button>
+        <button type="button" class="view-pill active" data-view="3d" id="btn-bottom-2d3d">3D</button>
+      </div>
+
+      <div class="cbb-legend">
+        <span class="legend-filter-item" data-cat="project"><i style="background:#00f0ff"></i>프로젝트</span>
+        <span class="legend-filter-item" data-cat="doc"><i style="background:#38bdf8"></i>문서</span>
+        <span class="legend-filter-item" data-cat="person"><i style="background:#fbbf24"></i>사람</span>
+        <span class="legend-filter-item" data-cat="topic"><i style="background:#c084fc"></i>주제</span>
+        <span class="legend-filter-item" data-cat="idea"><i style="background:#34d399"></i>아이디어</span>
+        <span class="legend-filter-item" data-cat="ext"><i style="background:#f472b6"></i>외부 자료</span>
+      </div>
+    </div>
+
+    <!-- Bottom-Center: Single Rounded Prompt Input (자비스에게 말하거나 입력하세요...) -->
+    <form id="jarvis-chat-form" class="cbb-prompt-form">
+      <button type="button" class="cbb-mic-btn" id="orb-voice-mic" title="음성 입력 (클릭 또는 스페이스바)">🎙️</button>
+      <input
+        type="text"
+        id="jarvis-prompt-input"
+        placeholder="자비스에게 말하거나 입력하세요..."
+        autocomplete="off"
+      />
+      <button type="button" class="cbb-attach-btn" id="btn-export-chat-6formats" title="시야 공유 & 6종 문서(MD/Word/PPT/PDF) 즉시 생성">📎</button>
+      <button type="submit" class="cbb-send-btn" title="전송">➤</button>
+    </form>
+
+    <!-- Bottom-Right Spacer (Keeps prompt centered while Orb floats above right) -->
+    <div class="cbb-right-spacer"></div>
+  </footer>
+
+  <!-- 🪟 Workspace Overlay Stage (Renders DOC_WORKSPACE, SETTINGS_WORKSPACE, BSC_OS_WORKSPACE, TYCOON_OFFICE_WORKSPACE) -->
+  <div id="design-workspace-stage" style="display:none;"></div>
+
+  <!-- 💬 Collapsible 1:1 J.A.R.V.I.S. Tiki-Taka Conversation Drawer (Opens only when requested or chatting) -->
   <aside id="agent-chat-drawer" class="agent-chat-drawer" aria-label="자비스 단독 1:1 티키타카 대화창">
     <div class="chat-drawer-header">
       <div>
-        <div class="chat-drawer-title">🤖 J.A.R.V.I.S. 1:1 실시간 티키타카 대화창 (자비스 단독 음성)</div>
+        <div class="chat-drawer-title">🤖 J.A.R.V.I.S. 1:1 대화 기록 (단독 음성 · 끝까지 완독)</div>
         <div class="chat-drawer-sub" id="ade-ide-live-badges">
-          <span class="bridge-pill ade">🟢 Harness² (gemma4:e4b)</span>
-          <span class="bridge-pill ide">🟢 문장 단위 음성</span>
-          <span class="bridge-pill drive">🟢 ADE·IDE 실시간 동기화</span>
+          <span class="bridge-pill ade">🟢 Harness²</span>
+          <span class="bridge-pill ide">🟢 끝까지 읽기</span>
+          <span class="bridge-pill drive">🟢 ADE·IDE 연동</span>
         </div>
       </div>
       <div style="display:flex;gap:5px;">
-        <button id="btn-open-council-from-drawer" class="win-ctrl-btn" title="타 에이전트(소하·거누·우진·태준) 의논·회의·보고서 전용 창 열기" style="border-color:#fbbf24;color:#fbbf24;">🏛️ 에이전트 회의창</button>
-        <button id="btn-export-chat-6formats" class="win-ctrl-btn" title="현재 대화와 시야를 6종 문서(MD/Word/PPT/PDF/PNG/영상)로 즉시 변환·저장" style="border-color:#34d399;color:#34d399;">📄 6종 문서화</button>
+        <button id="btn-open-council-from-drawer" class="win-ctrl-btn" style="border-color:#fbbf24;color:#fbbf24;">🏛️ 회의실</button>
         <button id="btn-close-agent-chat" class="win-ctrl-btn" title="대화창 접기">✕</button>
       </div>
     </div>
 
-    <!-- Scrollable J.A.R.V.I.S. 1:1 Tiki-Taka Stream -->
     <div class="chat-drawer-feed" id="agent-chat-feed">
       <div class="chat-bubble assistant">
-        <div class="bubble-meta">🤖 J.A.R.V.I.S. · Harness² 1:1 티키타카 파트너</div>
-        <div class="bubble-text">이건우 대표님, 자비스 메인 시스템은 이제 오직 <b>자비스 단독 목소리(현수 성우)</b>로만 대표님과 1:1 티키타카를 나누며, 창에 있는 모든 문장을 중간 끊김 없이 끝까지 읽어드립니다. 본사 에이전트들과의 의논·회의·보고서는 별도로 분리된 <b>[🏛️ BeausCreators 의논·회의·보고서 창]</b>에서 진행하실 수 있습니다.</div>
+        <div class="bubble-meta">🤖 J.A.R.V.I.S. · 전담 AI 파트너</div>
+        <div class="bubble-text">이건우 대표님, 화면의 불필요한 요소들을 모두 제거하고 인지 피로도를 최소화한 <b>성운 지식 은하</b>와 <b>SD 캐릭터 타이쿤 오피스(BSC AI OFFICE)</b>로 정돈하였습니다.</div>
       </div>
     </div>
 
-    <!-- Direct J.A.R.V.I.S. 1:1 Input Form -->
     <form id="drawer-chat-form" class="chat-drawer-input-row">
-      <input type="text" id="drawer-chat-input" placeholder="자비스와 1:1로 자연스럽게 티키타카 대화하세요..." autocomplete="off" />
+      <input type="text" id="drawer-chat-input" placeholder="자비스와 1:1 대화 입력..." autocomplete="off" />
       <button type="submit" class="send-prompt-btn">↵</button>
     </form>
   </aside>
 
-  <!-- 🏛️ SEPARATE DEDICATED UI WINDOW: BEAUSCREATORS AGENT SYSTEM (💬 의논 · 🏛️ 회의 · 📋 보고서 전용 채팅창) -->
-  <section id="bsc-council-window" style="display:none;position:fixed;top:92px;left:50%;transform:translateX(-50%);width:min(860px, 95vw);height:min(640px, 80vh);background:rgba(5,9,20,0.97);border:1.5px solid #fbbf24;border-radius:16px;z-index:9650;box-shadow:0 24px 70px rgba(0,0,0,0.88), 0 0 32px rgba(251,191,36,0.22);backdrop-filter:blur(22px);flex-direction:column;overflow:hidden;color:#f1f5f9;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(90deg, rgba(251,191,36,0.16), rgba(15,23,42,0.92));border-bottom:1px solid rgba(251,191,36,0.35);">
+  <!-- 🏛️ Separate Dedicated BeausCreators Agent Council Window (💬 의논 · 🏛️ 회의 · 📋 보고서) -->
+  <section id="bsc-council-window" style="display:none;position:fixed;top:76px;left:50%;transform:translateX(-50%);width:min(860px, 95vw);height:min(620px, 82vh);background:rgba(8,13,26,0.98);border:1px solid rgba(251,191,36,0.45);border-radius:18px;z-index:9650;box-shadow:0 24px 70px rgba(0,0,0,0.85);backdrop-filter:blur(22px);flex-direction:column;overflow:hidden;color:#f1f5f9;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(148,163,184,0.18);">
       <div>
-        <div style="font-size:14px;font-weight:900;color:#fbbf24;display:flex;align-items:center;gap:8px;">
-          <span>🏛️ BeausCreators 에이전트 전용 협업 창 (C:\BeausCreators 방식 — 의논 · 회의 · 보고서)</span>
-          <span style="font-size:10.5px;padding:2px 8px;border-radius:999px;background:rgba(52,211,153,0.16);border:1px solid #34d399;color:#34d399;">자비스 음성과 100% 분리된 텍스트/문서 워룸</span>
-        </div>
-        <div style="font-size:11px;color:#cbd5e1;margin-top:2px;">
-          참여 코어 요원: 👩‍💼 <b>수석비서 소하</b>(기획) · 💻 <b>CTO 거누</b>(아키텍처/REA) · 🧠 <b>AI연구원 우진</b>(Harness² 재귀) · 👔 <b>비서실장 태준</b>(총괄 의결/보고서)
-        </div>
+        <div style="font-size:14px;font-weight:800;color:#fbbf24;">🏛️ BeausCreators 에이전트 의논 · 회의 · 보고서 워룸</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">수석비서 소하 · CTO 거누 · AI연구원 우진 · 비서실장 태준</div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <button id="btn-council-verify-system" class="win-ctrl-btn" style="border-color:#34d399;color:#34d399;padding:4px 10px;font-weight:800;">🛡️ 전 시스템 검토·검수·검증 실행</button>
-        <button id="btn-close-bsc-council" class="win-ctrl-btn" style="padding:4px 10px;">✕ 닫기</button>
+      <div style="display:flex;gap:6px;">
+        <button id="btn-council-verify-system" class="win-ctrl-btn" style="border-color:#34d399;color:#34d399;padding:4px 10px;">🛡️ 시스템 검증</button>
+        <button id="btn-close-bsc-council" class="win-ctrl-btn" style="padding:4px 10px;">✕</button>
       </div>
     </div>
-
-    <!-- Mode Selector Bar: 💬 의논 | 🏛️ 회의 | 📋 보고서 -->
-    <div style="display:flex;gap:8px;padding:10px 16px;background:rgba(10,16,31,0.9);border-bottom:1px solid rgba(148,163,184,0.2);align-items:center;flex-wrap:wrap;">
-      <span style="font-size:11.5px;font-weight:800;color:#94a3b8;">협업 형식 선택:</span>
-      <button type="button" class="agent-chip active bsc-council-mode-btn" data-council-mode="DISCUSS" style="padding:5px 12px;font-size:11.5px;">💬 의논 (자유 실무 의견 교환)</button>
-      <button type="button" class="agent-chip bsc-council-mode-btn" data-council-mode="MEETING" style="padding:5px 12px;font-size:11.5px;">🏛️ 회의 (부서별 릴레이 발언 &amp; 의결)</button>
-      <button type="button" class="agent-chip bsc-council-mode-btn" data-council-mode="REPORT" style="padding:5px 12px;font-size:11.5px;">📋 보고서 (본사 01.보고서 정식 기안·저장)</button>
-      <span style="margin-left:auto;font-size:10.5px;color:#38bdf8;font-family:monospace;" id="bsc-council-saved-path">📁 C:\BeausCreators\01.BSC_HQ\1.Documents\01.보고서 자동 동기화</span>
+    <div style="display:flex;gap:8px;padding:10px 18px;background:rgba(15,23,42,0.7);border-bottom:1px solid rgba(148,163,184,0.14);align-items:center;">
+      <button type="button" class="agent-chip active bsc-council-mode-btn" data-council-mode="DISCUSS">💬 의논</button>
+      <button type="button" class="agent-chip bsc-council-mode-btn" data-council-mode="MEETING">🏛️ 회의</button>
+      <button type="button" class="agent-chip bsc-council-mode-btn" data-council-mode="REPORT">📋 보고서</button>
+      <span style="margin-left:auto;font-size:10.5px;color:#38bdf8;font-family:monospace;" id="bsc-council-saved-path">📁 본사 01.보고서 자동 동기화</span>
     </div>
-
-    <!-- Scrollable Council Discussion / Meeting / Report Feed -->
-    <div id="bsc-council-feed" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;"></div>
-
-    <!-- Council Topic Input Form -->
-    <form id="bsc-council-form" style="display:flex;gap:8px;padding:12px 16px;background:rgba(8,13,26,0.96);border-top:1px solid rgba(251,191,36,0.3);">
-      <input
-        type="text"
-        id="bsc-council-input"
-        placeholder="BeausCreators 에이전트들과 의논·회의하거나 보고서로 만들 주제를 입력하세요..."
-        autocomplete="off"
-        style="flex:1;background:rgba(15,23,42,0.9);border:1px solid rgba(251,191,36,0.45);border-radius:10px;padding:9px 14px;color:#f8fafc;font-size:12.5px;"
-      />
-      <button type="submit" class="hud-mini-btn primary" style="padding:9px 18px;font-weight:800;border-color:#fbbf24;color:#fbbf24;">🏛️ 안건 상정 ↵</button>
+    <div id="bsc-council-feed" style="flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px;"></div>
+    <form id="bsc-council-form" style="display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(148,163,184,0.16);">
+      <input type="text" id="bsc-council-input" placeholder="안건 입력..." autocomplete="off" style="flex:1;background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.3);border-radius:10px;padding:9px 14px;color:#f8fafc;font-size:12.5px;" />
+      <button type="submit" class="hud-mini-btn primary" style="padding:9px 16px;">상정 ↵</button>
     </form>
   </section>
 
-  <!-- Live J.A.R.V.I.S. Exclusive Voice Subtitle Toast (Hidden until J.A.R.V.I.S. speaks; includes Full-Read button) -->
+  <!-- 🔊 Live Voice Subtitle Toast (Appears cleanly when J.A.R.V.I.S. speaks) -->
   <div id="live-dialogue-toast" style="display:none;">
-    <img id="toast-avatar" class="toast-avatar" src="/agent_images/geonu/analyze.png" alt="J.A.R.V.I.S." onerror="this.style.display='none'" />
     <div class="toast-body-col" style="flex:1;">
       <div class="toast-meta-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
           <span class="speaker-tag" id="toast-speaker">🤖 J.A.R.V.I.S.</span>
-          <span class="voice-engine-badge" id="toast-voice-badge">🎙️ 현수 멀티링구얼 HD (끝까지 100% 완독)</span>
+          <span class="voice-engine-badge" id="toast-voice-badge">현수 HD · 끝까지 완독</span>
         </div>
         <div style="display:flex;gap:4px;">
-          <button type="button" id="btn-toast-read-full" class="win-ctrl-btn" style="font-size:10px;padding:2px 8px;border-color:#00f0ff;color:#00f0ff;" title="창에 있는 모든 내용을 처음부터 끝까지 다시 읽어줍니다">🔊 끝까지 다시 읽기</button>
-          <button type="button" id="btn-toast-stop-voice" class="win-ctrl-btn" style="font-size:10px;padding:2px 7px;border-color:#fb7185;color:#fb7185;" title="음성 읽기 정지">⏹ 정지</button>
+          <button type="button" id="btn-toast-read-full" class="win-ctrl-btn" style="font-size:10px;padding:2px 8px;border-color:#00f0ff;color:#00f0ff;">🔊 다시 읽기</button>
+          <button type="button" id="btn-toast-stop-voice" class="win-ctrl-btn" style="font-size:10px;padding:2px 7px;border-color:#fb7185;color:#fb7185;">⏹ 정지</button>
         </div>
       </div>
       <span class="speech-text" id="toast-text"></span>
     </div>
   </div>
 
-  <!-- BOTTOM MULTIMODAL COMMAND DOCK (Pure J.A.R.V.I.S. Single Voice + Action Orbs) -->
-  <footer id="bottom-command-dock">
-    <select id="jarvis-persona-select" class="persona-dock-select" title="자비스 시스템은 오직 자비스 단독 보이스만 사용합니다">
-      <option value="jarvis" selected>🤖 J.A.R.V.I.S. 단독 음성 (현수 성우 · 끝까지 완독)</option>
-    </select>
-    <form id="jarvis-chat-form" class="command-input-wrap">
-      <input
-        type="text"
-        id="jarvis-prompt-input"
-        placeholder="자비스와 1:1 티키타카 대화하세요 (타 에이전트 의논·회의·보고서는 우측 🏛️ 버튼 클릭)"
-        autocomplete="off"
-      />
-      <button type="submit" class="send-prompt-btn" title="전송">↵</button>
-    </form>
-
-    <div class="dock-action-orbs">
-      <button class="orb-btn" id="orb-chat-drawer" title="🤖 자비스 1:1 티키타카 대화창 열기/닫기" style="border-color:#00f0ff;box-shadow:0 0 12px rgba(0,240,255,0.35);">
-        <span>🤖</span>
-      </button>
-      <button class="orb-btn" id="orb-bsc-council" title="🏛️ BeausCreators 에이전트 의논·회의·보고서 전용 창 열기" style="border-color:#fbbf24;box-shadow:0 0 12px rgba(251,191,36,0.35);">
-        <span>🏛️</span>
-      </button>
-      <button class="orb-btn" id="orb-aistudio-hub" title="⚡ Google AI Studio 18대 스튜디오 & 9대 오픈모델 라우터 통합 허브" style="border-color:#00f0ff;box-shadow:0 0 12px rgba(0,240,255,0.35);">
-        <span>⚡</span>
-      </button>
-      <button class="orb-btn" data-ais-win="OPEN_TTS_STUDIO" title="🎙️ 오픈소스 TTS (Chatterbox / Qwen3-TTS) & 23개국어 보이스 클로닝 스튜디오" style="border-color:#34d399;">
-        <span>🗣️</span>
-      </button>
-      <button class="orb-btn btn-open-master-settings" id="orb-settings" title="⚙️ 11대 통합 환경설정 페이지 열기" style="border-color:#fbbf24;">
-        <span>⚙️</span>
-      </button>
-      <button class="orb-btn" id="orb-manual" title="📘 설명서(Manual) 창 즉시 소환">
-        <span>📘</span>
-      </button>
-      <button class="orb-btn" id="orb-report" title="📊 심층 보고서(Report) 창 즉시 소환">
-        <span>📊</span>
-      </button>
-      <button class="orb-btn" id="orb-console" title="💻 실시간 제작/토큰 콘솔(Live Console) 창 소환">
-        <span>💻</span>
-      </button>
-      <button class="orb-btn" id="orb-studio" title="🎨 통합 생성 도구 & 3D 홀로그램 스튜디오(Gen Studio) 소환">
-        <span>🎨</span>
-      </button>
-      <button class="orb-btn" id="orb-pc-ctrl" title="🖥️ 안전 컴퓨터 제어(Computer Use) 메뉴">
-        <span>🖥️</span>
-      </button>
-      <button class="orb-btn voice-orb" id="orb-voice-mic" title="🎙️ 음성 인식 대화 (클릭 또는 스페이스바)">
-        <span>🎙️</span>
-      </button>
+  <!-- ✋ HOLO Camera & Mobile Link Popover (Hidden by default; opens only when clicking 📷 in top bar) -->
+  <aside id="holo-gesture-hud-panel" style="display:none;position:fixed;right:24px;top:64px;width:370px;background:rgba(8,14,28,0.96);border:1px solid rgba(56,189,248,0.35);border-radius:16px;padding:14px;z-index:9400;box-shadow:0 20px 50px rgba(0,0,0,0.75);backdrop-filter:blur(18px);color:#f1f5f9;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div>
+        <span style="font-size:13px;font-weight:800;color:#38bdf8;">📷 카메라 시야 공유 &amp; HOLO 제어</span>
+        <div id="holo-gesture-status-badge" style="font-size:10.5px;color:#94a3b8;">● 카메라 대기 중</div>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button id="btn-rescan-camera" class="mac-pill-btn">재스캔</button>
+        <button id="btn-close-holo-panel" class="mac-pill-btn">✕</button>
+      </div>
     </div>
-  </footer>
+    <div id="holo-camera-alert-box" style="display:none;"></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <select id="holo-camera-select" style="flex:1;background:#050811;border:1px solid rgba(56,189,248,0.3);color:#e2e8f0;border-radius:8px;padding:5px 8px;font-size:11px;">
+        <option value="">📷 PC 웹캠 자동 감지 대기 중</option>
+      </select>
+      <a id="link-mobile-cam" href="/mobile-cam" target="_blank" class="mac-pill-btn primary" style="text-decoration:none;">📱 모바일 창</a>
+    </div>
+    <div id="holo-mobile-url-bar" style="margin-bottom:8px;padding:8px;background:rgba(15,23,42,0.85);border-radius:8px;font-size:10.5px;display:flex;flex-direction:column;gap:4px;">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:#94a3b8;">PC 로컬:</span>
+        <a href="http://localhost:7777/mobile-cam" target="_blank" style="color:#38bdf8;font-weight:700;">http://localhost:7777/mobile-cam ↗</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:#94a3b8;">모바일 Wi-Fi:</span>
+        <a id="holo-mobile-url-text" href="http://192.168.219.239:7777/mobile-cam" target="_blank" style="color:#34d399;font-weight:700;">http://192.168.219.239:7777/mobile-cam ↗</a>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:130px;background:#030712;border:1px solid rgba(56,189,248,0.25);border-radius:10px;overflow:hidden;margin-bottom:8px;">
+      <canvas id="holo-mini-skeleton-canvas" width="342" height="130" style="width:100%;height:130px;display:block;"></canvas>
+      <div style="position:absolute;top:6px;left:8px;font-size:10px;color:#38bdf8;">
+        제스처: <b id="holo-detected-gesture-label">대기 중</b>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="PALM_SWIPE">✋ 은하 회전</button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="PINCH_CLICK">🤏 노드 열기</button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="VICTORY_BRIEF">✌️ 음성 브리핑</button>
+      <button class="hud-mini-btn holo-gesture-trigger" data-gesture="FIST_RESET">✊ 중앙 정렬</button>
+    </div>
+  </aside>
+
+  <!-- 🛠️ Compact Quick-Tools Drawer (Hidden by default; opens only when clicking 🪟 in top bar) -->
+  <nav id="unified-workspace-bar" aria-label="고급 스튜디오 도구 서랍">
+    <button class="uni-tab-btn primary" id="btn-toggle-agent-chat">💬 자비스 1:1 대화기록</button>
+    <button class="uni-tab-btn primary" id="btn-open-bsc-council">🏛️ 에이전트 회의 워룸</button>
+    <button class="uni-tab-btn emerald" id="btn-run-full-verify">🛡️ 시스템 검증 (100점)</button>
+    <button class="uni-tab-btn emerald" data-ais-win="VISION_FACE">👁️ 시야공유 · 6종 문서</button>
+    <button class="uni-tab-btn" data-ais-win="AI_STUDIO_HUB">⚡ 18대 스튜디오 허브</button>
+    <button class="uni-tab-btn" id="btn-exec-briefing">📢 15초 브리핑</button>
+    <button class="uni-tab-btn" id="btn-holo-gesture-hud">✋ HOLO 카메라</button>
+    <button class="uni-tab-btn" id="btn-cycle-theme">🌓 테마 변경</button>
+    <button class="uni-tab-btn settings-btn btn-open-master-settings">⚙️ 고급 11대 설정</button>
+  </nav>
+
+  <!-- Floating Windows Layer & Approval Modal -->
+  <main id="floating-windows-layer"></main>
+  <div id="pc-approval-modal" class="approval-modal" style="display:none;">
+    <div class="approval-card">
+      <div class="approval-header">🛡️ 작업 실행 승인 요청</div>
+      <div class="approval-title" id="pc-approval-title">작업 명칭</div>
+      <div class="approval-desc" id="pc-approval-desc">상세 설명</div>
+      <code class="approval-cmd" id="pc-approval-cmd">Command</code>
+      <div class="approval-actions">
+        <button id="btn-approve-pc" class="hud-btn approve">✅ 승인</button>
+        <button id="btn-deny-pc" class="hud-btn deny">✕ 취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden DOM Hooks for Backward-Compatible Engines (Zero Visual Footprint) -->
+  <div style="display:none;" aria-hidden="true">
+    <span id="stat-nodes"></span><span id="stat-links"></span><span id="cnt-all"></span>
+    <span id="tf-savings-pct"></span><div id="tf-bar-fill"></div><b id="tf-actual"></b><span id="tf-raw"></span>
+    <div id="top-hubs-list"></div><div id="inspector-content"></div><div id="inspector-actions"></div>
+    <input id="brain-search" /><input id="slider-repel" value="155" /><input id="slider-link-len" value="75" />
+    <select id="jarvis-persona-select"><option value="jarvis" selected>jarvis</option></select>
+    <span id="active-model-pill"></span><span id="daily-steward-message"></span>
+    <button id="toggle-eyes"></button><button id="toggle-watch"></button><button id="toggle-holo"></button><button id="toggle-focus"></button>
+  </div>
 
   <!-- Core Scripts -->
   <script src="/js/worldview-together.js"></script>
@@ -448,5 +320,6 @@
   <script src="/js/graph-engine.js"></script>
   <script src="/js/jarvis-core-3d.js"></script>
   <script src="/js/multimodal-engine.js"></script>
+  <script src="/js/jarvis-design-views.js"></script>
 </body>
 </html>
