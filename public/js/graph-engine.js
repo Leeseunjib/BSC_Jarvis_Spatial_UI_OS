@@ -932,9 +932,6 @@ window.BrainGraphEngine = {
 
   syncNodePreviewCard(node) {
     if (!node) return;
-    const card = document.getElementById('node-preview-card');
-    if (card) card.style.display = 'block';
-
     const titleEl = document.getElementById('np-card-title');
     const subEl = document.getElementById('np-card-sub');
     const imgEl = document.getElementById('np-card-img');

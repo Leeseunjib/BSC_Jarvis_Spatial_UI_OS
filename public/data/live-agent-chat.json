@@ -1,29 +1,6 @@
 {
-  "updatedAt": "2026-10-22T02:28:02.069Z",
+  "updatedAt": "2026-10-22T04:51:24.440Z",
   "messages": [
-    {
-      "id": "msg-1792571877992-u",
-      "timestamp": "오후 5:37:57",
-      "role": "user",
-      "speaker": "👑 이건우 대표님 (CEO)",
-      "text": "비전 얼굴 교감 스튜디오 열어줘"
-    },
-    {
-      "id": "msg-1792571877992-a",
-      "timestamp": "오후 5:37:57",
-      "role": "assistant",
-      "agentId": "jarvis",
-      "speaker": "🤖 J.A.R.V.I.S.",
-      "avatar": "/agent_images/geonu/analyze.png",
-      "text": "대표님, 👁️ Co-Vision 카메라 시야공유 · 6종 산출물(이미지·영상·MD·Word·PPT·PDF) 제작 · ADE/IDE/Google Drive 스튜디오 창을 열었습니다."
-    },
-    {
-      "id": "msg-1792571878026-u",
-      "timestamp": "오후 5:37:58",
-      "role": "user",
-      "speaker": "👑 이건우 대표님 (CEO)",
-      "text": "바이오 단백질 스튜디오 열어줘"
-    },
     {
       "id": "msg-1792571878026-a",
       "timestamp": "오후 5:37:58",
@@ -460,6 +437,27 @@
       "role": "user",
       "speaker": "👑 이건우 대표님 (Antigravity IDE 실시간 연동)",
       "text": "아직 진행하지마. @[c:\\Users\\USER\\.gemini\\antigravity\\brain\\7c26bd17-dac9-4f38-b441-ab8f0a5bbf8c\\implementation_plan.md] 이 계획대로 진행을 하면 현재 시스템과 어떤 점에서 문제점, 성과가 생길까?"
+    },
+    {
+      "id": "ide-sync-1792644684440-p5ag",
+      "timestamp": "오후 1:06:50",
+      "role": "user",
+      "speaker": "👑 이건우 대표님 (Antigravity IDE 실시간 연동)",
+      "text": "응 포함해서 진행을 하자."
+    },
+    {
+      "id": "ide-sync-1792644684440-9270",
+      "timestamp": "오후 1:46:05",
+      "role": "user",
+      "speaker": "👑 이건우 대표님 (Antigravity IDE 실시간 연동)",
+      "text": "그리고 우리 에이전트 시스템에서"
+    },
+    {
+      "id": "ide-sync-1792644684440-7n0r",
+      "timestamp": "오후 1:47:57",
+      "role": "user",
+      "speaker": "👑 이건우 대표님 (Antigravity IDE 실시간 연동)",
+      "text": "그리고 우리 에이전트 시스템에서 에이전트들이 냉정하고, 냉철하고, 정확하게, 진솔하게 늘 대하는 것들이 중요할 것 같아. 그래야 정확한 수치를 통해 작업을 할 수 있어. 그런 시스템으로 에이전트들이 될 수 있도록 작업해."
     }
   ]
 }

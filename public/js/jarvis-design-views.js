@@ -61,7 +61,11 @@ window.JarvisDesignViews = {
         btn.classList.add('active');
 
         if (target === 'HOME_GALAXY') {
-          this.closeWorkspace();
+          if (this.activeWorkspace) {
+            this.closeWorkspace();
+          } else {
+            this.setNeuronMenuVisible(!this.isNeuronMenuVisible());
+          }
         } else {
           this.openWorkspace(target);
         }
@@ -92,11 +96,7 @@ window.JarvisDesignViews = {
 
     // Left Dock Menu Toggle & Thumbnail Toggle
     document.getElementById('btn-dock-toggle-left-menu')?.addEventListener('click', () => {
-      const card = document.getElementById('node-preview-card');
-      if (card) {
-        const isHidden = card.style.display === 'none';
-        card.style.display = isHidden ? 'block' : 'none';
-      }
+      this.setNeuronMenuVisible(!this.isNeuronMenuVisible());
     });
     document.getElementById('btn-toggle-thumb-preview')?.addEventListener('click', () => {
       const thumb = document.getElementById('np-thumb-container');
@@ -163,6 +163,24 @@ window.JarvisDesignViews = {
         this.closeWorkspace();
       }
     });
+  },
+
+  isNeuronMenuVisible() {
+    const card = document.getElementById('node-preview-card');
+    return !!card && card.style.display !== 'none';
+  },
+
+  setNeuronMenuVisible(visible) {
+    const card = document.getElementById('node-preview-card');
+    if (!card) return;
+    card.style.display = visible ? 'block' : 'none';
+    card.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    const homeBtn = document.querySelector('.slim-dock-btn[data-dock-target="HOME_GALAXY"]');
+    if (homeBtn) {
+      homeBtn.title = visible
+        ? '뉴런홈. 한 번 더 누르면 왼쪽 메뉴 창을 숨깁니다.'
+        : '뉴런홈. 왼쪽 메뉴 창을 다시 엽니다.';
+    }
   },
 
   closeWorkspace() {
