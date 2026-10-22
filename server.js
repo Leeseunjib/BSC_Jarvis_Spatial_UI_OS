@@ -28,6 +28,16 @@ const {
 } = require('./scripts/live-agent-chat-engine');
 const { runFullSystemAuditAndVerification } = require('./scripts/jarvis-system-verifier');
 const { getLiveIdeAndProjectsSnapshot } = require('./scripts/ide-project-live-sync');
+const {
+  loadActiveBrainState,
+  loadPendingPlans,
+  scanLocalAiEngines,
+  selectActiveBrainModel,
+  detectProductionIntentAndDomain,
+  createAutonomous5StepPlan,
+  executeApprovedPlan,
+  runStreamingTerminalCommand
+} = require('./scripts/jarvis-autonomous-router');
 
 let harness2Engine = null;
 try {
@@ -45,27 +55,66 @@ const BRAIN_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'brain.json');
 const SETTINGS_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'jarvis-settings.json');
 const HQ_ROSTER_PATH = 'C:\\BeausCreators\\01.BSC_HQ\\2.Agents\\에이전트\\00.시스템\\05.System_Data_and_Docs\\agent_status.json';
 
-// 🎙️ J.A.R.V.I.S. Exclusive Voice Profile (Single Unified J.A.R.V.I.S. Voice per CEO Directive)
+// 🎙️ J.A.R.V.I.S. Human-Natural Voice Profile (Zero DSP Pitch Distortion — Warm Natural Human Prosody)
 const NEURAL_VOICE_PROFILES = {
   jarvis: {
     voice: 'ko-KR-HyunsuMultilingualNeural',
-    rate: '+8%',
-    pitch: '-3Hz',
+    rate: '+1%',
+    pitch: '+0Hz',
     speakerTitle: '🤖 J.A.R.V.I.S.',
     avatar: '/agent_images/geonu/analyze.png'
   }
 };
 
-function cleanTextForSpeech(rawText) {
-  return String(rawText || '')
-    .replace(/```[\s\S]*?```/g, ' 코드 블록 생략. ')
+// In-Memory LRU Cache for Instant Zero-Latency Human TTS Playback
+const ttsAudioCache = new Map();
+
+function humanizeKoreanSpeechText(rawText) {
+  let txt = String(rawText || '')
+    .replace(/```[\s\S]*?```/g, ' 코드 블록은 화면을 참고해 주십시오. ')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/https?:\/\/[^\s)]+/g, ' 웹 링크 ')
+    .replace(/[A-Za-z]:\\[^\s"'<>]+/g, ' 로컬 경로 ')
+    .replace(/\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+/g, ' 파일 경로 ')
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
-    .replace(/[*#_~>|『』「」]/g, ' ')
+    // Natural Korean announcer pronunciation for technical acronyms & symbols
+    .replace(/\bJ\.?A\.?R\.?V\.?I\.?S\.?\b/gi, '자비스')
+    .replace(/\bCHLGD\b/g, '씨에이치엘지디')
+    .replace(/\bCHL\b/g, '씨에이치엘')
+    .replace(/\bUI\s*\/\s*UX\b/gi, '유아이 유엑스')
+    .replace(/\bUIUX\b/gi, '유아이 유엑스')
+    .replace(/\bCLI\b/g, '씨엘아이')
+    .replace(/\bSDK\b/g, '에스디케이')
+    .replace(/\bIDE\b/g, '아이디이')
+    .replace(/\bADE\b/g, '에이디이')
+    .replace(/\bLLM\b/g, '엘엘엠')
+    .replace(/\bSLM\b/g, '에스엘엠')
+    .replace(/\bTTS\b/g, '티티에스')
+    .replace(/\bSTT\b/g, '에스티티')
+    .replace(/\bGGUF\b/gi, '지지유에프')
+    .replace(/\bVRAM\b/gi, '브이램')
+    .replace(/\bWebGPU\b/gi, '웹지피유')
+    .replace(/\bLM\s*Studio\b/gi, '엘엠 스튜디오')
+    .replace(/\bOllama\b/gi, '올라마')
+    .replace(/\bRunNow\b/gi, '런나우')
+    .replace(/\bAntigravity\b/gi, '안티그래비티')
+    .replace(/\bBeausCreators\b/gi, '뷰스크리에이터스')
+    .replace(/\bBSC\b/g, '비에스씨')
+    .replace(/\b1\s*:\s*1\b/g, '일대일')
+    .replace(/\b2\.0\b/g, '이점영')
+    .replace(/(\d+)\s*%/g, '$1퍼센트')
+    .replace(/[→➔➜]/g, ', 다음으로 ')
+    .replace(/[·•]/g, ', ')
+    .replace(/[*#_~>|『』「」《》〈〉【】\[\]()]/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 4000); // Raised from 320 to 4,000 so J.A.R.V.I.S. reads 100% of window content to the very end!
+    .trim();
+
+  return txt.slice(0, 4000);
+}
+
+function cleanTextForSpeech(rawText) {
+  return humanizeKoreanSpeechText(rawText);
 }
 
 function stripLeadingId3(buf) {
@@ -76,9 +125,9 @@ function stripLeadingId3(buf) {
   return start < buf.length ? buf.subarray(start) : buf;
 }
 
-function splitTextIntoSentenceChunks(text, maxChunkLen = 800) {
+function splitTextIntoSentenceChunks(text, maxChunkLen = 650) {
   const sentences = text
-    .split(/(?<=[.?!。]|다\.|요\.|죠\.|까\?|네\.)\s+/)
+    .split(/(?<=[.?!。]|다\.|요\.|죠\.|까\?|네\.|니다\.)\s+/)
     .map(s => s.trim())
     .filter(Boolean);
   const chunks = [];
@@ -104,32 +153,35 @@ function splitTextIntoSentenceChunks(text, maxChunkLen = 800) {
 }
 
 async function synthesizeSingleEdgeChunk(chunkText, chosenVoice, rateStr, pitchStr) {
-  const tts = new MsEdgeTTS();
-  try {
-    await tts.setMetadata(chosenVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    const { audioStream } = tts.toStream(chunkText, {
-      rate: rateStr,
-      pitch: pitchStr
-    });
-    const parts = [];
-    await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('Neural TTS chunk timeout')), 12000);
-      audioStream.on('data', d => parts.push(d));
-      audioStream.on('end', () => {
-        clearTimeout(timer);
-        resolve();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const tts = new MsEdgeTTS();
+    try {
+      await tts.setMetadata(chosenVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const { audioStream } = tts.toStream(chunkText, {
+        rate: rateStr,
+        pitch: pitchStr
       });
-      audioStream.on('error', err => {
-        clearTimeout(timer);
-        reject(err);
+      const parts = [];
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Neural TTS chunk timeout')), 12000);
+        audioStream.on('data', d => parts.push(d));
+        audioStream.on('end', () => {
+          clearTimeout(timer);
+          resolve();
+        });
+        audioStream.on('error', err => {
+          clearTimeout(timer);
+          reject(err);
+        });
       });
-    });
-    try { tts.close(); } catch (e) {}
-    return Buffer.concat(parts);
-  } catch (e) {
-    try { tts.close(); } catch (err) {}
-    return Buffer.alloc(0);
+      try { tts.close(); } catch (e) {}
+      const buf = Buffer.concat(parts);
+      if (buf.length > 0) return buf;
+    } catch (e) {
+      try { tts.close(); } catch (err) {}
+    }
   }
+  return Buffer.alloc(0);
 }
 
 async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customOpts = {}) {
@@ -138,31 +190,32 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customO
     return { ok: false, error: 'Empty speech text' };
   }
 
-  // Always use J.A.R.V.I.S. exclusive voice profile
+  // Always use J.A.R.V.I.S. warm human voice profile (Zero artificial pitch distortion)
   const profile = NEURAL_VOICE_PROFILES.jarvis;
   const chosenVoice = customOpts.voiceId || profile.voice;
-  let rateStr = profile.rate;
-  if (typeof customOpts.speechRate === 'number' && !isNaN(customOpts.speechRate)) {
-    const pct = Math.round((customOpts.speechRate - 1.0) * 100);
-    rateStr = (pct >= 0 ? `+${pct}%` : `${pct}%`);
+  const rateStr = '+1%';
+  const pitchStr = '+0Hz';
+
+  const cacheKey = `${chosenVoice}|${cleanText}`;
+  if (ttsAudioCache.has(cacheKey)) {
+    return ttsAudioCache.get(cacheKey);
   }
-  const pitchStr = customOpts.pitchHz || profile.pitch;
 
   try {
-    const sentenceChunks = splitTextIntoSentenceChunks(cleanText, 800);
+    const sentenceChunks = splitTextIntoSentenceChunks(cleanText, 650);
     const audioBuffers = [];
     for (const chunk of sentenceChunks) {
       if (!chunk.trim()) continue;
       let buf = await synthesizeSingleEdgeChunk(chunk, chosenVoice, rateStr, pitchStr);
-      if (buf.length === 0 && chosenVoice !== 'ko-KR-HyunsuMultilingualNeural') {
-        buf = await synthesizeSingleEdgeChunk(chunk, 'ko-KR-HyunsuMultilingualNeural', rateStr, pitchStr);
+      if (buf.length === 0) {
+        buf = await synthesizeSingleEdgeChunk(chunk, 'ko-KR-InJoonNeural', rateStr, pitchStr);
       }
       if (buf.length > 0) {
         audioBuffers.push(audioBuffers.length === 0 ? buf : stripLeadingId3(buf));
       }
     }
     const finalBuf = Buffer.concat(audioBuffers);
-    return {
+    const resultObj = {
       ok: finalBuf.length > 0,
       personaKey: 'jarvis',
       voice: chosenVoice,
@@ -175,6 +228,14 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customO
       byteLength: finalBuf.length,
       audioBase64: finalBuf.toString('base64')
     };
+    if (resultObj.ok) {
+      if (ttsAudioCache.size > 40) {
+        const oldestKey = ttsAudioCache.keys().next().value;
+        ttsAudioCache.delete(oldestKey);
+      }
+      ttsAudioCache.set(cacheKey, resultObj);
+    }
+    return resultObj;
   } catch (err) {
     return { ok: false, error: err.message };
   }
@@ -588,7 +649,37 @@ async function processJarvisTurn(message, contextState = {}) {
     reply = `대표님, ${pcProposal.label}은 승인 후에만 실행합니다.`;
   }
 
-  // 창 열기·설정·승인 요청은 이미 답이 정해져 있다. 로컬 두뇌를 기다리지 않는다.
+  // 🧠 5-Step Autonomous Pipeline Approval Check ("계획 승인", "승인해", "제작 진행해")
+  if (!reply && /^(계획\s*승인|제작\s*승인|승인(해(요|주세요)?)?|진행해(요|주세요)?)\s*[.!]?\s*$/i.test(q.trim())) {
+    const pendingList = loadPendingPlans().filter(p => p.status === 'AWAITING_CEO_APPROVAL');
+    if (pendingList.length > 0) {
+      const execRes = await executeApprovedPlan(pendingList[0].planId);
+      if (execRes.ok) {
+        reply = `이건우 대표님, 승인하신 [${execRes.plan.step1_judgment.domainName}] 제작 계획을 완료했습니다. 선택된 ${execRes.plan.step2_modelSelection.selectedBrainModel} 두뇌로 Word, PPT, PDF, 마크다운, 엑셀 시트 및 인터랙티브 산출물을 생성하여 IDE 2.0 워크벤치에 마운트했습니다.`;
+        broadcastEvent('autonomous_plan_executed', execRes);
+      }
+    }
+  }
+
+  // 🧠 2-Track Autonomous Routing: If user asks to build/create code, 6-docs, Excel, web design, 3D, motion, infographic -> Run Step 1~3 first!
+  let autonomousPlan = null;
+  if (!reply && !hasExplicitOpenCmd) {
+    const intent = detectProductionIntentAndDomain(q);
+    if (intent.track === 'PRODUCTION_5STEP') {
+      autonomousPlan = await createAutonomous5StepPlan(q, 'HUD_CHAT');
+      reply = [
+        `이건우 대표님, 지시하신 안건에 대해 [1단계 상황 판단] 및 [2단계 자율 모델 선택]을 마치고 프로젝트 적용 계획서를 준비했습니다.`,
+        `• 판단 도메인: ${autonomousPlan.step1_judgment.domainName}`,
+        `• 자율 선택 두뇌: [${autonomousPlan.step2_modelSelection.activeProvider.toUpperCase()}] ${autonomousPlan.step2_modelSelection.selectedBrainModel} + ${autonomousPlan.step2_modelSelection.domainOpenModels.join(', ')}`,
+        `• 연동 본사 스킬: ${autonomousPlan.step2_modelSelection.linkedBscSkills.join(', ')}`,
+        `• 예상 산출물: ${autonomousPlan.step3_projectPlan.expectedDeliverables.join(', ')}`,
+        `계획서를 확인하신 후 [✅ 승인 및 제작 실행] 버튼을 누르시거나 "승인해"라고 말씀해 주시면 즉시 제작을 시작하겠습니다.`
+      ].join('\n');
+      broadcastEvent('autonomous_plan_created', autonomousPlan);
+    }
+  }
+
+  // 창 열기·설정·승인·5단계 계획 보고 요청은 이미 답이 정해져 있다. 로컬 두뇌를 중복 호출하지 않는다.
   if (reply && !contextState.forceLiveLlm) {
     const recorded = recordDeterministicJarvisTurn(q, reply);
     const dialogueTurns = [{
@@ -603,15 +694,17 @@ async function processJarvisTurn(message, contextState = {}) {
     broadcastEvent('agent_chat_update', {
       chatHistory: recorded.chatHistory,
       bridgeStatus: recorded.bridgeStatus,
-      dialogueTurns
+      dialogueTurns,
+      autonomousPlan
     });
-    logConsoleStream('🤖 J.A.R.V.I.S.', `Command turn: "${q.slice(0, 44)}"`, 0, 0);
+    logConsoleStream('🤖 J.A.R.V.I.S.', `Command/Plan turn: "${q.slice(0, 44)}"`, 18, 950);
     return {
       ok: true,
       reply,
       jarvisReply: reply,
       sohaReply: '',
       dialogueTurns,
+      autonomousPlan,
       primaryPersona: 'jarvis',
       delegatedAgent: '🤖 J.A.R.V.I.S.',
       fallbackUsed: false,
@@ -1363,6 +1456,119 @@ const server = http.createServer(async (req, res) => {
       2600
     );
     return sendJson(res, 200, result);
+  }
+
+  // 10-O. Ollama & LM Studio & RunNow 15 Models & 8 Production Domains Catalog (/api/jarvis/models-catalog)
+  if (req.method === 'GET' && pathname === '/api/jarvis/models-catalog') {
+    const catalog = await scanLocalAiEngines();
+    return sendJson(res, 200, { ok: true, ...catalog });
+  }
+
+  // 10-P. Select Active Brain Model with VRAM Auto-Unload Guard (/api/jarvis/select-brain)
+  if (req.method === 'POST' && pathname === '/api/jarvis/select-brain') {
+    const body = await parseBody(req);
+    const result = await selectActiveBrainModel({
+      provider: body.provider || 'ollama',
+      modelId: body.modelId || 'gemma4:e4b',
+      selectionMode: body.selectionMode || 'MANUAL'
+    });
+    broadcastEvent('brain_changed', result);
+    logConsoleStream('🧠 Brain Router', result.message, 12, 1400);
+    return sendJson(res, 200, result);
+  }
+
+  // 10-Q. 5-Step Autonomous Pipeline: Create Plan & Execute Approved Plan
+  if (req.method === 'GET' && pathname === '/api/jarvis/pending-plans') {
+    return sendJson(res, 200, { ok: true, plans: loadPendingPlans(), brainState: loadActiveBrainState() });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/autonomous-plan') {
+    const body = await parseBody(req);
+    const plan = await createAutonomous5StepPlan(body.prompt || '', body.clientEnv || 'IDE_2.0');
+    broadcastEvent('autonomous_plan_created', plan);
+    logConsoleStream('📋 5-Step Planner', `Created Plan [${plan.planId}] -> ${plan.step1_judgment.domainName}`, 24, 1800);
+    return sendJson(res, 200, { ok: true, plan });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/autonomous-execute') {
+    const body = await parseBody(req);
+    const execResult = await executeApprovedPlan(body.planId || '');
+    if (execResult.ok) {
+      broadcastEvent('autonomous_plan_executed', execResult);
+      logConsoleStream('🚀 5-Step Producer', `Executed Approved Plan [${execResult.plan.planId}] -> 6 Docs + Excel + Deliverable`, 85, 3400);
+    }
+    return sendJson(res, 200, execResult);
+  }
+
+  // 10-R. Integrated Web Terminal & Model Installer with SSE Streaming & CHLGD Security Gate (/api/jarvis/terminal)
+  if (req.method === 'POST' && pathname === '/api/jarvis/terminal') {
+    const body = await parseBody(req);
+    const cmd = (body.command || '').trim();
+    const cwd = body.cwd || __dirname;
+    broadcastEvent('terminal_output', { stream: 'cmd', line: `PS ${cwd}> ${cmd}` });
+    const termRes = await runStreamingTerminalCommand(cmd, cwd, (evt) => {
+      broadcastEvent('terminal_output', evt);
+    });
+    logConsoleStream('💻 Jarvis Terminal', `Executed: "${cmd.slice(0, 48)}" (exit ${termRes.exitCode})`, 15, 600);
+    return sendJson(res, 200, termRes);
+  }
+
+  // 10-S. Antigravity IDE 2.0 File Tree & Precision Save with Zero-Loss Backup (/api/jarvis/ide-files & /api/jarvis/ide-save-file)
+  if (req.method === 'GET' && pathname === '/api/jarvis/ide-files') {
+    const filesList = [
+      { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'docs/plan.md (자비스 마스터 계획서)', path: path.join(__dirname, 'docs', 'plan.md').replace(/\\/g, '/'), type: 'markdown' },
+      { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'docs/checklist.md (검증 체크리스트)', path: path.join(__dirname, 'docs', 'checklist.md').replace(/\\/g, '/'), type: 'markdown' },
+      { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'docs/context-notes.md (컨텍스트 노트)', path: path.join(__dirname, 'docs', 'context-notes.md').replace(/\\/g, '/'), type: 'markdown' },
+      { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'vault/IDE_ADE_Live_Bridge.md (Antigravity 2.0 브릿지)', path: path.join(VAULT_DIR, 'IDE_ADE_Live_Bridge.md').replace(/\\/g, '/'), type: 'markdown' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'scripts/jarvis-autonomous-router.js (자율 모델 라우터)', path: path.join(__dirname, 'scripts', 'jarvis-autonomous-router.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'bin/jarvis-cli.js (자비스 CLI)', path: path.join(__dirname, 'bin', 'jarvis-cli.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'sdk/jarvis-sdk.js (자비스 SDK)', path: path.join(__dirname, 'sdk', 'jarvis-sdk.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'public/js/graph-engine.js (옵시디언 뉴런 엔진)', path: path.join(PUBLIC_DIR, 'js', 'graph-engine.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'public/js/jarvis-design-views.js (워크스페이스 뷰)', path: path.join(PUBLIC_DIR, 'js', 'jarvis-design-views.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'server.js (자비스 통합 서버)', path: path.join(__dirname, 'server.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '🏢 본사 CHLGD 헌장 (BSC HQ SSOT)', label: 'bsc-global-rules/SKILL.md (본사 CHLGD 헌장)', path: 'C:/BeausCreators/.agents/skills/bsc-global-rules/SKILL.md', type: 'markdown' },
+      { group: '🏢 본사 CHLGD 헌장 (BSC HQ SSOT)', label: 'ondevice-ai-domain-routing/SKILL.md (RunNow 15 오픈모델)', path: 'C:/Users/USER/.gemini/config/skills/ondevice-ai-domain-routing/SKILL.md', type: 'markdown' }
+    ];
+    return sendJson(res, 200, { ok: true, files: filesList });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/ide-save-file') {
+    const body = await parseBody(req);
+    const targetPath = path.resolve(String(body.filePath || ''));
+    const content = String(body.content ?? '');
+    const allowedWorkspace = path.resolve(__dirname);
+
+    // Security Gate: Only allow writing inside c:\BSC_Javis_OS workspace (never overwrite HQ SSOT files!)
+    if (!targetPath.toLowerCase().startsWith(allowedWorkspace.toLowerCase())) {
+      return sendJson(res, 403, {
+        ok: false,
+        error: '🛡️ [BSC 본사 보호 헌장] 본사(HQ) 원본 파일은 수정할 수 없으며, c:\\BSC_Javis_OS 워크스페이스 내부 파일만 편집·저장할 수 있습니다.'
+      });
+    }
+    if (content.trim().length < 5) {
+      return sendJson(res, 400, {
+        ok: false,
+        error: '🛡️ [0-Byte 유실 방지 게이트] 빈 내용으로 덮어쓰는 것이 차단되었습니다.'
+      });
+    }
+    try {
+      if (fs.existsSync(targetPath)) {
+        const bakDir = path.join(PUBLIC_DIR, 'data', 'ide_backups');
+        fs.mkdirSync(bakDir, { recursive: true });
+        const bakName = `${path.basename(targetPath)}.${Date.now()}.bak`;
+        fs.copyFileSync(targetPath, path.join(bakDir, bakName));
+      }
+      fs.writeFileSync(targetPath, content, 'utf8');
+      logConsoleStream('💻 IDE 2.0 Editor', `Saved ${path.basename(targetPath)} (${content.length} bytes, backup created)`, 10, 500);
+      return sendJson(res, 200, {
+        ok: true,
+        savedPath: targetPath.replace(/\\/g, '/'),
+        byteLength: Buffer.byteLength(content, 'utf8'),
+        message: `✅ ${path.basename(targetPath)} 파일이 안전 백업 생성 후 정밀 저장되었습니다.`
+      });
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
   }
 
   // 11. Serve BSC Agent Images from C:/BeausCreators/.cursor/agent_images/

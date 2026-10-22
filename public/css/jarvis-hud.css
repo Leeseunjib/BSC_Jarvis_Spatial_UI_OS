@@ -3552,3 +3552,63 @@ body.theme-minimal-slate {
   border-color: rgba(251, 191, 36, 0.5);
   color: #fbbf24;
 }
+
+
+/* ==========================================================================
+   🪟 UNIVERSAL WINDOW MANAGER (Drag Move + 8-Direction Resize + Min/Max)
+   Applies to all windows EXCEPT Left Menu (#slim-left-dock, #node-preview-card)
+   ========================================================================== */
+.uwm-managed-window {
+  position: fixed;
+}
+.uwm-resize-handle {
+  position: absolute;
+  z-index: 50;
+  user-select: none;
+}
+.uwm-resize-e {
+  top: 12px;
+  right: 0;
+  bottom: 18px;
+  width: 7px;
+  cursor: ew-resize;
+}
+.uwm-resize-w {
+  top: 12px;
+  left: 0;
+  bottom: 18px;
+  width: 7px;
+  cursor: ew-resize;
+}
+.uwm-resize-s {
+  left: 12px;
+  right: 18px;
+  bottom: 0;
+  height: 7px;
+  cursor: ns-resize;
+}
+.uwm-resize-sw {
+  left: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nesw-resize;
+}
+.uwm-resize-se {
+  right: 2px;
+  bottom: 1px;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  font-size: 11px;
+  color: rgba(56, 189, 248, 0.65);
+  padding: 1px 2px;
+  pointer-events: auto;
+}
+.uwm-resize-se:hover {
+  color: #00f0ff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
+}

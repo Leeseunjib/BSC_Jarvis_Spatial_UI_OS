@@ -133,10 +133,12 @@
       <!-- Category 2: Core Conversation, Council & Tycoon Office -->
       <div class="lvm-section">
         <div class="lvm-sec-header">
-          <span>💬 대화 · 회의 · 에이전트 오피스</span>
+          <span>💬 대화 · IDE 2.0 · 두뇌 · 오피스</span>
           <span class="lvm-live-tag cyan">핵심</span>
         </div>
         <div class="lvm-btn-grid">
+          <button class="sys-rib-btn cyan" onclick="window.JarvisIdeWorkbench.openFloatingIdeWorkbench('PLAN_5STEP')" title="Antigravity IDE 2.0 워크벤치: 코드 에디터 + 문서/계획서(Plan) 뷰어 + 5단계 자율 승인 + 내장 실시간 터미널(CLI/SDK)">💻 IDE 2.0 · 계획 · 터미널</button>
+          <button class="sys-rib-btn gold" onclick="window.JarvisIdeWorkbench.openFloatingIdeWorkbench('MODELS_8DOMAIN')" title="올라마(Ollama) & LM Studio 실시간 모델 스캔 · 원클릭 설치 · 자비스 지능 선택 · RunNow 15종">🧠 올라마·LM Studio 두뇌</button>
           <button class="sys-rib-btn cyan" id="btn-toggle-agent-chat" title="자비스(J.A.R.V.I.S.) 단독 1:1 티키타카 대화창">🤖 자비스 1:1 대화</button>
           <button class="sys-rib-btn gold" id="btn-open-bsc-council" title="BeausCreators 에이전트(소하·거누·우진·태준) 의논·회의·보고서 워룸">🏛️ 의논·회의·보고서</button>
           <button class="sys-rib-btn sky" id="btn-rib-tycoon-office" title="SD 캐릭터 타이쿤 에이전트 사무실 (BSC AI OFFICE)">🕹️ SD 타이쿤 오피스</button>
@@ -467,6 +469,7 @@
   </div>
 
   <!-- Core Scripts -->
+  <script src="/js/jarvis-sdk.js"></script>
   <script src="/js/worldview-together.js"></script>
   <script src="/js/aistudio-catalog-and-domains.js"></script>
   <script src="/js/window-spawner.js"></script>
@@ -475,5 +478,6 @@
   <script src="/js/jarvis-core-3d.js"></script>
   <script src="/js/multimodal-engine.js"></script>
   <script src="/js/jarvis-design-views.js"></script>
+  <script src="/js/jarvis-ide-workbench.js"></script>
 </body>
 </html>

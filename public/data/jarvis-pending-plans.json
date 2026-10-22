@@ -1,0 +1,54 @@
+[
+  {
+    "planId": "PLAN_1792643086008",
+    "createdAt": "2026-10-22T04:24:46.008Z",
+    "status": "AWAITING_CEO_APPROVAL",
+    "userPrompt": "?? ?? ???? ? ??? ? ??�??�PPT 6? ??? ??",
+    "clientEnv": "IDE_2.0",
+    "track": "PRODUCTION_5STEP",
+    "step1_judgment": {
+      "domainId": "DOCS_6_SUITE",
+      "domainName": "📄 6종 문서 패키지 (Word · PPT · MD · PDF · Excel · 리포트)",
+      "allDetectedDomains": [
+        "DOCS_6_SUITE"
+      ],
+      "securityHarnessCheck": "PASS (원본 덮어쓰기/삭제 없음 · Append & 신규 아티팩트 생성 안전 모드)",
+      "consumerPsychologyLens": "인지 부하 최소화(Zero Friction) · 지각 가치 극대화 · 대표님 직접 통제감(Ownership) 반영"
+    },
+    "step2_modelSelection": {
+      "selectionMode": "AUTO",
+      "activeProvider": "ollama",
+      "selectedBrainModel": "gemma4:e4b",
+      "domainOpenModels": [
+        "Mistral-Small-24B-Instruct",
+        "Gemma 4 E4B",
+        "EXAONE-3.5-7.8B",
+        "Docling / Marker Layout"
+      ],
+      "mobileWebGpuModel": "Microsoft Phi-4 Mini (3.8B) + Google Gemma 2 (2B)",
+      "linkedBscSkills": [
+        "doc-proofreader-pro",
+        "epub-zero-builder",
+        "수석비서-소하",
+        "출판에디터-서아"
+      ],
+      "selectionReason": "[📄 6종 문서 패키지 (Word · PPT · MD · PDF · Excel · 리포트)] 제작 속도와 한국어 품질 최적화를 위해 로컬 [gemma4:e4b] 두뇌와 [Mistral-Small-24B-Instruct] 엔진을 선택했습니다."
+    },
+    "step3_projectPlan": {
+      "expectedDeliverables": [
+        "Word (.docx)",
+        "PowerPoint (.pptx)",
+        "Markdown (.md)",
+        "PDF (.pdf)",
+        "Excel (.xls/.xlsx/.csv)",
+        "Executive Summary"
+      ],
+      "steps": [
+        "1단계 [CHLGD Context 스캔]: 본사 가이드라인 및 선택된 스킬(doc-proofreader-pro, epub-zero-builder, 수석비서-소하, 출판에디터-서아) 로드",
+        "2단계 [자율 두뇌 가동]: OLLAMA (gemma4:e4b) + Mistral-Small-24B-Instruct 엔진으로 초안 설계",
+        "3단계 [6종 문서 & 실물 에셋 패키징]: Word (.docx), PowerPoint (.pptx), Markdown (.md), PDF (.pdf), Excel (.xls/.xlsx/.csv), Executive Summary 생성 및 IDE 2.0 워크벤치에 즉시 마운트",
+        "4단계 [CHLGD Loop 기록]: 본사 작업일지(WorkLog) 및 로컬 Vault에 무손실 Append 기록"
+      ]
+    }
+  }
+]

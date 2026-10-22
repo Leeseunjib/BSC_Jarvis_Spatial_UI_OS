@@ -417,59 +417,46 @@ window.MultimodalEngine = {
 
     if (cfg.autoSpeakResponses === false && !turn.voiceId) return;
 
-    try {
-      const res = await fetch('/api/jarvis/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text,
-          persona: 'jarvis',
-          voiceId: 'ko-KR-HyunsuMultilingualNeural',
-          speechRate: cfg.speechRate || 1.06,
-          pitchHz: cfg.pitchHz || '-2Hz'
-        })
-      });
-      if (myToken !== this.speechQueueToken) return;
-      const data = await res.json();
-      if (data && data.ok && data.audioBase64) {
-        const played = await new Promise((resolve) => {
-          const audio = new Audio(`data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`);
-          this.currentAudio = audio;
-          this.speechPulseInterval = setInterval(() => {
-            if (window.JarvisReactorCore) {
-              window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
-            }
-          }, 110);
-          const cleanup = (ok) => {
-            if (this.speechPulseInterval) {
-              clearInterval(this.speechPulseInterval);
-              this.speechPulseInterval = null;
-            }
-            resolve(ok);
-          };
-          audio.onended = () => cleanup(true);
-          audio.onerror = () => cleanup(false);
-          audio.play().catch(() => cleanup(false));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch('/api/jarvis/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            persona: 'jarvis',
+            voiceId: 'ko-KR-HyunsuMultilingualNeural',
+            speechRate: 1.01,
+            pitchHz: '+0Hz'
+          })
         });
-        if (played) return;
-      }
-    } catch (e) {}
-
-    // Fallback to browser Web Speech (Sentence-chunked so Chrome never stops after 15 seconds!)
-    if (window.speechSynthesis && myToken === this.speechQueueToken) {
-      const sentences = text.split(/(?<=[.?!。]|다\.|요\.|죠\.|까\?)\s+/).filter(Boolean);
-      for (const s of sentences) {
-        if (myToken !== this.speechQueueToken) break;
-        await new Promise(resolve => {
-          const utter = new SpeechSynthesisUtterance(s);
-          utter.lang = 'ko-KR';
-          utter.rate = cfg.speechRate || 1.06;
-          utter.onend = resolve;
-          utter.onerror = resolve;
-          window.speechSynthesis.speak(utter);
-        });
-      }
+        if (myToken !== this.speechQueueToken) return;
+        const data = await res.json();
+        if (data && data.ok && data.audioBase64) {
+          const played = await new Promise((resolve) => {
+            const audio = new Audio(`data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`);
+            this.currentAudio = audio;
+            this.speechPulseInterval = setInterval(() => {
+              if (window.JarvisReactorCore) {
+                window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
+              }
+            }, 110);
+            const cleanup = (ok) => {
+              if (this.speechPulseInterval) {
+                clearInterval(this.speechPulseInterval);
+                this.speechPulseInterval = null;
+              }
+              resolve(ok);
+            };
+            audio.onended = () => cleanup(true);
+            audio.onerror = () => cleanup(false);
+            audio.play().catch(() => cleanup(false));
+          });
+          if (played) return;
+        }
+      } catch (e) {}
     }
+    // Mechanical Windows SAPI5 fallback (window.speechSynthesis) permanently removed per CEO directive!
   },
 
   async speakNeuralTurns(dialogueTurns, fallbackText = '') {

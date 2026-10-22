@@ -208,6 +208,14 @@ window.JarvisDesignViews = {
       stage.innerHTML = this.renderTycoonOfficeHTML();
       this.bindTycoonOfficeEvents();
     }
+
+    // Make workspace cards movable & resizable per CEO directive
+    if (window.UniversalWindowManager) {
+      stage.querySelectorAll('.mac-window, .companion-card').forEach(w => {
+        const hdr = w.querySelector('.mac-titlebar, .cc-header, .bsc-os-header, .tycoon-top-bar');
+        window.UniversalWindowManager.enhanceWindow(w, hdr);
+      });
+    }
   },
 
   /* ============================================================================
@@ -228,10 +236,10 @@ window.JarvisDesignViews = {
             </div>
             <div class="mac-win-title">${docTitle}</div>
             <div class="mac-win-actions">
+              <button class="mac-pill-btn primary" onclick="window.JarvisIdeWorkbench.openFloatingIdeWorkbench('PLAN_5STEP')">💻 IDE 2.0 코드·계획·터미널</button>
+              <button class="mac-pill-btn" onclick="window.JarvisIdeWorkbench.openFloatingIdeWorkbench('MODELS_8DOMAIN')">🧠 올라마·LM Studio</button>
               <button class="mac-pill-btn" id="btn-doc-read-aloud">🔊 자비스 낭독</button>
-              <button class="mac-pill-btn">편집</button>
-              <button class="mac-pill-btn">공유</button>
-              <button class="mac-pill-btn primary" id="btn-doc-save-hq">저장</button>
+              <button class="mac-pill-btn" id="btn-doc-save-hq">저장</button>
             </div>
           </header>
 
