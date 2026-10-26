@@ -61,8 +61,8 @@ async function runVerification() {
   const tf = await requestJson('GET', '/api/token-flow');
   check(
     '4. Token Flow Stewardship Telemetry (/api/token-flow)',
-    tf.status === 200 && tf.data.savingsPct >= 80,
-    `Savings=${tf.data.savingsPct}% (${tf.data.actualUsedTokens}/${tf.data.rawWithoutMapsTokens})`
+    tf.status === 200 && tf.data.measured === false && tf.data.savingsPct == null,
+    `measured=${tf.data.measured}, sessionChars=${tf.data.sessionChars}`
   );
 
   // 5. Master Settings Persistence (POST & GET /api/jarvis/settings)
@@ -161,6 +161,52 @@ async function runVerification() {
     vis.status === 200 && anl.status === 200 && grd.status === 200 && aud.data.overallScore >= 98,
     `VisionObjs=${vis.data.detectedObjects?.length}, AuditScore=${aud.data.overallScore}/100`
   );
+
+  // 12. 4-Way Multi-LLM Hub Status & Unified Inference Test (GPT · Gemini · LM Studio · Ollama)
+  const llmHub = await requestJson('GET', '/api/jarvis/llm-hub/status');
+  const has4Providers = Boolean(
+    llmHub.data?.providers?.ollama &&
+    llmHub.data?.providers?.lmstudio &&
+    llmHub.data?.providers?.gemini &&
+    llmHub.data?.providers?.openai
+  );
+  check(
+    '12. 4-Way Multi-LLM Hub Status (/api/jarvis/llm-hub/status)',
+    llmHub.status === 200 && has4Providers,
+    `Active=${llmHub.data?.state?.activeProvider}:${llmHub.data?.state?.activeModel}`
+  );
+
+  // 13. REA SasariSa (사사리사) Windows 11 Blueprint & Voice Skills (SAFE + 2-Step Confirmation Guardrail)
+  const sasaBp = await requestJson('GET', '/api/jarvis/sasarisa/blueprint');
+  const sasaMusic = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '신나는 재즈 음악 틀어줘',
+    openExternalWindow: false
+  });
+  const sasaKakao = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘',
+    openExternalWindow: false
+  });
+  check(
+    '13. REA SasariSa Windows 11 Edition (Music SAFE + KakaoTalk 2-Step Confirmation Guardrail)',
+    sasaBp.data?.ok &&
+      sasaMusic.data?.status === 'EXECUTED' &&
+      sasaKakao.data?.status === 'REQUIRES_CONFIRMATION' &&
+      Boolean(sasaKakao.data?.confirmItem?.confirmId),
+    `Symbols=${sasaBp.data?.blueprint?.recoveredSymbolsCount}, Music=${sasaMusic.data?.status}, Kakao=${sasaKakao.data?.status}`
+  );
+
+  if (sasaKakao.data?.confirmItem?.confirmId) {
+    const sasaConfirm = await requestJson('POST', '/api/jarvis/sasarisa/confirm', {
+      confirmId: sasaKakao.data.confirmItem.confirmId,
+      decision: 'APPROVE',
+      openExternalWindow: false
+    });
+    check(
+      '14. REA SasariSa 2-Step Confirmation Execution (/api/jarvis/sasarisa/confirm)',
+      sasaConfirm.data?.ok && sasaConfirm.data?.status === 'APPROVED_AND_EXECUTED',
+      `Confirmed Status=${sasaConfirm.data?.status}`
+    );
+  }
 
   const failed = results.filter(r => !r.passed);
   console.log(`\n====================================================================`);

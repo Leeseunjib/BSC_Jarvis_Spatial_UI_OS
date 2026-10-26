@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: #f4f5f7;
+    color: #18181b;
+    font-family: 'Pretendard', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+  }
+  /* Top Global Header Bar (Bright Minimal White) */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 10;
+  }
+  .brand-row { display: flex; align-items: center; gap: 10px; }
+  .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #18181b;
+  }
+  .brand-title { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; color: #111827; }
+  .design-pill {
+    font-size: 11px; font-weight: 600; color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .search-capsule {
+    width: 500px; height: 36px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; font-size: 12px; color: #6b7280;
+  }
+  .top-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #374151; }
+  .top-chip {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 5px 11px; border-radius: 8px; font-size: 11.5px; font-weight: 600; color: #374151;
+  }
+  /* Left Slim Dock (Clean White Card) */
+  .left-dock {
+    position: absolute;
+    top: 72px; left: 16px; bottom: 72px;
+    width: 68px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 12px 6px; gap: 6px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+  .dock-btn {
+    width: 54px; height: 54px;
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; color: #6b7280; font-size: 10px; font-weight: 600;
+  }
+  .dock-btn .ico { font-size: 17px; }
+  .dock-btn.active {
+    background: #18181b;
+    color: #ffffff; font-weight: 700;
+  }
+  /* Main Dashboard Stage */
+  .bento-stage {
+    position: absolute;
+    top: 72px; left: 98px; right: 20px; bottom: 72px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 22px 26px;
+    display: flex; flex-direction: column; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    z-index: 5;
+    overflow: hidden;
+  }
+  .stage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+  }
+  .sh-badge {
+    display: inline-block;
+    font-size: 10.5px; font-weight: 700; color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 3px 9px; border-radius: 6px; margin-bottom: 5px;
+  }
+  .sh-title { font-size: 19px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .sh-sub { font-size: 12.5px; color: #6b7280; margin-top: 3px; }
+  .sh-tabs {
+    display: flex; gap: 4px;
+    background: #f3f4f6;
+    padding: 4px; border-radius: 11px;
+    border: 1px solid #e5e7eb;
+  }
+  .sh-tab {
+    padding: 7px 13px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; color: #4b5563;
+  }
+  .sh-tab.home {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827; font-weight: 700;
+  }
+  .sh-tab.active {
+    background: #18181b;
+    color: #ffffff; font-weight: 700;
+  }
+  /* Minimal Monotone KPI Row */
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280; font-weight: 600; }
+  .kpi-val { font-size: 19px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .kpi-sub { font-size: 11.5px; color: #6b7280; }
+  .badge-delta {
+    font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+  }
+  /* Bento Panels */
+  .bento-grid-2 { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; flex: 1; min-height: 0; }
+  .bento-grid-3 { display: grid; grid-template-columns: 270px 1fr 330px; gap: 16px; flex: 1; min-height: 0; }
+  .bento-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 12px;
+    min-height: 0; overflow: hidden;
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 12px; border-bottom: 1px solid #f3f4f6;
+  }
+  .panel-title { font-size: 15px; font-weight: 800; color: #111827; }
+  .panel-desc { font-size: 12px; color: #6b7280; margin-top: 3px; }
+  .btn {
+    padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 600;
+    background: #ffffff; border: 1px solid #d1d5db; color: #374151;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .btn.primary { background: #18181b; border-color: #18181b; color: #ffffff; font-weight: 700; }
+  .btn.soft { background: #f3f4f6; border-color: #e5e7eb; color: #111827; font-weight: 600; }
+  .item-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 13px 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .item-card.active {
+    background: #ffffff;
+    border: 1.5px solid #18181b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .chip {
+    font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .chip.dark { background: #18181b; color: #ffffff; border-color: #18181b; }
+  .chip.green { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+  /* Bottom Bar */
+  .bottom-bar {
+    position: absolute; left: 20px; right: 20px; bottom: 14px; height: 46px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 10;
+  }
+  .bb-pill {
+    background: #ffffff; border: 1px solid #e5e7eb;
+    border-radius: 999px; padding: 8px 16px; font-size: 12px; color: #374151;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+  .bb-prompt {
+    width: 560px; height: 42px; border-radius: 999px;
+    background: #ffffff; border: 1px solid #d1d5db;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px;
+    font-size: 12.5px; color: #6b7280;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+</style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand-row">
+      <span class="logo-dot"></span>
+      <span class="brand-title">BSC J.A.R.V.I.S. OS</span>
+      <span class="design-pill">심플 모노톤 라이트 대시보드 · 시안 #04 (ArtCraft 13종 실시간 화면 공유 & 원격 제어 창)</span>
+    </div>
+    <div class="search-capsule">
+      <span>🔍 폴더, 마크다운(.md) 문서, 코드, 프로그램 검색...</span>
+      <kbd style="background:#f3f4f6;border:1px solid #e5e7eb;padding:2px 6px;border-radius:5px;font-size:10.5px;color:#4b5563;">⌘K</kbd>
+    </div>
+    <div class="top-right">
+      <span class="top-chip">● Gemma 4 로컬 코어 ($0)</span>
+      <span class="top-chip">🎙️ 현수 HD 자연 음성</span>
+      <span class="top-chip">10월 23일 (금) 오후 3:20</span>
+    </div>
+  </header>
+
+  <nav class="left-dock">
+    
+      <div class="dock-btn ">
+        <span class="ico">🧠</span>
+        <span>뉴런홈</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">📂</span>
+        <span>지식폴더</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">📄</span>
+        <span>문서·IDE</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🤖</span>
+        <span>두뇌·도구</span>
+      </div>
+    
+      <div class="dock-btn active">
+        <span class="ico">🎨</span>
+        <span>ArtCraft</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🏛️</span>
+        <span>회의·조직</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">⚙️</span>
+        <span>설정·검증</span>
+      </div>
+    
+  </nav>
+
+  <main class="bento-stage">
+    <div class="stage-header">
+      <div>
+        <span class="sh-badge">MINIMAL LIGHT DESIGN #04 · ArtCraft 13종 실시간 화면 공유 & 원격 제어 창</span>
+        <div class="sh-title">🎨 ArtCraft 13종 실시간 제어 스튜디오 (PhotoCraft 화면 직결)</div>
+        <div class="sh-sub">자비스 UI 창 안에서 실행 중인 ArtCraft 화면을 깔끔하게 보면서 마우스 클릭·도구 변경·새 레이어·AI 드로잉을 바로 제어합니다.</div>
+      </div>
+      <div class="sh-tabs">
+        
+          <div class="sh-tab home ">🧠 뉴런홈 복귀</div>
+        
+          <div class="sh-tab  ">📂 지식폴더</div>
+        
+          <div class="sh-tab  ">📄 문서 · IDE</div>
+        
+          <div class="sh-tab  ">🤖 AI 두뇌 · 도구</div>
+        
+          <div class="sh-tab  active">🎨 ArtCraft 제어</div>
+        
+          <div class="sh-tab  ">🏛️ 회의 · 조직</div>
+        
+          <div class="sh-tab  ">⚙️ 설정 · 검증</div>
+        
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>현재 제어 중인 앱</span>
+            <span class="badge-delta">실행 및 연결됨</span>
+          </div>
+          <div class="kpi-val">01. PhotoCraft</div>
+          <div class="kpi-sub">포토샵 대체 · 사진 및 PSD 레이어 편집</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>실시간 화면 연결 채널</span>
+            <span class="badge-delta">실시간 스트리밍</span>
+          </div>
+          <div class="kpi-val">로컬 제어 포트 :17801</div>
+          <div class="kpi-sub">ui.screenshot & ui.click 양방향 직결</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>연결된 AI 두뇌</span>
+            <span class="badge-delta">SharedStore</span>
+          </div>
+          <div class="kpi-val">Gemma 4 E4B 연동</div>
+          <div class="kpi-sub">13종 모든 앱에 로컬 AI 자동 연결 완료</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>설치된 ArtCraft 앱</span>
+            <span class="badge-delta">정상 작동</span>
+          </div>
+          <div class="kpi-val">13종 전체 설치됨</div>
+          <div class="kpi-sub">Photo · Vector · Film · Fig · Light · Deck 등</div>
+        </div>
+      
+    </div>
+
+    
+        <div class="bento-grid-3" style="grid-template-columns:260px 1fr 310px;">
+          <aside class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">1. ArtCraft 13종 앱 선택</div>
+                <div class="panel-desc">클릭 시 해당 앱 제어 화면으로 전환</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              
+                <div class="item-card active" style="padding:8px 12px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#111827;">01. PhotoCraft</div>
+                    <div style="font-size:11px;color:#6b7280;">포토샵 대체 · 사진 편집</div>
+                  </div>
+                  <span class="chip dark">제어 중</span>
+                </div>
+              
+                <div class="item-card " style="padding:8px 12px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#111827;">02. VectorCraft</div>
+                    <div style="font-size:11px;color:#6b7280;">일러스트 대체 · 벡터 그래픽</div>
+                  </div>
+                  <span class="chip ">대기</span>
+                </div>
+              
+                <div class="item-card " style="padding:8px 12px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#111827;">03. FilmCraft</div>
+                    <div style="font-size:11px;color:#6b7280;">프리미어 대체 · 영상 편집</div>
+                  </div>
+                  <span class="chip ">대기</span>
+                </div>
+              
+                <div class="item-card " style="padding:8px 12px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#111827;">06. FigCraft</div>
+                    <div style="font-size:11px;color:#6b7280;">피그마 대체 · UI/UX 디자인</div>
+                  </div>
+                  <span class="chip ">대기</span>
+                </div>
+              
+                <div class="item-card " style="padding:8px 12px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#111827;">07. LightCraft</div>
+                    <div style="font-size:11px;color:#6b7280;">라이트룸 대체 · 사진 색보정</div>
+                  </div>
+                  <span class="chip ">대기</span>
+                </div>
+              
+                <div class="item-card " style="padding:8px 12px;">
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#111827;">10. DeckCraft</div>
+                    <div style="font-size:11px;color:#6b7280;">파워포인트 대체 · 슬라이드</div>
+                  </div>
+                  <span class="chip ">대기</span>
+                </div>
+              
+            </div>
+            <div style="margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+              <span class="btn">✋ 이동</span>
+              <span class="btn primary">🖌️ 브러시</span>
+              <span class="btn">✏️ 펜</span>
+              <span class="btn">🔤 텍스트</span>
+              <span class="btn">⬜ 선택</span>
+              <span class="btn">🔍 줌</span>
+            </div>
+          </aside>
+
+          <main class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">🖥️ PhotoCraft 실시간 제어 화면 (화면 위를 클릭하면 마우스 좌표가 바로 전달됩니다)</div>
+                <div class="panel-desc">실제 프로그램 창 화면을 실시간으로 공유하며, 상단 버튼으로 캔버스와 레이어를 즉시 조작합니다.</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <span class="btn soft">📡 실시간 스트리밍 ON</span>
+                <span class="btn primary">🎨 AI 브러시 자동 드로잉</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="btn primary">📄 새 캔버스 (1920×1080)</span>
+              <span class="btn">+ 새 레이어 추가</span>
+              <span class="btn">📈 커브 색보정</span>
+              <span class="btn">🌈 색조·채도 보정</span>
+              <span class="btn">⛶ 화면 맞춤</span>
+              <span class="btn">↩️ 실행 취소</span>
+            </div>
+            <div style="flex:1;background:#f3f4f6;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+              <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221100%22%20height%3D%22600%22%20viewBox%3D%220%200%201100%20600%22%3E%0A%20%20%20%20%3Crect%20width%3D%221100%22%20height%3D%22600%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%221100%22%20height%3D%2238%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%220%22%20y1%3D%2238%22%20x2%3D%221100%22%20y2%3D%2238%22%20stroke%3D%22%23e5e7eb%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2219%22%20r%3D%225.5%22%20fill%3D%22%23ef4444%22%2F%3E%3Ccircle%20cx%3D%2238%22%20cy%3D%2219%22%20r%3D%225.5%22%20fill%3D%22%23f59e0b%22%2F%3E%3Ccircle%20cx%3D%2256%22%20cy%3D%2219%22%20r%3D%225.5%22%20fill%3D%22%2310b981%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%2224%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3EPhotoCraft%200.5.1%20%E2%80%94%20Untitled-1.psd%20%40%20100%25%20(Live%20Control%20%3A17801%20Connected)%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%2239%22%20width%3D%2254%22%20height%3D%22561%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2254%22%20y1%3D%2239%22%20x2%3D%2254%22%20y2%3D%22600%22%20stroke%3D%22%23e5e7eb%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%2254%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2318181b%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%2296%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%22138%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%22180%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2290%22%20y%3D%2268%22%20width%3D%22710%22%20height%3D%22500%22%20rx%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23d1d5db%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%20160%20400%20Q%20340%20160%2C%20500%20350%20T%20720%20240%22%20fill%3D%22none%22%20stroke%3D%22%2318181b%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%20190%20450%20Q%20380%20260%2C%20540%20420%20T%20730%20330%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22500%22%20cy%3D%22350%22%20r%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%2318181b%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22125%22%20y%3D%22110%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22bold%22%3EArtCraft%20Live%20Canvas%20(1920%20%C3%97%201080%20%C2%B7%2060FPS%20%EC%8B%A4%EC%8B%9C%EA%B0%84%20%ED%99%94%EB%A9%B4%20%EA%B3%B5%EC%9C%A0)%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22125%22%20y%3D%22132%22%20fill%3D%22%236b7280%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3E%EC%9D%B4%20%ED%99%94%EB%A9%B4%20%EC%9C%84%EB%A5%BC%20%ED%81%B4%EB%A6%AD%ED%95%98%EB%A9%B4%20%EB%A7%88%EC%9A%B0%EC%8A%A4%20%EC%A2%8C%ED%91%9C%EA%B0%80%20%EC%8B%A4%ED%96%89%20%EC%A4%91%EC%9D%B8%20PhotoCraft%EB%A1%9C%20%EC%A6%89%EC%8B%9C%20%EC%A0%84%EB%8B%AC%EB%90%A9%EB%8B%88%EB%8B%A4.%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22836%22%20y%3D%2239%22%20width%3D%22264%22%20height%3D%22561%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%22836%22%20y1%3D%2239%22%20x2%3D%22836%22%20y2%3D%22600%22%20stroke%3D%22%23e5e7eb%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22854%22%20y%3D%2272%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3E%EB%A0%88%EC%9D%B4%EC%96%B4%20%26amp%3B%20%EC%83%89%EB%B3%B4%EC%A0%95%20(Layers)%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22852%22%20y%3D%2288%22%20width%3D%22232%22%20height%3D%2242%22%20rx%3D%228%22%20fill%3D%22%23f9fafb%22%20stroke%3D%22%2318181b%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22866%22%20y%3D%22114%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20font-weight%3D%22bold%22%3E%F0%9F%96%8C%EF%B8%8F%20AI%20%EB%B8%8C%EB%9F%AC%EC%8B%9C%20%EB%93%9C%EB%A1%9C%EC%9E%89%20%EB%A0%88%EC%9D%B4%EC%96%B4%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22852%22%20y%3D%22138%22%20width%3D%22232%22%20height%3D%2242%22%20rx%3D%228%22%20fill%3D%22%23f9fafb%22%20stroke%3D%22%23e5e7eb%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22866%22%20y%3D%22164%22%20fill%3D%22%23374151%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3E%F0%9F%93%88%20%EC%BB%A4%EB%B8%8C(Curves)%20%EB%B3%B4%EC%A0%95%20%EB%A0%88%EC%9D%B4%EC%96%B4%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22852%22%20y%3D%22188%22%20width%3D%22232%22%20height%3D%2242%22%20rx%3D%228%22%20fill%3D%22%23f9fafb%22%20stroke%3D%22%23e5e7eb%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22866%22%20y%3D%22214%22%20fill%3D%22%236b7280%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3E%F0%9F%96%BC%EF%B8%8F%20%EB%B0%B0%EA%B2%BD%20%EC%BA%94%EB%B2%84%EC%8A%A4%20(1920%C3%971080)%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E" style="width:100%;height:100%;object-fit:contain;" />
+            </div>
+          </main>
+
+          <aside class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">2. 현재 레이어 &amp; 상태 정보</div>
+                <div class="panel-desc">PhotoCraft 실시간 내부 상태</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="item-card active" style="padding:10px 12px;"><div><strong style="font-size:12.5px;">🖌️ AI 브러시 드로잉 레이어</strong><div style="font-size:11px;color:#6b7280;">불투명도 100% · 표준(Normal)</div></div></div>
+              <div class="item-card" style="padding:10px 12px;"><div><strong style="font-size:12.5px;">📈 커브(Curves) 조정 레이어</strong><div style="font-size:11px;color:#6b7280;">비파괴 색보정 필터 활성</div></div></div>
+              <div class="item-card" style="padding:10px 12px;"><div><strong style="font-size:12.5px;">🖼️ 배경 캔버스 (1920×1080)</strong><div style="font-size:11px;color:#6b7280;">RGB / 16-bit · DirectX 12 가속</div></div></div>
+            </div>
+            <div style="flex:1;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;font-family:monospace;font-size:11.5px;color:#374151;line-height:1.6;">
+              [15:20:01] PhotoCraft (:17801) 연결됨<br/>
+              [15:20:03] 새 캔버스 1920x1080 생성<br/>
+              [15:20:05] AI 브러시 드로잉 완료<br/>
+              [15:20:06] 실시간 화면 캡처 수신 완료
+            </div>
+          </aside>
+        </div>
+      
+  </main>
+
+  
+  
+
+  <footer class="bottom-bar">
+    <div class="bb-pill">
+      <span>🧠 뉴런홈 은하 코어 유지</span>
+      <span>● 650 뉴런</span>
+      <span>● 23,595 파일 동기화</span>
+    </div>
+    <div class="bb-prompt">
+      <span>🎙️ 자비스에게 질문하거나 업무를 지시하세요...</span>
+      <span style="background:#18181b;color:#fff;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">➤</span>
+    </div>
+    <div class="bb-pill">
+      <span>💬 1:1 대화창</span>
+      <span>📂 지식폴더</span>
+      <span>📄 문서·IDE</span>
+      <span style="font-weight:700;color:#111827;">🎨 ArtCraft 제어</span>
+      <span style="font-weight:700;color:#111827;">🤖 두뇌·도구</span>
+    </div>
+  </footer>
+</body>
+</html>

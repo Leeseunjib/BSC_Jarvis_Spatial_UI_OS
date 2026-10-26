@@ -1,8 +1,59 @@
 [
   {
+    "planId": "PLAN_1792654301911",
+    "createdAt": "2026-10-22T07:31:41.911Z",
+    "status": "IN_PROGRESS",
+    "userPrompt": "Runnow 안에 있는 핵심 코드 파일들이 뭔지 역할까지 구체적으로 분석해줘.",
+    "clientEnv": "HUD_CHAT",
+    "track": "PRODUCTION_5STEP",
+    "step1_judgment": {
+      "domainId": "CODE_CLI_SDK",
+      "domainName": "💻 코드 작성 · CLI/SDK · 아키텍처",
+      "allDetectedDomains": [
+        "CODE_CLI_SDK"
+      ],
+      "securityHarnessCheck": "PASS (원본 덮어쓰기/삭제 없음 · Append & 신규 아티팩트 생성 안전 모드)",
+      "consumerPsychologyLens": "인지 부하 최소화(Zero Friction) · 지각 가치 극대화 · 대표님 직접 통제감(Ownership) 반영"
+    },
+    "step2_modelSelection": {
+      "selectionMode": "AUTO",
+      "activeProvider": "ollama",
+      "selectedBrainModel": "gemma4:31b",
+      "domainOpenModels": [
+        "Qwen2.5-Coder-14B-Instruct",
+        "Gemma 4 31B / E4B",
+        "DeepSeek-R1-Distill-14B"
+      ],
+      "mobileWebGpuModel": "Meta Llama 3.2 (3B) / Qwen 2.5 (3B)",
+      "linkedBscSkills": [
+        "code-quality-gate",
+        "cto-거누",
+        "백엔드개발자-강서진",
+        "antigravity-guide"
+      ],
+      "selectionReason": "[💻 코드 작성 · CLI/SDK · 아키텍처] 작업의 코드·구조 정밀도를 극대화하기 위해 로컬 설치 모델 중 [gemma4:31b] 두뇌와 [Qwen2.5-Coder-14B-Instruct + Gemma 4 31B / E4B + DeepSeek-R1-Distill-14B] 파이프라인을 스스로 선택했습니다."
+    },
+    "step3_projectPlan": {
+      "expectedDeliverables": [
+        ".js",
+        ".ts",
+        ".py",
+        ".html",
+        ".css",
+        "CLI/SDK Script"
+      ],
+      "steps": [
+        "1단계 [CHLGD Context 스캔]: 본사 가이드라인 및 선택된 스킬(code-quality-gate, cto-거누, 백엔드개발자-강서진, antigravity-guide) 로드",
+        "2단계 [자율 두뇌 가동]: OLLAMA (gemma4:31b) + Qwen2.5-Coder-14B-Instruct 엔진으로 초안 설계",
+        "3단계 [6종 문서 & 실물 에셋 패키징]: .js, .ts, .py, .html, .css, CLI/SDK Script 생성 및 IDE 2.0 워크벤치에 즉시 마운트",
+        "4단계 [CHLGD Loop 기록]: 본사 작업일지(WorkLog) 및 로컬 Vault에 무손실 Append 기록"
+      ]
+    }
+  },
+  {
     "planId": "PLAN_1792643086008",
     "createdAt": "2026-10-22T04:24:46.008Z",
-    "status": "AWAITING_CEO_APPROVAL",
+    "status": "COMPLETED",
     "userPrompt": "?? ?? ???? ? ??? ? ??�??�PPT 6? ??? ??",
     "clientEnv": "IDE_2.0",
     "track": "PRODUCTION_5STEP",
@@ -49,6 +100,13 @@
         "3단계 [6종 문서 & 실물 에셋 패키징]: Word (.docx), PowerPoint (.pptx), Markdown (.md), PDF (.pdf), Excel (.xls/.xlsx/.csv), Executive Summary 생성 및 IDE 2.0 워크벤치에 즉시 마운트",
         "4단계 [CHLGD Loop 기록]: 본사 작업일지(WorkLog) 및 로컬 Vault에 무손실 Append 기록"
       ]
-    }
+    },
+    "completedAt": "2026-10-22T09:26:48.290Z",
+    "synthesizedContent": "# ?? ?? ???? ? ??? ? ??�??�PPT 6? ??? ??\n## 1. 자율 모델 오케스트레이션 구성\n- 주력 지능: OLLAMA (gemma4:e4b)\n- 도메인 오픈모델: Mistral-Small-24B-Instruct, Gemma 4 E4B, EXAONE-3.5-7.8B, Docling / Marker Layout\n- 모바일/브라우저 온디바이스 호환: Microsoft Phi-4 Mini (3.8B) + Google Gemma 2 (2B)\n- 연동 본사 스킬: doc-proofreader-pro, epub-zero-builder, 수석비서-소하, 출판에디터-서아\n## 2. 소비자 심리학 5대 렌즈 및 CHLGD 적용 설계\n- 인지 마찰 최소화(Zero Cognitive Friction) 및 직관적 정보 위계 적용\n- 본사 데이터 무손실(Append-Only) 및 보안 자격 증명(.env) 격리 완료",
+    "deliverables": {
+      "excelXls": "/exports/PLAN_1792643086008/07_Project_Data_Sheet.xls",
+      "interactivePreview": "/exports/PLAN_1792643086008/08_Interactive_Deliverable_Preview.html"
+    },
+    "exportDir": "C:\\BSC_Javis_OS\\public\\exports\\PLAN_1792643086008"
   }
 ]

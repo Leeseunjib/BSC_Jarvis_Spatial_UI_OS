@@ -50,3 +50,17 @@ Harness^2 엔진과 그 표면 파일은 수정하지 않는다. 대화 한 턴�
   5. **모바일-PC 하이브리드 브릿지 & RunNow 15종 WebGPU 연동**: 동일 네트워크에서는 PC 두뇌를 우선 활용하고 오프라인/모바일 단독 시 RunNow 초경량 온디바이스 모델로 자동 전환.
 - **유니버설 윈도우 매니저**: 좌측 메뉴를 제외한 모든 창(1:1 대화창, 회의실, HOLO 카메라, 18대 스튜디오, IDE 창 등) 클릭 드래그 이동 및 크기 조절(Resize), 최소화/최대화 지원.
 - **사람 같은 자연스러운 TTS**: 인위적 피치 변조 제거(`pitch: +0Hz`, `rate: +1%`), 한국어 아나운서 발음 교정기(`humanizeKoreanSpeechText`), 구형 로봇 음성(`speechSynthesis` SAPI5) 폴백 완전 제거.
+
+
+---
+
+## [2026-10-26] SasariSa (`mvcompany8500-web/sasarisa`) REA Windows 11 역공학 이식 × 4대 멀티 LLM 브릿지(GPT · Gemini · LM Studio · Ollama) × BSC J.A.R.V.I.S. OS 완전 통합
+1. **REA 4단계 클린룸 역공학 (`mvcompany8500-web/sasarisa` macOS ➔ Windows 11 네이티브 포팅)**:
+   - macOS 전용 아키텍처(`SwiftUI MenuBarExtra`, `Whisper CoreAudio`, `AppleScript osascript`, `Accessibility AXUIElement`, `Safety Confirmation Gate`)를 분석하여 Windows 11 네이티브 엔진(`scripts/rea-sasarisa-windows-engine.js`)으로 1:1 재구축.
+   - 6대 음성 자동화 스킬(🎵 음악 제어, 🛒 쇼핑 검색, 💬 카카오톡/메신저 2중 안전 발송, ✉️ 메일 확인/답장 초안, 💻 말로 하는 코딩, 🖥️ Windows 앱/시스템 제어) 및 되돌릴 수 없는 작업 2중 안전 가드레일(`REQUIRES_CONFIRMATION`) 탑재.
+2. **4대 멀티 LLM 통합 프로바이더 허브 (`scripts/multi-llm-provider-hub.js`)**:
+   - **OpenAI GPT** (`gpt-4o`, `gpt-4o-mini`, `o3-mini`) + **Google Gemini** (`gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`) + **로컬 LM Studio** (`127.0.0.1:1234/v1` & `.gguf` 디스크 모델 자동 감지) + **로컬 Ollama** (`127.0.0.1:11434` `gemma4:e4b`, `gemma4:e2b`, `gemma4:31b` 등) 단일 라우터 연결.
+   - `.env` 시크릿 격리 저장 및 오프라인/미설정 시 로컬 Ollama/LM Studio 무중단 자동 폴백(`Auto-Fallback`).
+3. **사사리사 시그니처 디자인 (`#sasarisa-voice-pill`) & 기존 기술 100% 보존**:
+   - 화면 상단 중앙 캡슐형 플로팅 보이스 바(`Alt+Space` 단축키 및 상단바 `🎙️ 사사리사` 버튼)와 `🤖 두뇌·도구` 대시보드 내 4대 멀티 LLM 커넥터 & 사사리사 Windows 컨트롤 센터 통합.
+   - 기존 뉴런홈 6대 뷰, 23,595개 파일 전수 파악, 18대 AI Studio, ArtCraft 13종 실시간 제어, HOLO 카메라 제스처, 현수 HD TTS, 에이전트 워룸 100% 무손실 유지.

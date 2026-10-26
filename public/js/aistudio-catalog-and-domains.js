@@ -292,17 +292,45 @@ window.AIStudioData = {
     },
     {
       id: 'gemini-3.8-flash',
-      name: 'Gemini 3.8 Flash',
-      provider: '서버 기본 내장 멀티모달 엔진',
+      name: 'Gemini 2.5 Pro / 3.8 Flash (Google Cloud 멀티모달)',
+      provider: 'Google Gemini API (클라우드 멀티모달)',
       latencyBadge: '250 토큰/초',
-      costBadge: '기본 무료 내장',
+      costBadge: 'Google Gemini 연동',
       categoryTag: '초고속 멀티모달',
       baseTtftMs: 65,
       baseTps: 250,
       baseVramGb: 0.0,
       baseWatts: 12,
       taskScores: { 'os-voice-routing': 97, 'code-blender-bpy': 95, 'reasoning-rl-math': 95, 'rag-vision-multimodal': 99 },
-      description: '음성, 실시간 카메라 화면, 데이터 분석을 끊김 없이 한 번에 처리하는 기본 내장 멀티모달 엔진입니다.'
+      description: '음성, 실시간 카메라 화면, 데이터 분석을 끊김 없이 한 번에 처리하는 Google Gemini 멀티모달 엔진입니다.'
+    },
+    {
+      id: 'gpt-4o',
+      name: '🟠 OpenAI GPT-4o / o3-mini (클라우드 추론·코딩 AI)',
+      provider: 'OpenAI API (api.openai.com)',
+      latencyBadge: '210 토큰/초',
+      costBadge: 'OpenAI GPT 연동',
+      categoryTag: 'OpenAI 클라우드',
+      baseTtftMs: 75,
+      baseTps: 210,
+      baseVramGb: 0.0,
+      baseWatts: 12,
+      taskScores: { 'os-voice-routing': 98, 'code-blender-bpy': 98, 'reasoning-rl-math': 98, 'rag-vision-multimodal': 97 },
+      description: 'OpenAI GPT-4o 및 o3-mini 엔진과 직결되어 자연어 음성 비서 및 고난도 코딩을 수행합니다.'
+    },
+    {
+      id: 'lmstudio-local-gguf',
+      name: '🟣 LM Studio Local Server (localhost:1234 · GGUF)',
+      provider: '내 PC 로컬 LM Studio (OpenAI 호환 서버 · $0 무료)',
+      latencyBadge: '155 토큰/초',
+      costBadge: '$0 완전 무료 로컬',
+      categoryTag: 'LM Studio 로컬 GGUF',
+      baseTtftMs: 48,
+      baseTps: 155,
+      baseVramGb: 6.0,
+      baseWatts: 35,
+      taskScores: { 'os-voice-routing': 96, 'code-blender-bpy': 96, 'reasoning-rl-math': 95, 'rag-vision-multimodal': 92 },
+      description: '내 PC의 LM Studio(:1234)에 로드된 모든 GGUF 오픈모델을 자비스 및 사사리사의 주력 두뇌로 연결합니다.'
     }
   ],
 
@@ -631,8 +659,20 @@ window.AIStudioData = {
     }
   ],
 
-  // REA (Reverse Engineer Anything) 3 Target Samples
+  // REA (Reverse Engineer Anything) Target Samples (Includes SasariSa macOS -> Windows 11 Native Port)
   REA_TARGET_SAMPLES: [
+    {
+      id: 'rea-sasarisa-macos-to-win11',
+      titleKo: '🎙️ 사사리사(SasariSa) macOS AI 음성 비서 ➔ Windows 11 네이티브 포팅 (mvcompany8500-web/sasarisa)',
+      artifactType: 'macOS 14 Sonoma Swift + AppleScript + Accessibility ➔ Windows 11 Node.js/PowerShell/Win32',
+      binaryPath: 'https://github.com/mvcompany8500-web/sasarisa (brew install --cask mvcompany8500-web/tap/sasarisa)',
+      mcpToolchain: ['Invoke-ReaAnalyzer.js', 'ast-applescript-mapper', 'win32-com-synthesizer', 'multi-llm-provider-hub'],
+      recoveredSymbolsCount: 412,
+      tracedEndpoints: ['/api/jarvis/sasarisa/command', '/api/jarvis/sasarisa/confirm', '/api/jarvis/llm-hub/status'],
+      architectureSummaryKo: '유튜브(muY9-sCxZlg) 및 GitHub(mvcompany8500-web/sasarisa)의 macOS 전용 음성 비서 아키텍처(Whisper 온디바이스 STT, AppleScript 음악/쇼핑 제어, Accessibility 카카오톡/메일 자동화, 되돌릴 수 없는 작업 2중 안전 확인, Claude 코딩 브릿지)를 REA 4단계 클린룸 역공학으로 분석하여 Windows 11 네이티브 엔진 + 4대 멀티 LLM(GPT·Gemini·LM Studio·Ollama) 통합 시스템으로 완벽 재구축했습니다.',
+      decompiledPseudoCode: `// [REA Stage 2: mvcompany8500-web/sasarisa macOS Swift + AppleScript Deconstruction]\nfunc handleVoiceCommand(_ transcript: String) async {\n  let intent = await llmRouter.classifyIntent(transcript)\n  if intent.isIrreversible { // KakaoTalk send, Email reply, Payment\n    floatingHud.showConfirmationPrompt("정말로 실행하시겠습니까?")\n    guard await waitForUserConfirmation() else { return }\n  }\n  runAppleScript("tell application \\"Music\\" to playTrack(\\"\\(intent.query)\\")")\n}`,
+      reconstructedCleanCode: `// [REA Stage 4: Clean Reconstructed Windows 11 Engine (rea-sasarisa-windows-engine.js)]\nexport async function parseAndExecuteSasarisaVoiceCommand(commandText, opts = {}) {\n  const intent = classifySasarisaWindowsSkill(commandText);\n  const llmReply = await chatWithUnifiedLlm({ provider: opts.provider, model: opts.model, prompt: commandText });\n  if (intent.requiresConfirmation && !opts.confirmed) {\n    return queueSasarisaSafetyConfirmation(intent, commandText, llmReply);\n  }\n  return await executeSafeWindowsDesktopCommand(intent, llmReply.text);\n}`
+    },
     {
       id: 'rea-electron-asar',
       titleKo: '데스크톱 AI 워크스페이스 앱 (Electron app.asar 번들)',

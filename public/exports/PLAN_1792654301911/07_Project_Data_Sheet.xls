@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="Body">
+   <Font ss:Color="#1E293B"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="BSC_Jarvis_Project_Spec">
+  <Table>
+   <Column ss:Width="140"/>
+   <Column ss:Width="340"/>
+   <Column ss:Width="220"/>
+   <Column ss:Width="160"/>
+   
+    <Row>
+      <Cell ss:StyleID="Header"><Data ss:Type="String">항목 구분</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">세부 내용</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">적용 모델 / 스킬</Data></Cell><Cell ss:StyleID="Header"><Data ss:Type="String">CHLGD 검증 상태</Data></Cell>
+    </Row>
+    <Row>
+      <Cell ss:StyleID="Body"><Data ss:Type="String">요청 안건</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Runnow 안에 있는 핵심 코드 파일들이 뭔지 역할까지 구체적으로 분석해줘.</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">gemma4:31b</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">APPROVED (대표님 승인 완료)</Data></Cell>
+    </Row>
+    <Row>
+      <Cell ss:StyleID="Body"><Data ss:Type="String">판단 도메인</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">💻 코드 작성 · CLI/SDK · 아키텍처</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Qwen2.5-Coder-14B-Instruct, Gemma 4 31B / E4B, DeepSeek-R1-Distill-14B</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">PASS</Data></Cell>
+    </Row>
+    <Row>
+      <Cell ss:StyleID="Body"><Data ss:Type="String">모바일/브라우저 모델</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">RunNow 온디바이스 WebGPU 호환</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Meta Llama 3.2 (3B) / Qwen 2.5 (3B)</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">READY</Data></Cell>
+    </Row>
+    <Row>
+      <Cell ss:StyleID="Body"><Data ss:Type="String">연동 본사 스킬</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">code-quality-gate, cto-거누, 백엔드개발자-강서진, antigravity-guide</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">BSC Skill Warehouse</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">ACTIVE</Data></Cell>
+    </Row>
+    <Row>
+      <Cell ss:StyleID="Body"><Data ss:Type="String">소비자 심리학 렌즈</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">인지 부하 최소화(Zero Friction) · 지각 가치 극대화 · 대표님 직접 통제감(Ownership) 반영</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Consumer Psychology 5-Lens</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">VERIFIED</Data></Cell>
+    </Row>
+    <Row>
+      <Cell ss:StyleID="Body"><Data ss:Type="String">보안 하네스(Harness)</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">PASS (원본 덮어쓰기/삭제 없음 · Append &amp; 신규 아티팩트 생성 안전 모드)</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">Zero-Loss / Append-Only</Data></Cell><Cell ss:StyleID="Body"><Data ss:Type="String">SAFE</Data></Cell>
+    </Row>
+  </Table>
+ </Worksheet>
+</Workbook>

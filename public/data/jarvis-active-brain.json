@@ -1,0 +1,8 @@
+{
+  "selectionMode": "MANUAL",
+  "activeProvider": "ollama",
+  "activeModel": "gemma4:31b",
+  "autoUnloadPrevious": true,
+  "hybridMobileBridge": true,
+  "lastSwappedAt": "2026-10-22T09:23:49.849Z"
+}

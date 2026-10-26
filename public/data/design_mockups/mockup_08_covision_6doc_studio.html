@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: #f4f5f7;
+    color: #18181b;
+    font-family: 'Pretendard', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+  }
+  /* Top Global Header Bar (Bright Minimal White) */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 10;
+  }
+  .brand-row { display: flex; align-items: center; gap: 10px; }
+  .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #18181b;
+  }
+  .brand-title { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; color: #111827; }
+  .design-pill {
+    font-size: 11px; font-weight: 600; color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .search-capsule {
+    width: 500px; height: 36px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; font-size: 12px; color: #6b7280;
+  }
+  .top-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #374151; }
+  .top-chip {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 5px 11px; border-radius: 8px; font-size: 11.5px; font-weight: 600; color: #374151;
+  }
+  /* Left Slim Dock (Clean White Card) */
+  .left-dock {
+    position: absolute;
+    top: 72px; left: 16px; bottom: 72px;
+    width: 68px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 12px 6px; gap: 6px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+  .dock-btn {
+    width: 54px; height: 54px;
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; color: #6b7280; font-size: 10px; font-weight: 600;
+  }
+  .dock-btn .ico { font-size: 17px; }
+  .dock-btn.active {
+    background: #18181b;
+    color: #ffffff; font-weight: 700;
+  }
+  /* Main Dashboard Stage */
+  .bento-stage {
+    position: absolute;
+    top: 72px; left: 98px; right: 20px; bottom: 72px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 22px 26px;
+    display: flex; flex-direction: column; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    z-index: 5;
+    overflow: hidden;
+  }
+  .stage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+  }
+  .sh-badge {
+    display: inline-block;
+    font-size: 10.5px; font-weight: 700; color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 3px 9px; border-radius: 6px; margin-bottom: 5px;
+  }
+  .sh-title { font-size: 19px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .sh-sub { font-size: 12.5px; color: #6b7280; margin-top: 3px; }
+  .sh-tabs {
+    display: flex; gap: 4px;
+    background: #f3f4f6;
+    padding: 4px; border-radius: 11px;
+    border: 1px solid #e5e7eb;
+  }
+  .sh-tab {
+    padding: 7px 13px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; color: #4b5563;
+  }
+  .sh-tab.home {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827; font-weight: 700;
+  }
+  .sh-tab.active {
+    background: #18181b;
+    color: #ffffff; font-weight: 700;
+  }
+  /* Minimal Monotone KPI Row */
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280; font-weight: 600; }
+  .kpi-val { font-size: 19px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .kpi-sub { font-size: 11.5px; color: #6b7280; }
+  .badge-delta {
+    font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+  }
+  /* Bento Panels */
+  .bento-grid-2 { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; flex: 1; min-height: 0; }
+  .bento-grid-3 { display: grid; grid-template-columns: 270px 1fr 330px; gap: 16px; flex: 1; min-height: 0; }
+  .bento-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 12px;
+    min-height: 0; overflow: hidden;
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 12px; border-bottom: 1px solid #f3f4f6;
+  }
+  .panel-title { font-size: 15px; font-weight: 800; color: #111827; }
+  .panel-desc { font-size: 12px; color: #6b7280; margin-top: 3px; }
+  .btn {
+    padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 600;
+    background: #ffffff; border: 1px solid #d1d5db; color: #374151;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .btn.primary { background: #18181b; border-color: #18181b; color: #ffffff; font-weight: 700; }
+  .btn.soft { background: #f3f4f6; border-color: #e5e7eb; color: #111827; font-weight: 600; }
+  .item-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 13px 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .item-card.active {
+    background: #ffffff;
+    border: 1.5px solid #18181b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .chip {
+    font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .chip.dark { background: #18181b; color: #ffffff; border-color: #18181b; }
+  .chip.green { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+  /* Bottom Bar */
+  .bottom-bar {
+    position: absolute; left: 20px; right: 20px; bottom: 14px; height: 46px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 10;
+  }
+  .bb-pill {
+    background: #ffffff; border: 1px solid #e5e7eb;
+    border-radius: 999px; padding: 8px 16px; font-size: 12px; color: #374151;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+  .bb-prompt {
+    width: 560px; height: 42px; border-radius: 999px;
+    background: #ffffff; border: 1px solid #d1d5db;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px;
+    font-size: 12.5px; color: #6b7280;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+</style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand-row">
+      <span class="logo-dot"></span>
+      <span class="brand-title">BSC J.A.R.V.I.S. OS</span>
+      <span class="design-pill">심플 모노톤 라이트 대시보드 · 시안 #08 (화면 공유 분석 & 6종 오피스 문서 자동 생성)</span>
+    </div>
+    <div class="search-capsule">
+      <span>🔍 폴더, 마크다운(.md) 문서, 코드, 프로그램 검색...</span>
+      <kbd style="background:#f3f4f6;border:1px solid #e5e7eb;padding:2px 6px;border-radius:5px;font-size:10.5px;color:#4b5563;">⌘K</kbd>
+    </div>
+    <div class="top-right">
+      <span class="top-chip">● Gemma 4 로컬 코어 ($0)</span>
+      <span class="top-chip">🎙️ 현수 HD 자연 음성</span>
+      <span class="top-chip">10월 23일 (금) 오후 3:20</span>
+    </div>
+  </header>
+
+  <nav class="left-dock">
+    
+      <div class="dock-btn ">
+        <span class="ico">🧠</span>
+        <span>뉴런홈</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">📂</span>
+        <span>지식폴더</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">📄</span>
+        <span>문서·IDE</span>
+      </div>
+    
+      <div class="dock-btn active">
+        <span class="ico">🤖</span>
+        <span>두뇌·도구</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🎨</span>
+        <span>ArtCraft</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🏛️</span>
+        <span>회의·조직</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">⚙️</span>
+        <span>설정·검증</span>
+      </div>
+    
+  </nav>
+
+  <main class="bento-stage">
+    <div class="stage-header">
+      <div>
+        <span class="sh-badge">MINIMAL LIGHT DESIGN #08 · 화면 공유 분석 & 6종 오피스 문서 자동 생성</span>
+        <div class="sh-title">👁️ 화면·카메라 시야 공유 & 6종 오피스 문서(Word·PPT·PDF) 자동 생성</div>
+        <div class="sh-sub">현재 보고 계신 PC 화면이나 이미지를 분석하여 깔끔하게 정리된 Word, PPT, PDF, 마크다운 문서로 즉시 변환합니다.</div>
+      </div>
+      <div class="sh-tabs">
+        
+          <div class="sh-tab home ">🧠 뉴런홈 복귀</div>
+        
+          <div class="sh-tab  ">📂 지식폴더</div>
+        
+          <div class="sh-tab  ">📄 문서 · IDE</div>
+        
+          <div class="sh-tab  active">🤖 AI 두뇌 · 도구</div>
+        
+          <div class="sh-tab  ">🎨 ArtCraft 제어</div>
+        
+          <div class="sh-tab  ">🏛️ 회의 · 조직</div>
+        
+          <div class="sh-tab  ">⚙️ 설정 · 검증</div>
+        
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>입력 화면 소스</span>
+            <span class="badge-delta">즉시 캡처</span>
+          </div>
+          <div class="kpi-val">PC 화면 · 웹캠 · 이미지</div>
+          <div class="kpi-sub">원클릭으로 현재 작업 화면을 자비스와 공유</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>시각 분석 모델</span>
+            <span class="badge-delta">무료 로컬 분석</span>
+          </div>
+          <div class="kpi-val">Gemma 4 Vision</div>
+          <div class="kpi-sub">화면 속 텍스트·표·레이아웃 자동 인식</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>자동 생성 파일 포맷</span>
+            <span class="badge-delta">Word·PPT·PDF</span>
+          </div>
+          <div class="kpi-val">6종 동시 생성</div>
+          <div class="kpi-sub">보고서 양식에 맞춰 즉시 다운로드 가능</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>문서 보관 위치</span>
+            <span class="badge-delta">백업 완료</span>
+          </div>
+          <div class="kpi-val">로컬 폴더 자동 저장</div>
+          <div class="kpi-sub">내 PC와 본사 보고서 폴더에 안전하게 보관</div>
+        </div>
+      
+    </div>
+
+    
+        <div class="bento-grid-2">
+          <section class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">1. 현재 공유된 화면 미리보기</div>
+                <div class="panel-desc">캡처된 화면을 기반으로 핵심 내용을 추출합니다.</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <span class="btn primary">🖥️ 내 화면 캡처하기</span>
+                <span class="btn">📷 카메라 연결</span>
+              </div>
+            </div>
+            <div style="flex:1;background:#f3f4f6;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+              <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221100%22%20height%3D%22600%22%20viewBox%3D%220%200%201100%20600%22%3E%0A%20%20%20%20%3Crect%20width%3D%221100%22%20height%3D%22600%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%221100%22%20height%3D%2238%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%220%22%20y1%3D%2238%22%20x2%3D%221100%22%20y2%3D%2238%22%20stroke%3D%22%23e5e7eb%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2220%22%20cy%3D%2219%22%20r%3D%225.5%22%20fill%3D%22%23ef4444%22%2F%3E%3Ccircle%20cx%3D%2238%22%20cy%3D%2219%22%20r%3D%225.5%22%20fill%3D%22%23f59e0b%22%2F%3E%3Ccircle%20cx%3D%2256%22%20cy%3D%2219%22%20r%3D%225.5%22%20fill%3D%22%2310b981%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2280%22%20y%3D%2224%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3EPhotoCraft%200.5.1%20%E2%80%94%20Untitled-1.psd%20%40%20100%25%20(Live%20Control%20%3A17801%20Connected)%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%2239%22%20width%3D%2254%22%20height%3D%22561%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%2254%22%20y1%3D%2239%22%20x2%3D%2254%22%20y2%3D%22600%22%20stroke%3D%22%23e5e7eb%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%2254%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2318181b%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%2296%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%22138%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2211%22%20y%3D%22180%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%23f3f4f6%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2290%22%20y%3D%2268%22%20width%3D%22710%22%20height%3D%22500%22%20rx%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23d1d5db%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%20160%20400%20Q%20340%20160%2C%20500%20350%20T%20720%20240%22%20fill%3D%22none%22%20stroke%3D%22%2318181b%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%20190%20450%20Q%20380%20260%2C%20540%20420%20T%20730%20330%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22500%22%20cy%3D%22350%22%20r%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%2318181b%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22125%22%20y%3D%22110%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2215%22%20font-weight%3D%22bold%22%3EArtCraft%20Live%20Canvas%20(1920%20%C3%97%201080%20%C2%B7%2060FPS%20%EC%8B%A4%EC%8B%9C%EA%B0%84%20%ED%99%94%EB%A9%B4%20%EA%B3%B5%EC%9C%A0)%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22125%22%20y%3D%22132%22%20fill%3D%22%236b7280%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3E%EC%9D%B4%20%ED%99%94%EB%A9%B4%20%EC%9C%84%EB%A5%BC%20%ED%81%B4%EB%A6%AD%ED%95%98%EB%A9%B4%20%EB%A7%88%EC%9A%B0%EC%8A%A4%20%EC%A2%8C%ED%91%9C%EA%B0%80%20%EC%8B%A4%ED%96%89%20%EC%A4%91%EC%9D%B8%20PhotoCraft%EB%A1%9C%20%EC%A6%89%EC%8B%9C%20%EC%A0%84%EB%8B%AC%EB%90%A9%EB%8B%88%EB%8B%A4.%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22836%22%20y%3D%2239%22%20width%3D%22264%22%20height%3D%22561%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%3Cline%20x1%3D%22836%22%20y1%3D%2239%22%20x2%3D%22836%22%20y2%3D%22600%22%20stroke%3D%22%23e5e7eb%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22854%22%20y%3D%2272%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3E%EB%A0%88%EC%9D%B4%EC%96%B4%20%26amp%3B%20%EC%83%89%EB%B3%B4%EC%A0%95%20(Layers)%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22852%22%20y%3D%2288%22%20width%3D%22232%22%20height%3D%2242%22%20rx%3D%228%22%20fill%3D%22%23f9fafb%22%20stroke%3D%22%2318181b%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22866%22%20y%3D%22114%22%20fill%3D%22%23111827%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20font-weight%3D%22bold%22%3E%F0%9F%96%8C%EF%B8%8F%20AI%20%EB%B8%8C%EB%9F%AC%EC%8B%9C%20%EB%93%9C%EB%A1%9C%EC%9E%89%20%EB%A0%88%EC%9D%B4%EC%96%B4%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22852%22%20y%3D%22138%22%20width%3D%22232%22%20height%3D%2242%22%20rx%3D%228%22%20fill%3D%22%23f9fafb%22%20stroke%3D%22%23e5e7eb%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22866%22%20y%3D%22164%22%20fill%3D%22%23374151%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3E%F0%9F%93%88%20%EC%BB%A4%EB%B8%8C(Curves)%20%EB%B3%B4%EC%A0%95%20%EB%A0%88%EC%9D%B4%EC%96%B4%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%22852%22%20y%3D%22188%22%20width%3D%22232%22%20height%3D%2242%22%20rx%3D%228%22%20fill%3D%22%23f9fafb%22%20stroke%3D%22%23e5e7eb%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22866%22%20y%3D%22214%22%20fill%3D%22%236b7280%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3E%F0%9F%96%BC%EF%B8%8F%20%EB%B0%B0%EA%B2%BD%20%EC%BA%94%EB%B2%84%EC%8A%A4%20(1920%C3%971080)%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E" style="width:100%;height:100%;object-fit:contain;" />
+            </div>
+          </section>
+
+          <section class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">2. 생성된 6종 오피스 문서 다운로드</div>
+                <div class="panel-desc">원하시는 파일 형식을 클릭하여 바로 열거나 다운로드합니다.</div>
+              </div>
+              <span class="btn primary">6종 문서 일괄 생성</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              
+                <div class="item-card active" style="flex-direction:column;align-items:flex-start;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <strong style="font-size:13px;color:#111827;">📘 MS Word 보고서 (.docx)</strong>
+                    <span class="chip green">완료</span>
+                  </div>
+                  <div style="font-family:monospace;font-size:11.5px;color:#374151;">2026-10-23_Report.docx</div>
+                  <div style="font-size:11.5px;color:#6b7280;">표·제목 스타일 자동 적용</div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:flex-start;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <strong style="font-size:13px;color:#111827;">📊 PowerPoint 발표자료 (.pptx)</strong>
+                    <span class="chip green">완료</span>
+                  </div>
+                  <div style="font-family:monospace;font-size:11.5px;color:#374151;">2026-10-23_Deck.pptx</div>
+                  <div style="font-size:11.5px;color:#6b7280;">핵심 요약 슬라이드 조판</div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:flex-start;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <strong style="font-size:13px;color:#111827;">📕 결재·인쇄용 PDF (.pdf)</strong>
+                    <span class="chip green">완료</span>
+                  </div>
+                  <div style="font-family:monospace;font-size:11.5px;color:#374151;">2026-10-23_Brief.pdf</div>
+                  <div style="font-size:11.5px;color:#6b7280;">A4 규격 레이아웃 최적화</div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:flex-start;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <strong style="font-size:13px;color:#111827;">📝 마크다운 문서 (.md)</strong>
+                    <span class="chip green">완료</span>
+                  </div>
+                  <div style="font-family:monospace;font-size:11.5px;color:#374151;">2026-10-23_Note.md</div>
+                  <div style="font-size:11.5px;color:#6b7280;">옵시디언 & IDE 호환</div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:flex-start;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <strong style="font-size:13px;color:#111827;">🖼️ 원본 화면 스냅샷 (.png)</strong>
+                    <span class="chip green">완료</span>
+                  </div>
+                  <div style="font-family:monospace;font-size:11.5px;color:#374151;">2026-10-23_Capture.png</div>
+                  <div style="font-size:11.5px;color:#6b7280;">1920×1080 고해상도 이미지</div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:flex-start;gap:6px;">
+                  <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <strong style="font-size:13px;color:#111827;">🎬 음성 설명 브리핑 (.webm)</strong>
+                    <span class="chip green">완료</span>
+                  </div>
+                  <div style="font-family:monospace;font-size:11.5px;color:#374151;">2026-10-23_Briefing.webm</div>
+                  <div style="font-size:11.5px;color:#6b7280;">현수 HD 음성 해설 포함</div>
+                </div>
+              
+            </div>
+          </section>
+        </div>
+      
+  </main>
+
+  
+  
+
+  <footer class="bottom-bar">
+    <div class="bb-pill">
+      <span>🧠 뉴런홈 은하 코어 유지</span>
+      <span>● 650 뉴런</span>
+      <span>● 23,595 파일 동기화</span>
+    </div>
+    <div class="bb-prompt">
+      <span>🎙️ 자비스에게 질문하거나 업무를 지시하세요...</span>
+      <span style="background:#18181b;color:#fff;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">➤</span>
+    </div>
+    <div class="bb-pill">
+      <span>💬 1:1 대화창</span>
+      <span>📂 지식폴더</span>
+      <span>📄 문서·IDE</span>
+      <span style="font-weight:700;color:#111827;">🎨 ArtCraft 제어</span>
+      <span style="font-weight:700;color:#111827;">🤖 두뇌·도구</span>
+    </div>
+  </footer>
+</body>
+</html>

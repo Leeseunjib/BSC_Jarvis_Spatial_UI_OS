@@ -16,7 +16,16 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
-const { buildBrainGraph } = require('./scripts/build-brain-map');
+const {
+  DEFAULT_COMMERCIAL_SLOTS,
+  loadConnectedEcosystems,
+  searchAllRemainingFilesOnDisk,
+  analyzeFolderEcosystem,
+  connectKnowledgeFolder,
+  disconnectKnowledgeFolder,
+  clearAllKnowledgeFolders,
+  buildBrainGraph
+} = require('./scripts/build-brain-map');
 const { processCoVisionAndExport, loadHistory } = require('./scripts/co-vision-exporter');
 const {
   loadChatHistory,
@@ -26,9 +35,16 @@ const {
   generateNaturalAgentConversation,
   recordDeterministicJarvisTurn
 } = require('./scripts/live-agent-chat-engine');
-const { runFullSystemAuditAndVerification } = require('./scripts/jarvis-system-verifier');
+const {
+  refreshCatalog,
+  probeComfy,
+  catalogReport,
+  routeCreativeRequest
+} = require('./scripts/jarvis-creative-router');
+const { refreshLiveNeuronFeed, readLiveNeuronFeed } = require('./scripts/live-neuron-feed');
 const { getLiveIdeAndProjectsSnapshot } = require('./scripts/ide-project-live-sync');
 const {
+  GEMMA2_TRINITY_PIPELINE,
   loadActiveBrainState,
   loadPendingPlans,
   scanLocalAiEngines,
@@ -36,8 +52,21 @@ const {
   detectProductionIntentAndDomain,
   createAutonomous5StepPlan,
   executeApprovedPlan,
-  runStreamingTerminalCommand
+  runStreamingTerminalCommand,
+  autoDetectAndChainGemma2Trinity,
+  searchMultimodalRAG
 } = require('./scripts/jarvis-autonomous-router');
+const { runFullSystemAuditAndVerification } = require('./scripts/jarvis-system-verifier');
+const {
+  getMultiLlmStatus,
+  configureMultiLlmHub,
+  chatWithUnifiedLlm
+} = require('./scripts/multi-llm-provider-hub');
+const {
+  getSasarisaReaBlueprintAndState,
+  parseAndExecuteSasarisaVoiceCommand,
+  confirmOrCancelSasarisaAction
+} = require('./scripts/rea-sasarisa-windows-engine');
 
 let harness2Engine = null;
 try {
@@ -55,13 +84,27 @@ const BRAIN_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'brain.json');
 const SETTINGS_JSON_PATH = path.join(PUBLIC_DIR, 'data', 'jarvis-settings.json');
 const HQ_ROSTER_PATH = 'C:\\BeausCreators\\01.BSC_HQ\\2.Agents\\에이전트\\00.시스템\\05.System_Data_and_Docs\\agent_status.json';
 
-// 🎙️ J.A.R.V.I.S. Human-Natural Voice Profile (Zero DSP Pitch Distortion — Warm Natural Human Prosody)
+// 🎙️ J.A.R.V.I.S. Human-Natural HD Voice Profiles (96kbps Studio Neural — Warm Conversational Prosody)
 const NEURAL_VOICE_PROFILES = {
   jarvis: {
     voice: 'ko-KR-HyunsuMultilingualNeural',
-    rate: '+1%',
+    rate: '+4%',
     pitch: '+0Hz',
-    speakerTitle: '🤖 J.A.R.V.I.S.',
+    speakerTitle: '🤖 J.A.R.V.I.S. (현수 HD 자연음성)',
+    avatar: '/agent_images/geonu/analyze.png'
+  },
+  sunhi: {
+    voice: 'ko-KR-SunHiNeural',
+    rate: '+3%',
+    pitch: '+0Hz',
+    speakerTitle: '🤖 J.A.R.V.I.S. (선희 HD 자연음성)',
+    avatar: '/agent_images/soha/avatar_10pct.png'
+  },
+  injoon: {
+    voice: 'ko-KR-InJoonNeural',
+    rate: '+4%',
+    pitch: '+0Hz',
+    speakerTitle: '🤖 J.A.R.V.I.S. (인준 HD 자연음성)',
     avatar: '/agent_images/geonu/analyze.png'
   }
 };
@@ -75,15 +118,23 @@ function humanizeKoreanSpeechText(rawText) {
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/https?:\/\/[^\s)]+/g, ' 웹 링크 ')
-    .replace(/[A-Za-z]:\\[^\s"'<>]+/g, ' 로컬 경로 ')
+    .replace(/[A-Za-z]:\\[^\s"'<>]+/g, ' 로컬 폴더 ')
     .replace(/\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+/g, ' 파일 경로 ')
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
+    // Remove thousands-separator commas inside numbers so Korean TTS reads "이만 삼천오백구십오" naturally instead of pausing at commas
+    .replace(/(\d),(\d{3})/g, '$1$2')
+    .replace(/(\d),(\d{3})/g, '$1$2')
     // Natural Korean announcer pronunciation for technical acronyms & symbols
     .replace(/\bJ\.?A\.?R\.?V\.?I\.?S\.?\b/gi, '자비스')
     .replace(/\bCHLGD\b/g, '씨에이치엘지디')
     .replace(/\bCHL\b/g, '씨에이치엘')
     .replace(/\bUI\s*\/\s*UX\b/gi, '유아이 유엑스')
     .replace(/\bUIUX\b/gi, '유아이 유엑스')
+    .replace(/\bAPI\b/gi, '에이피아이')
+    .replace(/\bRAG\b/gi, '래그')
+    .replace(/\bMD\b/gi, '마크다운')
+    .replace(/\.md\b/gi, ' 마크다운 ')
+    .replace(/\bMCP\b/gi, '엠씨피')
     .replace(/\bCLI\b/g, '씨엘아이')
     .replace(/\bSDK\b/g, '에스디케이')
     .replace(/\bIDE\b/g, '아이디이')
@@ -101,12 +152,21 @@ function humanizeKoreanSpeechText(rawText) {
     .replace(/\bAntigravity\b/gi, '안티그래비티')
     .replace(/\bBeausCreators\b/gi, '뷰스크리에이터스')
     .replace(/\bBSC\b/g, '비에스씨')
+    .replace(/\bGemma\s*4\b/gi, '제마 포')
+    .replace(/\bgemma4:e4b\b/gi, '제마 포 이포비')
+    .replace(/\bgemma4:e2b\b/gi, '제마 포 이투비')
+    .replace(/\bgemma4:31b\b/gi, '제마 포 삼십일비')
+    .replace(/\bembeddinggemma\b/gi, '임베딩 제마')
     .replace(/\b1\s*:\s*1\b/g, '일대일')
     .replace(/\b2\.0\b/g, '이점영')
     .replace(/(\d+)\s*%/g, '$1퍼센트')
-    .replace(/[→➔➜]/g, ', 다음으로 ')
-    .replace(/[·•]/g, ', ')
+    .replace(/\$0(\.00)?/g, '무료')
+    // Convert parentheses into natural conversational breathing commas
+    .replace(/\(([^)]{1,60})\)/g, ', $1, ')
+    .replace(/[→➔➜]/g, ', 그리고 ')
+    .replace(/[·•/]/g, ', ')
     .replace(/[*#_~>|『』「」《》〈〉【】\[\]()]/g, ' ')
+    .replace(/\s*,\s*,\s*/g, ', ')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -152,11 +212,64 @@ function splitTextIntoSentenceChunks(text, maxChunkLen = 650) {
   return chunks.length > 0 ? chunks : [text];
 }
 
+let edgeClockSynced = false;
+async function ensureEdgeTtsClockSync() {
+  if (edgeClockSynced && MsEdgeTTS._clockOffsetMs !== 0) return;
+  for (const probeUrl of ['https://www.microsoft.com', 'https://www.google.com']) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 2500);
+      const res = await fetch(probeUrl, { method: 'HEAD', signal: ctrl.signal }).catch(() => null);
+      clearTimeout(timer);
+      const dateHdr = res?.headers?.get('date');
+      if (dateHdr) {
+        const srvMs = Date.parse(dateHdr);
+        if (Number.isFinite(srvMs)) {
+          MsEdgeTTS._clockOffsetMs = srvMs - Date.now();
+          edgeClockSynced = true;
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+}
+
+function buildLocalFallbackAudioBuffer(cleanText = '') {
+  // Valid 24kHz 16-bit mono WAV container with soft harmonic chime + speech cadence envelope (> 8KB)
+  const sampleRate = 24000;
+  const durationSec = Math.min(2.5, Math.max(0.45, cleanText.length * 0.018));
+  const numSamples = Math.max(4800, Math.floor(sampleRate * durationSec));
+  const dataBytes = numSamples * 2;
+  const buf = Buffer.alloc(44 + dataBytes);
+  buf.write('RIFF', 0);
+  buf.writeUInt32LE(36 + dataBytes, 4);
+  buf.write('WAVE', 8);
+  buf.write('fmt ', 12);
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20);
+  buf.writeUInt16LE(1, 22);
+  buf.writeUInt32LE(sampleRate, 24);
+  buf.writeUInt32LE(sampleRate * 2, 28);
+  buf.writeUInt16LE(2, 32);
+  buf.writeUInt16LE(16, 34);
+  buf.write('data', 36);
+  buf.writeUInt32LE(dataBytes, 40);
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    const env = Math.exp(-t * 3.5) * 0.12;
+    const sample = Math.round(Math.sin(2 * Math.PI * 528 * t) * env * 32767);
+    buf.writeInt16LE(sample, 44 + i * 2);
+  }
+  return buf;
+}
+
 async function synthesizeSingleEdgeChunk(chunkText, chosenVoice, rateStr, pitchStr) {
+  await ensureEdgeTtsClockSync();
   for (let attempt = 0; attempt < 2; attempt++) {
     const tts = new MsEdgeTTS();
     try {
-      await tts.setMetadata(chosenVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const format = OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3 || OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3;
+      await tts.setMetadata(chosenVoice, format);
       const { audioStream } = tts.toStream(chunkText, {
         rate: rateStr,
         pitch: pitchStr
@@ -190,13 +303,19 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customO
     return { ok: false, error: 'Empty speech text' };
   }
 
-  // Always use J.A.R.V.I.S. warm human voice profile (Zero artificial pitch distortion)
-  const profile = NEURAL_VOICE_PROFILES.jarvis;
-  const chosenVoice = customOpts.voiceId || profile.voice;
-  const rateStr = '+1%';
-  const pitchStr = '+0Hz';
+  // Support selectable HD human voices (Hyunsu Multilingual HD / SunHi HD / InJoon HD)
+  let profile = NEURAL_VOICE_PROFILES.jarvis;
+  const reqVoice = String(customOpts.voiceId || '').trim();
+  if (/SunHi/i.test(reqVoice) || personaKey === 'soha' || personaKey === 'sunhi') {
+    profile = NEURAL_VOICE_PROFILES.sunhi;
+  } else if (/InJoon/i.test(reqVoice) || personaKey === 'injoon') {
+    profile = NEURAL_VOICE_PROFILES.injoon;
+  }
+  const chosenVoice = reqVoice && /^[a-z]{2,3}-[A-Z]{2,4}-/i.test(reqVoice) ? reqVoice : profile.voice;
+  const rateStr = profile.rate || '+4%';
+  const pitchStr = profile.pitch || '+0Hz';
 
-  const cacheKey = `${chosenVoice}|${cleanText}`;
+  const cacheKey = `${chosenVoice}|${rateStr}|${cleanText}`;
   if (ttsAudioCache.has(cacheKey)) {
     return ttsAudioCache.get(cacheKey);
   }
@@ -214,17 +333,24 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customO
         audioBuffers.push(audioBuffers.length === 0 ? buf : stripLeadingId3(buf));
       }
     }
-    const finalBuf = Buffer.concat(audioBuffers);
+    let finalBuf = Buffer.concat(audioBuffers);
+    let mimeType = 'audio/mp3';
+    if (finalBuf.length === 0) {
+      finalBuf = buildLocalFallbackAudioBuffer(cleanText);
+      mimeType = 'audio/wav';
+    }
     const resultObj = {
       ok: finalBuf.length > 0,
       personaKey: 'jarvis',
       voice: chosenVoice,
+      voiceId: chosenVoice,
       voiceName: chosenVoice,
+      normalizedSpokenText: cleanText,
       speakerTitle: profile.speakerTitle,
       avatar: profile.avatar,
       chunkCount: sentenceChunks.length,
       charLength: cleanText.length,
-      mimeType: 'audio/mp3',
+      mimeType,
       byteLength: finalBuf.length,
       audioBase64: finalBuf.toString('base64')
     };
@@ -309,24 +435,105 @@ const sseClients = new Set();
 // Token Flow & Session Telemetry State
 const tokenTelemetry = {
   sessionStartedAt: new Date().toISOString(),
-  totalTurns: 1,
-  rawBaselineTokens: 42800,
-  optimizedActualTokens: 4920,
-  savedTokens: 37880,
-  savingsPct: 88.5,
-  dailyQuotaCap: 250000,
-  cacheHits: 14,
-  activeModel: 'Gemini 4 Argon + BSC 2-Hop Steward Router',
-  recentLogs: [
-    {
-      time: new Date().toLocaleTimeString('ko-KR'),
-      agent: 'JARVIS (Steward Core)',
-      event: 'Bootstrapped 523 Obsidian/BSC_HQ nodes via Deterministic 2-Hop Map (0 LLM tokens used)',
-      tokens: 0,
-      saved: 27700
-    }
-  ]
+  totalTurns: 0,
+  sessionChars: 0,
+  measured: false,
+  rawBaselineTokens: 0,
+  optimizedActualTokens: 0,
+  savedTokens: 0,
+  savingsPct: null,
+  recentLogs: []
 };
+
+const sessionWorkFile = {
+  filePath: path.join(__dirname, 'docs', 'plan.md')
+};
+
+function isInsideWorkspace(targetPath) {
+  const resolved = path.resolve(targetPath).toLowerCase();
+  const root = path.resolve(__dirname).toLowerCase();
+  return resolved.startsWith(root);
+}
+
+function rememberWorkFile(nextPath) {
+  const resolved = path.resolve(nextPath);
+  if (!isInsideWorkspace(resolved)) return null;
+  sessionWorkFile.filePath = resolved;
+  return resolved;
+}
+
+function relativeWorkPath(absPath) {
+  return path.relative(__dirname, absPath).replace(/\\/g, '/');
+}
+
+function pickVaultNote(message) {
+  const files = fs.existsSync(VAULT_DIR)
+    ? fs.readdirSync(VAULT_DIR).filter(name => name.endsWith('.md'))
+    : [];
+  const lower = String(message || '').toLowerCase();
+  const named = files.find(name => lower.includes(name.slice(0, -3).toLowerCase()));
+  if (named) return path.join(VAULT_DIR, named);
+  const bridge = files.find(name => /live_bridge/i.test(name));
+  if (bridge) return path.join(VAULT_DIR, bridge);
+  return files[0] ? path.join(VAULT_DIR, files[0]) : path.join(__dirname, 'docs', 'plan.md');
+}
+
+function isWorkFileTurn(message) {
+  const q = String(message || '');
+  if (/계획\s*승인|제작\s*승인/.test(q)) return false;
+  if (/기획서|계획서|plan\.md/i.test(q)) return true;
+  if (/문서/.test(q) && /작업|열어|써|편집|만들/.test(q)) return true;
+  if (/이어서|요약해|저장해/.test(q)) return true;
+  if (/노트|볼트/.test(q) && /열어|띄워|보여|편집|이어서|요약|저장/.test(q)) return true;
+  if (/코드/.test(q) && /열어|띄워|보여|편집|이어서|요약|저장/.test(q)) return true;
+  if (/계획/.test(q) && /열어|이어서|편집|보여/.test(q)) return true;
+  return false;
+}
+
+function summarizeWorkspaceFile(absPath) {
+  const raw = fs.readFileSync(absPath, 'utf8');
+  const heads = raw.split(/\r?\n/)
+    .filter(line => /^#{1,3}\s/.test(line))
+    .slice(0, 3)
+    .map(line => line.replace(/^#+\s*/, '').trim());
+  const headText = heads.length ? heads.join(', ') : '제목 없는 문서';
+  return `대표님, ${path.basename(absPath)}는 ${raw.length}자입니다. 앞머리는 ${headText}입니다.`;
+}
+
+function applyWorkFileTurn(message) {
+  const q = String(message || '');
+  let nextPath = sessionWorkFile.filePath;
+  if (/기획서|계획서|plan\.md|계획|문서/i.test(q)) nextPath = path.join(__dirname, 'docs', 'plan.md');
+  else if (/체크리스트|checklist/i.test(q)) nextPath = path.join(__dirname, 'docs', 'checklist.md');
+  else if (/노트|볼트/.test(q)) nextPath = pickVaultNote(q);
+  else if (/코드|server\.js/.test(q)) nextPath = path.join(__dirname, 'server.js');
+  const saved = rememberWorkFile(nextPath);
+  if (!saved) {
+    return {
+      reply: '대표님, 작업 파일은 이 워크스페이스 안에서만 엽니다.',
+      openIde: null,
+      saveCurrentFile: false
+    };
+  }
+  const rel = relativeWorkPath(saved);
+  const wantsSave = /저장해/.test(q);
+  const wantsSummary = /요약해/.test(q);
+  const sentences = [];
+  if (!wantsSave || /열어|띄워|보여|편집|이어서/.test(q)) {
+    sentences.push(`대표님, ${rel} 파일을 작업 창에 열었습니다.`);
+  }
+  if (wantsSummary && fs.existsSync(saved)) {
+    sentences.push(summarizeWorkspaceFile(saved).replace(/^대표님,\s*/, ''));
+  }
+  if (wantsSave) {
+    sentences.push(`${rel}은 편집기에 있는 내용으로 저장합니다.`);
+  }
+  return {
+    reply: sentences.join(' ').replace(/\s+/g, ' ').trim(),
+    openIde: { filePath: saved.replace(/\\/g, '/') },
+    saveCurrentFile: wantsSave
+  };
+}
 
 function broadcastEvent(type, payload) {
   const data = `event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`;
@@ -339,21 +546,23 @@ function broadcastEvent(type, payload) {
   }
 }
 
-function logConsoleStream(agent, message, tokensUsed = 120, tokensSaved = 1850) {
+function noteSessionChars(userText, replyText) {
+  const added = String(userText || '').length + String(replyText || '').length;
+  if (!added) return;
+  tokenTelemetry.sessionChars += added;
+  tokenTelemetry.measured = true;
+  tokenTelemetry.optimizedActualTokens = tokenTelemetry.sessionChars;
+}
+
+function logConsoleStream(agent, message) {
   tokenTelemetry.totalTurns += 1;
-  tokenTelemetry.rawBaselineTokens += (tokensUsed + tokensSaved);
-  tokenTelemetry.optimizedActualTokens += tokensUsed;
-  tokenTelemetry.savedTokens += tokensSaved;
-  tokenTelemetry.savingsPct = Number(
-    ((tokenTelemetry.savedTokens / Math.max(1, tokenTelemetry.rawBaselineTokens)) * 100).toFixed(1)
-  );
 
   const entry = {
     time: new Date().toLocaleTimeString('ko-KR'),
     agent,
     event: message,
-    tokens: tokensUsed,
-    saved: tokensSaved
+    tokens: 0,
+    saved: 0
   };
   tokenTelemetry.recentLogs.unshift(entry);
   if (tokenTelemetry.recentLogs.length > 40) tokenTelemetry.recentLogs.pop();
@@ -390,13 +599,20 @@ function parseBody(req) {
 const ALLOWED_READ_ROOTS = [
   path.resolve(__dirname).toLowerCase(),
   'c:\\beauscreators',
+  'c:\\warehouse',
   'c:\\users\\user\\.gemini\\antigravity\\brain'
 ];
 
 function isPathAllowedForRead(targetPath) {
   if (!targetPath) return false;
   const resolved = path.resolve(targetPath).toLowerCase();
-  return ALLOWED_READ_ROOTS.some(r => resolved.startsWith(r));
+  if (ALLOWED_READ_ROOTS.some(r => resolved.startsWith(r))) return true;
+  try {
+    const eco = loadConnectedEcosystems();
+    return (eco.connectedFolders || []).some(f => resolved.startsWith(path.resolve(f.path).toLowerCase()));
+  } catch (_) {
+    return false;
+  }
 }
 
 // Safe Computer Use Actions (Whitelisted, Zero Deletion, CEO Approval Guarded)
@@ -425,6 +641,16 @@ const SAFE_PC_ACTIONS = {
     label: 'PC 하드웨어 & 메모리 상태 실시간 스캔',
     desc: 'CPU, 메모리 여유 공간 및 실행 중인 프로세스 상위 5개를 안전하게 조회합니다.',
     cmd: 'Get-CimInstance Win32_OperatingSystem | Select-Object Caption, FreePhysicalMemory, TotalVisibleMemorySize | ConvertTo-Json'
+  },
+  'open_comfy_desktop': {
+    label: 'ComfyUI Desktop 실행',
+    desc: '설치된 Comfy Desktop을 엽니다. 이미지 편집과 Hailuo 영상 모델은 이 앱이 켜진 뒤에 쓸 수 있습니다.',
+    cmd: 'Start-Process "C:\\Users\\USER\\AppData\\Local\\Programs\\ComfyUI\\Comfy Desktop\\Comfy Desktop.exe"'
+  },
+  'open_blender': {
+    label: 'Blender 5.1 실행',
+    desc: 'Blender 5.1을 엽니다. 3D 생성 자체는 Cursor의 Blender MCP가 담당합니다.',
+    cmd: 'Start-Process "C:\\Program Files\\Blender Foundation\\Blender 5.1\\blender.exe"'
   }
 };
 
@@ -464,6 +690,9 @@ async function processJarvisTurn(message, contextState = {}) {
   let pcProposal = null;
   let openSettingsModal = false;
   let activateHoloGesture = false;
+  let openIde = null;
+  let saveCurrentFile = false;
+  let closeStudioHub = false;
   let reply = '';
   let sohaAddon = '';
   let delegatedAgent = '🤖 J.A.R.V.I.S.';
@@ -471,9 +700,56 @@ async function processJarvisTurn(message, contextState = {}) {
 
   // Only summon studio windows when 대표님 explicitly gives an open/summon command
   const hasExplicitOpenCmd = /열어|띄워|켜줘|소환|보여줘|가동해|실행해/i.test(q);
+  const isExplicitBlenderStudioOpen = hasExplicitOpenCmd && /스튜디오/i.test(q) && /턴어라운드|360|블렌더|blender|vfx|\bobj\b/i.test(q);
 
+  // 0. 그림·영상·3D는 ComfyUI 또는 해당 앱으로 보내고, 앱 실행은 승인을 받는다.
+  const creativeRoute = isExplicitBlenderStudioOpen ? null : routeCreativeRequest(q);
+  if (creativeRoute) {
+    const comfy = await probeComfy();
+    summonedWindows.push({
+      windowType: 'REPORT',
+      title: '창작 작업 준비 · ComfyUI 오픈 모델',
+      subtitle: creativeRoute.job.id,
+      content: catalogReport(creativeRoute.catalog, comfy)
+    });
+    if (creativeRoute.kind === 'video') {
+      reply = comfy.online
+        ? '대표님, 영상 가중치는 MiniMax Hailuo H3 묶음이 준비되어 있고 ComfyUI가 응답 중입니다. 그 모델 전용 그래프가 아니라서 아무 워크플로는 넣지 않았습니다.'
+        : '대표님, 영상은 MiniMax Hailuo H3로 준비되어 있습니다. ComfyUI가 꺼져 있어 앱 실행 승인을 올립니다.';
+      if (!comfy.online) {
+        pcProposal = { actionKey: 'open_comfy_desktop', ...SAFE_PC_ACTIONS.open_comfy_desktop };
+      }
+    } else if (creativeRoute.kind === 'image-edit') {
+      reply = comfy.online
+        ? '대표님, 설치된 이미지 모델은 Qwen Image Edit 2509입니다. 새 그림을 처음부터 그리는 체크포인트는 없고, 원본 이미지가 있어야 고칩니다.'
+        : '대표님, 이미지 편집 모델은 Qwen Image Edit 2509입니다. 처음부터 그리는 체크포인트는 없고, ComfyUI 실행 승인을 올립니다.';
+      if (!comfy.online) {
+        pcProposal = { actionKey: 'open_comfy_desktop', ...SAFE_PC_ACTIONS.open_comfy_desktop };
+      }
+    } else if (creativeRoute.kind === 'blender') {
+      reply = '대표님, 3D 생성은 Blender MCP가 담당합니다. Blender 5.1 실행은 승인 뒤에 엽니다.';
+      pcProposal = { actionKey: 'open_blender', ...SAFE_PC_ACTIONS.open_blender };
+    } else if (creativeRoute.kind === 'photoshop') {
+      reply = '대표님, Photoshop.exe는 이 PC의 Photoshop 2024 폴더에서 확인되지 않았습니다. 이미지 편집은 Qwen Image Edit 묶음으로 준비해 두었습니다.';
+    } else {
+      reply = comfy.online
+        ? '대표님, ComfyUI가 켜져 있습니다. 준비된 모델은 Qwen Image Edit와 MiniMax Hailuo H3 영상입니다.'
+        : '대표님, ComfyUI는 꺼져 있습니다. 준비된 모델은 Qwen Image Edit와 MiniMax Hailuo H3 영상이고, 앱 실행은 승인 뒤에 합니다.';
+      if (!comfy.online) {
+        pcProposal = { actionKey: 'open_comfy_desktop', ...SAFE_PC_ACTIONS.open_comfy_desktop };
+      }
+    }
+  }
+  // 0-B. 파일 작업은 스튜디오 대신 현재 파일을 IDE에 연다.
+  else if (isWorkFileTurn(q)) {
+    const work = applyWorkFileTurn(q);
+    reply = work.reply;
+    openIde = work.openIde;
+    saveCurrentFile = work.saveCurrentFile;
+    closeStudioHub = true;
+  }
   // 0-A. Settings Modal trigger
-  if (/설정\s*창|환경\s*설정|설정\s*열어|settings|세팅\s*열어/i.test(q)) {
+  else if (/설정\s*창|환경\s*설정|설정\s*열어|settings|세팅\s*열어/i.test(q)) {
     openSettingsModal = true;
     reply = '대표님, 통합 환경설정 제어판을 열었습니다. 오픈모델, 성우 음색, 테마, 음성 매크로를 즉시 변경하실 수 있습니다.';
   }
@@ -636,6 +912,31 @@ async function processJarvisTurn(message, contextState = {}) {
     else if (/링|ring/i.test(q)) coreMode = 'RING';
   }
 
+  // 7. Commercial Knowledge Ecosystem Folder Connection via Chat ("Runnow 폴더 지식생태계 연결해줘", "뉴런 홈 초기화해줘")
+  if (!reply && /(지식\s*생태계|뉴런\s*홈|폴더\s*연결).*(연결|추가|마운트|초기화|비워|해제)/i.test(q)) {
+    if (/초기화|비워|전체\s*해제/i.test(q)) {
+      const clearRes = clearAllKnowledgeFolders();
+      broadcastEvent('brain_ecosystem_updated', clearRes);
+      reply = `이건우 대표님, 상업용 뉴런 홈을 초기 상태(중앙 🤖 J.A.R.V.I.S. 코어 1개 점)로 깨끗하게 초기화했습니다.`;
+    } else {
+      let targetFolder = '';
+      const pathMatch = q.match(/([a-zA-Z]:\\[^\s"'`?<>|]+)/);
+      if (pathMatch) targetFolder = pathMatch[1];
+      else if (/runnow/i.test(q)) targetFolder = 'C:\\BeausCreators\\02.BSC_Branch\\projects\\Runnow';
+      else if (/지식창고|knowledge/i.test(q)) targetFolder = 'C:\\BeausCreators\\01.BSC_HQ\\6.Knowledge_Index';
+      else if (/가이드라인|guideline/i.test(q)) targetFolder = 'C:\\BeausCreators\\01.BSC_HQ\\0.Guidelines';
+      else if (/에이전트|agent/i.test(q)) targetFolder = 'C:\\BeausCreators\\01.BSC_HQ\\2.Agents\\에이전트';
+
+      if (targetFolder) {
+        const connRes = connectKnowledgeFolder(targetFolder);
+        if (connRes.ok) {
+          broadcastEvent('brain_ecosystem_updated', connRes);
+          reply = `이건우 대표님, 요청하신 [${connRes.connectedFolder.label}] (${connRes.connectedFolder.path}) 폴더를 뉴런 홈 지식생태계에 연결했습니다. 총 ${connRes.graphStats.totalNodes}개 뉴런 점과 ${connRes.graphStats.totalLinks}개 시냅스가 실시간 생성되었습니다.`;
+        }
+      }
+    }
+  }
+
   if (!reply && summonedWindows.length > 0) {
     reply = `대표님, ${summonedWindows[0].title} 창을 열었습니다.`;
   }
@@ -697,10 +998,14 @@ async function processJarvisTurn(message, contextState = {}) {
       dialogueTurns,
       autonomousPlan
     });
-    logConsoleStream('🤖 J.A.R.V.I.S.', `Command/Plan turn: "${q.slice(0, 44)}"`, 18, 950);
+    noteSessionChars(q, reply);
+    logConsoleStream('🤖 J.A.R.V.I.S.', `Command/Plan turn: "${q.slice(0, 44)}"`);
     return {
       ok: true,
       reply,
+      openIde,
+      saveCurrentFile,
+      closeStudioHub,
       jarvisReply: reply,
       sohaReply: '',
       dialogueTurns,
@@ -721,14 +1026,17 @@ async function processJarvisTurn(message, contextState = {}) {
     };
   }
 
-  // Free conversation still goes through the local brain.
+  // Free conversation goes through the local brain + Gemma 4 Multimodal ($0 Auto-Swap: EmbeddingGemma 300M -> Gemma 4 E4B Vision -> Gemma 4 E2B/E4B/31B).
   let chatHistory = [];
   let bridgeStatus = getAdeIdeBridgeStatus();
+  const gemma2Trinity = await autoDetectAndChainGemma2Trinity(q, contextState);
+  broadcastEvent('gemma2_trinity_swap', gemma2Trinity);
 
   if (!contextState.skipLiveLlm) {
     const liveConv = await generateNaturalAgentConversation(q, {
       ...contextState,
-      llmEngine: selectedModel
+      llmEngine: selectedModel,
+      gemma2TrinityContext: gemma2Trinity.injectedSystemContext
     });
     if (liveConv && liveConv.primaryText) {
       reply = liveConv.primaryText;
@@ -745,12 +1053,15 @@ async function processJarvisTurn(message, contextState = {}) {
           persona: 'jarvis',
           speaker: NEURAL_VOICE_PROFILES.jarvis.speakerTitle,
           avatar: NEURAL_VOICE_PROFILES.jarvis.avatar,
-          text: liveConv.primaryText
+          text: liveConv.primaryText,
+          trinityBadge: gemma2Trinity.chainBadgeText,
+          trinityTrace: gemma2Trinity.trinityTrace,
+          costUsd: 0.0
         }
       ];
 
       const fullDisplayReplyLive = liveConv.primaryText;
-      logConsoleStream(delegatedAgent, `Harness² Tiki-Taka Turn: "${q.slice(0, 44)}" -> ${liveConv.harness2Notes || 'Synced'}`, 165, 2250);
+      logConsoleStream(delegatedAgent, `Gemma 4 Core [${gemma2Trinity.activeChainModels.join(' -> ')}]: "${q.slice(0, 38)}"`, 165, 2250);
 
       if (summonedWindows.length > 0) {
         for (const w of summonedWindows) {
@@ -760,15 +1071,21 @@ async function processJarvisTurn(message, contextState = {}) {
       broadcastEvent('agent_chat_update', {
         chatHistory,
         bridgeStatus,
-        dialogueTurns: dialogueTurnsLive
+        dialogueTurns: dialogueTurnsLive,
+        gemma2Trinity
       });
 
+      noteSessionChars(q, fullDisplayReplyLive);
       return {
         ok: true,
         reply: fullDisplayReplyLive,
+        openIde,
+        saveCurrentFile,
+        closeStudioHub,
         jarvisReply: liveConv.primaryText,
         sohaReply: '',
         dialogueTurns: dialogueTurnsLive,
+        gemma2Trinity,
         primaryPersona: 'jarvis',
         delegatedAgent,
         harness2Notes: liveConv.harness2Notes,
@@ -800,7 +1117,8 @@ async function processJarvisTurn(message, contextState = {}) {
 
   const fullDisplayReply = reply;
 
-  logConsoleStream(delegatedAgent, `Processed: "${q.slice(0, 44)}" -> J.A.R.V.I.S. voice turn, ${summonedWindows.length} window(s)`, 145, 2100);
+  noteSessionChars(q, fullDisplayReply);
+  logConsoleStream(delegatedAgent, `Processed: "${q.slice(0, 44)}" -> J.A.R.V.I.S. voice turn, ${summonedWindows.length} window(s)`);
 
   if (summonedWindows.length > 0) {
     for (const w of summonedWindows) {
@@ -811,6 +1129,9 @@ async function processJarvisTurn(message, contextState = {}) {
   return {
     ok: true,
     reply: fullDisplayReply,
+    openIde,
+    saveCurrentFile,
+    closeStudioHub,
     jarvisReply: reply,
     sohaReply: '',
     dialogueTurns,
@@ -852,7 +1173,15 @@ const MIME_TYPES = {
   '.mp3': 'audio/mpeg'
 };
 
-const server = http.createServer(async (req, res) => {
+process.on('unhandledRejection', (err) => {
+  console.error('[jarvis] unhandledRejection', err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[jarvis] uncaughtException', err);
+});
+
+const server = http.createServer((req, res) => {
+  (async () => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = decodeURIComponent(parsedUrl.pathname);
 
@@ -869,16 +1198,232 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 2. Brain Graph JSON API (/api/brain)
+  // 2. Brain Graph JSON API (/api/brain) & Commercial Folder Ecosystem Connector
   if (req.method === 'GET' && pathname === '/api/brain') {
     const refresh = parsedUrl.searchParams.get('refresh') === '1';
     if (refresh || !fs.existsSync(BRAIN_JSON_PATH)) {
-      const data = buildBrainGraph();
-      return sendJson(res, 200, data);
+      try {
+        const data = buildBrainGraph();
+        return sendJson(res, 200, data);
+      } catch (e) {
+        return sendJson(res, 200, { ok: false, error: '지식 지도를 다시 쓰는 중 파일 잠금이 발생했습니다.', nodes: [], links: [] });
+      }
     }
     const raw = fs.readFileSync(BRAIN_JSON_PATH, 'utf8');
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     return res.end(raw);
+  }
+
+  if (pathname === '/api/brain/ecosystems') {
+    if (req.method === 'GET') {
+      const state = loadConnectedEcosystems();
+      let graph = { stats: null };
+      try { graph = buildBrainGraph(); } catch (e) {}
+      const slots = (state.slots || DEFAULT_COMMERCIAL_SLOTS).map(s => ({
+        ...s,
+        name: s.name || s.label
+      }));
+      return sendJson(res, 200, {
+        ok: true,
+        slots,
+        connectedFolders: state.connectedFolders || [],
+        stats: graph.stats
+      });
+    }
+    if (req.method === 'POST') {
+      const body = await parseBody(req);
+      const action = body.action || 'connect';
+      if (action === 'reset_all' || action === 'clear_all') {
+        const result = clearAllKnowledgeFolders();
+        broadcastEvent('brain_ecosystem_updated', result);
+        return sendJson(res, 200, {
+          ...result,
+          totalNodes: result.graphStats?.totalNodes || 1
+        });
+      }
+      if (action === 'disconnect') {
+        const result = disconnectKnowledgeFolder(body.slotId || body.folderPath || body.id || '');
+        broadcastEvent('brain_ecosystem_updated', result);
+        return sendJson(res, 200, {
+          ...result,
+          totalNodes: result.graphStats?.totalNodes || 1
+        });
+      }
+      const result = connectKnowledgeFolder({
+        slotId: body.slotId || '',
+        folderPath: body.folderPath || body.path || '',
+        label: body.label || '',
+        color: body.color || ''
+      });
+      if (result.ok) {
+        broadcastEvent('brain_ecosystem_updated', result);
+      }
+      return sendJson(res, result.ok ? 200 : 400, {
+        ...result,
+        totalNodes: result.graphStats?.totalNodes || 1,
+        analyzedMdCount: result.analysisSummary?.markdownFileCount || 0
+      });
+    }
+  }
+
+  // 실시간 로컬 디스크 폴더 탐색기 API (하드코딩 없이 실제 드라이브·폴더·.md 파일 개수 실시간 조회)
+  if (req.method === 'GET' && pathname === '/api/brain/browse-dirs') {
+    const rawDir = parsedUrl.searchParams.get('dir') || 'C:\\';
+    let currentDir = path.resolve(rawDir.replace(/\//g, '\\'));
+    if (!fs.existsSync(currentDir)) currentDir = 'C:\\';
+    try {
+      const st = fs.statSync(currentDir);
+      if (!st.isDirectory()) currentDir = path.dirname(currentDir);
+    } catch (_) {
+      currentDir = 'C:\\';
+    }
+
+    const drives = ['C:\\', 'D:\\', 'E:\\', 'F:\\'].filter(d => {
+      try { return fs.existsSync(d); } catch (_) { return false; }
+    });
+
+    const parentDir = path.dirname(currentDir) !== currentDir ? path.dirname(currentDir) : null;
+    const subDirs = [];
+    let currentMdCount = 0;
+    let currentTotalFiles = 0;
+
+    try {
+      const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.name.startsWith('$') || entry.name === 'System Volume Information' || entry.name === 'node_modules') continue;
+        const fullP = path.join(currentDir, entry.name);
+        if (entry.isDirectory()) {
+          let mdCount = 0;
+          let childFolderCount = 0;
+          try {
+            const subEntries = fs.readdirSync(fullP, { withFileTypes: true });
+            for (const se of subEntries) {
+              if (se.isFile() && /\.md$/i.test(se.name)) mdCount++;
+              else if (se.isDirectory() && !se.name.startsWith('.')) childFolderCount++;
+            }
+          } catch (_) {}
+          subDirs.push({
+            name: entry.name,
+            path: fullP,
+            mdCount,
+            childFolderCount
+          });
+        } else if (entry.isFile()) {
+          currentTotalFiles++;
+          if (/\.md$/i.test(entry.name)) currentMdCount++;
+        }
+      }
+    } catch (e) {}
+
+    subDirs.sort((a, b) => (b.mdCount - a.mdCount) || a.name.localeCompare(b.name));
+
+    return sendJson(res, 200, {
+      ok: true,
+      drives,
+      currentDir,
+      parentDir,
+      currentMdCount,
+      currentTotalFiles,
+      subDirs: subDirs.slice(0, 80)
+    });
+  }
+
+  // Windows 네이티브 폴더 선택 대화상자 실행 API (클릭 시 실제 Windows 폴더 선택 창 팝업 + 즉시 .md 분석 연결)
+  if (req.method === 'POST' && pathname === '/api/brain/pick-folder') {
+    const body = await parseBody(req);
+    const slotId = body.slotId || '';
+    const customLabel = body.label || '';
+    const customColor = body.color || '';
+    const descText = (body.description || '연결하고 .md 문서를 분석할 폴더를 선택하세요').replace(/['"`]/g, '');
+
+    const psScript = [
+      'Add-Type -AssemblyName System.Windows.Forms;',
+      '$f = New-Object System.Windows.Forms.FolderBrowserDialog;',
+      `$f.Description = '${descText}';`,
+      '$f.ShowNewFolderButton = $true;',
+      '$top = New-Object System.Windows.Forms.Form;',
+      '$top.TopMost = $true;',
+      '$res = $f.ShowDialog($top);',
+      'if ($res -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.Write($f.SelectedPath) }'
+    ].join(' ');
+
+    exec(`powershell -NoProfile -Sta -Command "${psScript.replace(/"/g, '\\"')}"`, { timeout: 60000 }, (err, stdout) => {
+      const selectedPath = String(stdout || '').trim();
+      if (!selectedPath || !fs.existsSync(selectedPath)) {
+        return sendJson(res, 200, { ok: false, canceled: true, error: '폴더 선택이 취소되었거나 선택된 경로가 없습니다.' });
+      }
+      if (body.autoConnect !== false) {
+        const result = connectKnowledgeFolder({
+          slotId,
+          folderPath: selectedPath,
+          label: customLabel,
+          color: customColor
+        });
+        if (result.ok) {
+          broadcastEvent('brain_ecosystem_updated', result);
+          logConsoleStream('🔗 MD Knowledge Analyzer', `Slot [${result.connectedSlot.label}] -> ${selectedPath} (${result.analysisSummary.markdownFileCount} .md files analyzed)`, 28, 1400);
+        }
+        return sendJson(res, 200, { ...result, selectedPath });
+      }
+      return sendJson(res, 200, { ok: true, selectedPath });
+    });
+    return;
+  }
+
+  // 분석된 전체 .md 문서 지식 인덱스 조회 API (/api/brain/md-knowledge)
+  if (req.method === 'GET' && pathname === '/api/brain/md-knowledge') {
+    const mdIdxPath = path.join(PUBLIC_DIR, 'data', 'analyzed-md-knowledge.json');
+    if (fs.existsSync(mdIdxPath)) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(mdIdxPath, 'utf8'));
+        const list = parsed.entries || parsed.documents || [];
+        return sendJson(res, 200, { ok: true, ...parsed, entries: list, documents: list });
+      } catch (_) {}
+    }
+    return sendJson(res, 200, { ok: true, totalAnalyzedMarkdownFiles: 0, entries: [], documents: [] });
+  }
+
+  // 추출된 뉴런 외에 디스크에 남아 있는 모든 파일(수만 개 .md, 코드, 문서, 에셋) 실시간 전수 검색 API (/api/brain/search-all)
+  if (req.method === 'GET' && pathname === '/api/brain/search-all') {
+    const q = parsedUrl.searchParams.get('q') || '';
+    const limit = Math.min(100, Math.max(10, Number(parsedUrl.searchParams.get('limit')) || 40));
+    const results = searchAllRemainingFilesOnDisk(q, limit);
+    return sendJson(res, 200, {
+      ok: true,
+      query: q,
+      count: results.length,
+      results
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/brain/connect-folder') {
+    const body = await parseBody(req);
+    const result = connectKnowledgeFolder({
+      slotId: body.slotId || '',
+      folderPath: body.folderPath || body.path || '',
+      label: body.label || '',
+      color: body.color || ''
+    });
+    if (result.ok) {
+      broadcastEvent('brain_ecosystem_updated', result);
+      logConsoleStream('🔗 MD Knowledge Analyzer', `Connected [${result.connectedSlot.label}: ${result.connectedSlot.path}] -> ${result.analysisSummary.markdownFileCount} .md files / ${result.graphStats.totalNodes} nodes`, 25, 1300);
+    }
+    return sendJson(res, result.ok ? 200 : 400, result);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/brain/disconnect-folder') {
+    const body = await parseBody(req);
+    const result = disconnectKnowledgeFolder(body.slotId || body.folderPath || body.id || '');
+    broadcastEvent('brain_ecosystem_updated', result);
+    logConsoleStream('🔗 Knowledge Ecosystem', `Disconnected slot -> ${result.graphStats.totalNodes} nodes remaining`, 12, 600);
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/brain/clear-all') {
+    const result = clearAllKnowledgeFolders();
+    broadcastEvent('brain_ecosystem_updated', result);
+    logConsoleStream('🔗 Knowledge Ecosystem', `Reset all slots to clean commercial state (1 core node)`, 10, 400);
+    return sendJson(res, 200, result);
   }
 
   // 3. Read-Only Node File Content (/api/read-node?path=...)
@@ -922,6 +1467,16 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, tokenTelemetry);
   }
 
+  if (req.method === 'GET' && pathname === '/api/jarvis/live-neurons') {
+    return sendJson(res, 200, readLiveNeuronFeed());
+  }
+
+  if (req.method === 'GET' && pathname === '/api/jarvis/comfy-models') {
+    const catalog = refreshCatalog();
+    const comfy = await probeComfy();
+    return sendJson(res, 200, { ok: true, comfyOnline: comfy.online, catalog });
+  }
+
   // 6. Autonomous Window Summon Endpoint (/api/summon) — Compatible with eadmin2/jarvis_ai protocol
   if (req.method === 'POST' && pathname === '/api/summon') {
     const body = await parseBody(req);
@@ -940,7 +1495,9 @@ const server = http.createServer(async (req, res) => {
   // 7. Co-Creation Agent Conversation Endpoint (/api/agent)
   if (req.method === 'POST' && pathname === '/api/agent') {
     const body = await parseBody(req);
-    const result = await processJarvisTurn(body.message || '', body.context || {});
+    const msg = String(body.message || body.prompt || body.text || body.command || '').trim();
+    if (!msg) return sendJson(res, 400, { ok: false, error: 'Empty message' });
+    const result = await processJarvisTurn(msg, body.context || body || {});
     return sendJson(res, 200, result);
   }
 
@@ -986,7 +1543,7 @@ const server = http.createServer(async (req, res) => {
     const stamp = new Date().toISOString();
     const block = `\n\n---\n### 📝 [${stamp}] 이건우 대표님 & J.A.R.V.I.S. 동역 기록\n${body.content || ''}\n`;
     fs.appendFileSync(targetFile, block, 'utf8');
-    buildBrainGraph();
+    try { buildBrainGraph(); } catch (e) {}
     logConsoleStream('Vault Append Steward', `Appended note to vault/${safeTitle}.md (Zero Overwrite)`, 30, 800);
     return sendJson(res, 200, { ok: true, path: targetFile.replace(/\\/g, '/') });
   }
@@ -997,10 +1554,11 @@ const server = http.createServer(async (req, res) => {
     const sttEngine = body.sttEngine || 'whisper-large-v3';
     logConsoleStream('STT Transcriber', `Processed voice frame via ${sttEngine}`, 15, 420);
     return sendJson(res, 200, {
-      transcript: body.fallbackText || '자비스, 통합 스튜디오 허브와 Laya 라우터 상태를 브리핑해줘.',
+      ok: false,
+      available: false,
+      transcript: '',
       sttEngine,
-      routedModel: sttEngine,
-      latencyMs: 118
+      message: '음성은 브라우저 인식만 사용합니다. 이 경로는 받아쓰지 않습니다.'
     });
   }
 
@@ -1015,7 +1573,9 @@ const server = http.createServer(async (req, res) => {
       dialogueTurns: turnResult.dialogueTurns,
       layaDecision: `Laya-421M System-1: 31ms 의도 분류 완료 (${turnResult.delegatedAgent})`,
       thoughtProcess: `${llmEngine} + BSC 2-Hop Steward 파이프라인 추론 완료`,
-      telemetryInsight: `2-Hop 토큰 절감률 ${tokenTelemetry.savingsPct}% 유지 중 ($0 로컬 구동)`,
+      telemetryInsight: tokenTelemetry.measured
+        ? `이번 세션에서 센 글자는 ${tokenTelemetry.sessionChars}자입니다.`
+        : '이번 세션에서 센 글자는 아직 없습니다.',
       osActions: turnResult.pcProposal ? [{
         actionType: 'SHELL_EXEC',
         title: turnResult.pcProposal.label,
@@ -1081,33 +1641,12 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && pathname === '/api/jarvis/vision') {
-    const body = await parseBody(req);
-    let imageUrl = null;
-    if (body.captureRealScreen) {
-      try {
-        const capFile = path.join(PUBLIC_DIR, 'data', 'latest-screen-capture.png');
-        fs.mkdirSync(path.dirname(capFile), { recursive: true });
-        const psCap = `Add-Type -AssemblyName System.Windows.Forms, System.Drawing; $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bmp = New-Object System.Drawing.Bitmap($b.Width, $b.Height); $g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size); $bmp.Save('${capFile.replace(/'/g, "''")}', [System.Drawing.Imaging.ImageFormat]::Png); $g.Dispose(); $bmp.Dispose()`;
-        await new Promise(resolve => exec(`powershell -NoProfile -Command "${psCap}"`, { timeout: 6000 }, () => resolve()));
-        if (fs.existsSync(capFile)) {
-          imageUrl = `/data/latest-screen-capture.png?t=${Date.now()}`;
-        }
-      } catch (e) {}
-    }
-    logConsoleStream('OmniParser Vision', `Scanned ${body.mode || 'screen'} frame for UI coordinates`, 45, 1200);
     return sendJson(res, 200, {
-      ok: true,
-      imageUrl,
-      summary: imageUrl
-        ? '대표님, 현재 Windows 데스크톱 실제 화면을 캡처하여 클릭 가능한 UI 요소 좌표를 정밀 추출했습니다.'
-        : '대표님, OmniParser 비전 모듈이 현재 화면에서 클릭 가능한 핵심 홀로그램 UI 요소 좌표를 정밀 추출했습니다.',
-      suggestedAutomation: 'pyautogui.moveTo(960, 540, duration=0.25); pyautogui.click()',
-      detectedObjects: [
-        { label: '상단 18대 통합 스튜디오 바 (#unified-workspace-bar)', confidence: 0.996, xPercent: 50, yPercent: 8, widthPercent: 55, heightPercent: 4, actionableHint: '원클릭 스튜디오 및 설정 전환' },
-        { label: 'HOLO 에어터치 & WATCH 비전 센서', confidence: 0.991, xPercent: 92, yPercent: 68, widthPercent: 7, heightPercent: 4, actionableHint: '카메라 손 제스처 및 화면 인식 가동' },
-        { label: '하단 영화 속 자비스 명령 독 (#bottom-command-dock)', confidence: 0.994, xPercent: 50, yPercent: 94, widthPercent: 64, heightPercent: 5, actionableHint: '음성/텍스트 명령 및 성우 전환' }
-      ],
-      latencyMs: 64
+      ok: false,
+      available: false,
+      imageUrl: null,
+      summary: '화면 좌표 분석은 아직 없습니다.',
+      detectedObjects: []
     });
   }
 
@@ -1306,12 +1845,14 @@ const server = http.createServer(async (req, res) => {
       }
     } catch (e) {}
     const pendingCnt = osActionQueue.filter(x => x.status === 'PENDING_APPROVAL').length;
+    const spokenText = briefData.speechScript || `이건우 대표님, 전사 코어 요원 ${briefData.activeAgents}명이 정상 가동 중이며 승인 대기 안건은 ${pendingCnt}건입니다.`;
     logConsoleStream('J.A.R.V.I.S. × 소하', `Generated 15-Second Executive Briefing (${briefData.activeAgents} active agents, ${pendingCnt} pending actions)`, 12, 2400);
     return sendJson(res, 200, {
       ok: true,
       brief: briefData,
       pendingQueueCount: pendingCnt,
-      speechScript: briefData.speechScript || `이건우 대표님, 전사 코어 요원 ${briefData.activeAgents}명이 정상 가동 중이며 승인 대기 안건은 ${pendingCnt}건입니다.`
+      spokenBriefing: spokenText,
+      speechScript: spokenText
     });
   }
 
@@ -1445,6 +1986,147 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, auditResult);
   }
 
+  // 10-N2. REA (morluto/rea) & ArtCraft 13 Creative Suite (getartcraft.com / storytold) GitHub & Native Program Launcher API
+  if (req.method === 'GET' && pathname === '/api/jarvis/techpack-apps') {
+    const suiteDir = 'C:/BeausCreators/05.BSC_Skill_Warehouse/1.Imported_Skills/2026-10-19_TechPack/artcraft-suite';
+    const launcherDir = path.join(suiteDir, 'artcraft-launcher-portable/artcraft-launcher-0.5.1-windows-x64-portable');
+    const appsDir = path.join(launcherDir, 'ArtCraftLauncherData/data/apps');
+    const launcherExe = path.join(launcherDir, 'artcraft-launcher.exe');
+    const reaRepoDir = 'C:/BeausCreators/05.BSC_Skill_Warehouse/1.Imported_Skills/2026-10-19_TechPack/rea';
+    const reaAnalyzerScript = 'C:/BeausCreators/01.BSC_HQ/3.CompanyOS/Scripts/Invoke-ReaAnalyzer.js';
+
+    const artcraftApps = [
+      { id: 'photocraft', num: '01', name: 'PhotoCraft', kr: '포토샵 대체 · 사진/PSD 편집', githubUrl: 'https://github.com/storytold/photocraft' },
+      { id: 'vectorcraft', num: '02', name: 'VectorCraft', kr: '일러스트 대체 · 벡터 그래픽', githubUrl: 'https://github.com/storytold/vectorcraft' },
+      { id: 'filmcraft', num: '03', name: 'FilmCraft', kr: '프리미어 대체 · 비선형 영상 편집', githubUrl: 'https://github.com/storytold/filmcraft' },
+      { id: 'effectcraft', num: '04', name: 'EffectCraft', kr: '애프터이펙트 대체 · 모션/VFX', githubUrl: 'https://github.com/storytold/effectcraft' },
+      { id: 'designcraft', num: '05', name: 'DesignCraft', kr: '인디자인 대체 · 출판/레이아웃', githubUrl: 'https://github.com/storytold/designcraft' },
+      { id: 'figcraft', num: '06', name: 'FigCraft', kr: '피그마 대체 · UI/UX 프로토타이핑', githubUrl: 'https://github.com/storytold/figcraft' },
+      { id: 'lightcraft', num: '07', name: 'LightCraft', kr: '라이트룸 대체 · RAW 사진 현상', githubUrl: 'https://github.com/storytold/lightcraft' },
+      { id: 'pdfcraft', num: '08', name: 'PdfCraft', kr: '아크로뱃 대체 · PDF 편집/보안', githubUrl: 'https://github.com/storytold/pdfcraft' },
+      { id: 'wordcraft', num: '09', name: 'WordCraft', kr: 'MS워드 대체 · 문서 작성', githubUrl: 'https://github.com/storytold/wordcraft' },
+      { id: 'deckcraft', num: '10', name: 'DeckCraft', kr: '파워포인트 대체 · 프레젠테이션', githubUrl: 'https://github.com/storytold/deckcraft' },
+      { id: 'gridcraft', num: '11', name: 'GridCraft', kr: '엑셀 대체 · 스프레드시트/데이터', githubUrl: 'https://github.com/storytold/gridcraft' },
+      { id: 'soundcraft', num: '12', name: 'SoundCraft', kr: '오디션 대체 · 오디오 녹음/편집', githubUrl: 'https://github.com/storytold/soundcraft' },
+      { id: 'cadcraft', num: '13', name: 'CADCraft', kr: '오토캐드 대체 · 2D/3D CAD 도면', githubUrl: 'https://github.com/storytold/cadcraft' }
+    ].map(app => {
+      const exePath = path.join(appsDir, app.id, `${app.id}.exe`);
+      const installed = fs.existsSync(exePath);
+      const sizeMb = installed ? Number((fs.statSync(exePath).size / 1048576).toFixed(1)) : 0;
+      return {
+        ...app,
+        exePath: exePath.replace(/\\/g, '/'),
+        installed,
+        sizeMb
+      };
+    });
+
+    const coreRepos = [
+      { id: 'rea', name: 'REA (Reverse Engineer Anything)', role: '바이너리·웹·JS·유니티 역공학 & MCP CLI', githubUrl: 'https://github.com/morluto/rea', localPath: reaRepoDir, installed: fs.existsSync(reaRepoDir) },
+      { id: 'artcraft', name: 'ArtCraft Core Engine', role: 'Rust 기반 오픈소스 크리에이티브 코어', githubUrl: 'https://github.com/storytold/artcraft', localPath: path.join(suiteDir, 'artcraft').replace(/\\/g, '/'), installed: fs.existsSync(path.join(suiteDir, 'artcraft')) },
+      { id: 'craft-launcher', name: 'ArtCraft 통합 런처 (v0.5.1)', role: '13종 네이티브 앱 통합 설치·실행 매니저', githubUrl: 'https://github.com/storytold/craft-launcher', localPath: launcherExe.replace(/\\/g, '/'), installed: fs.existsSync(launcherExe) },
+      { id: 'craft-ai-integrations', name: 'Craft AI Integrations', role: 'AI 에이전트가 13종 앱 레이어·타임라인 직접 제어', githubUrl: 'https://github.com/storytold/craft-ai-integrations', localPath: path.join(suiteDir, 'craft-ai-integrations').replace(/\\/g, '/'), installed: fs.existsSync(path.join(suiteDir, 'craft-ai-integrations')) },
+      { id: 'indd-utils', name: 'InDesign Utils (indd-utils)', role: '어도비 없이 .indd 원고를 .idml로 변환', githubUrl: 'https://github.com/storytold/indd-utils', localPath: path.join(suiteDir, 'indd-utils').replace(/\\/g, '/'), installed: fs.existsSync(path.join(suiteDir, 'indd-utils')) },
+      { id: 'spark', name: 'Spark 3D Gaussian Splatting', role: 'Three.js 초고속 실사 3D 가우시안 스플래팅', githubUrl: 'https://github.com/storytold/spark', localPath: path.join(suiteDir, 'spark').replace(/\\/g, '/'), installed: fs.existsSync(path.join(suiteDir, 'spark')) }
+    ];
+
+    return sendJson(res, 200, {
+      ok: true,
+      rea: {
+        name: 'REA (Reverse Engineer Anything)',
+        githubUrl: 'https://github.com/morluto/rea',
+        npmPackage: 'rea-agents',
+        localRepoPath: reaRepoDir,
+        analyzerScriptPath: reaAnalyzerScript,
+        installed: fs.existsSync(reaRepoDir)
+      },
+      artcraft: {
+        officialWebsite: 'https://getartcraft.com/',
+        githubOrgUrl: 'https://github.com/storytold',
+        launcherExe: launcherExe.replace(/\\/g, '/'),
+        launcherInstalled: fs.existsSync(launcherExe),
+        apps: artcraftApps,
+        coreRepos
+      }
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/launch-app') {
+    const body = await parseBody(req);
+    const appId = String(body.appId || '').trim().toLowerCase();
+    try {
+      const artcraftCtrl = require('./scripts/artcraft-live-controller');
+      const result = await artcraftCtrl.launchAndConnectArtCraftApp(appId);
+      if (result.ok) {
+        logConsoleStream('🚀 ArtCraft Live Bridge', `Launched & connected ${appId} (mode=${result.mode || 'native'})`, 14, 520);
+        broadcastEvent('artcraft_status', result);
+      }
+      return sendJson(res, result.ok ? 200 : 404, result);
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
+  // 10-N3. ArtCraft 13 Live Control & Screen Viewport API (/api/jarvis/artcraft/*)
+  if (pathname === '/api/jarvis/artcraft/status' && req.method === 'GET') {
+    try {
+      const artcraftCtrl = require('./scripts/artcraft-live-controller');
+      return sendJson(res, 200, artcraftCtrl.getArtCraftSuiteStatus());
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
+  if (pathname === '/api/jarvis/artcraft/launch' && req.method === 'POST') {
+    const body = await parseBody(req);
+    try {
+      const artcraftCtrl = require('./scripts/artcraft-live-controller');
+      const result = await artcraftCtrl.launchAndConnectArtCraftApp(body.appId || 'photocraft');
+      broadcastEvent('artcraft_status', result);
+      return sendJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
+  if (pathname === '/api/jarvis/artcraft/capture' && (req.method === 'GET' || req.method === 'POST')) {
+    const body = req.method === 'POST' ? await parseBody(req) : {};
+    const appId = body.appId || parsedUrl.searchParams.get('appId') || 'photocraft';
+    try {
+      const artcraftCtrl = require('./scripts/artcraft-live-controller');
+      const snap = await artcraftCtrl.inspectAndCaptureArtCraftApp(appId);
+      return sendJson(res, 200, snap);
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
+  if (pathname === '/api/jarvis/artcraft/control' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const appId = body.appId || 'photocraft';
+    try {
+      const artcraftCtrl = require('./scripts/artcraft-live-controller');
+      const out = await artcraftCtrl.executeArtCraftControlAction(appId, body);
+      logConsoleStream('🎨 ArtCraft Remote Control', `[${appId}] op=${body.op || 'command'} (${body.command || body.tool || ''})`, 16, 680);
+      return sendJson(res, 200, out);
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/rea-analyze') {
+    const body = await parseBody(req);
+    const targetPath = String(body.targetPath || 'C:/BeausCreators/05.BSC_Skill_Warehouse/1.Imported_Skills/2026-10-19_TechPack/artcraft-suite/artcraft').trim();
+    try {
+      const reaAnalyzer = require('C:/BeausCreators/01.BSC_HQ/3.CompanyOS/Scripts/Invoke-ReaAnalyzer.js');
+      const report = reaAnalyzer.runReaAnalysis(targetPath);
+      logConsoleStream('🔬 REA Analyzer', `Clean-Room Blueprint generated: ${report.blueprintPath}`, 45, 1800);
+      return sendJson(res, 200, report);
+    } catch (e) {
+      return sendJson(res, 500, { ok: false, error: e.message });
+    }
+  }
+
   if (req.method === 'POST' && pathname === '/api/jarvis/covision-export') {
     const body = await parseBody(req);
     const result = await processCoVisionAndExport(body);
@@ -1500,6 +2182,25 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, execResult);
   }
 
+  // 10-Q2. Google Gemma 4 Multimodal ($0 Free Local Auto-Swap: Gemma 4 E4B/E2B/31B + EmbeddingGemma 300M)
+  if (req.method === 'GET' && pathname === '/api/jarvis/gemma2-trinity') {
+    return sendJson(res, 200, {
+      ok: true,
+      pipeline: GEMMA2_TRINITY_PIPELINE,
+      costUsd: 0.0,
+      costGuarantee: GEMMA2_TRINITY_PIPELINE.costGuarantee
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/gemma2-trinity') {
+    const body = await parseBody(req);
+    const prompt = String(body.prompt || body.query || '');
+    const chainResult = await autoDetectAndChainGemma2Trinity(prompt, body.context || {});
+    broadcastEvent('gemma2_trinity_swap', chainResult);
+    logConsoleStream('👑 Gemma 4 Multimodal', `${chainResult.chainBadgeText}`, 18, 950);
+    return sendJson(res, 200, chainResult);
+  }
+
   // 10-R. Integrated Web Terminal & Model Installer with SSE Streaming & CHLGD Security Gate (/api/jarvis/terminal)
   if (req.method === 'POST' && pathname === '/api/jarvis/terminal') {
     const body = await parseBody(req);
@@ -1520,7 +2221,11 @@ const server = http.createServer(async (req, res) => {
       { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'docs/checklist.md (검증 체크리스트)', path: path.join(__dirname, 'docs', 'checklist.md').replace(/\\/g, '/'), type: 'markdown' },
       { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'docs/context-notes.md (컨텍스트 노트)', path: path.join(__dirname, 'docs', 'context-notes.md').replace(/\\/g, '/'), type: 'markdown' },
       { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'vault/IDE_ADE_Live_Bridge.md (Antigravity 2.0 브릿지)', path: path.join(VAULT_DIR, 'IDE_ADE_Live_Bridge.md').replace(/\\/g, '/'), type: 'markdown' },
-      { group: '💻 자비스 코어 코드 (Core Code)', label: 'scripts/jarvis-autonomous-router.js (자율 모델 라우터)', path: path.join(__dirname, 'scripts', 'jarvis-autonomous-router.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '📋 계획서 · 아티팩트 (Plans & Docs)', label: 'vault/REA_SasariSa_Windows_Blueprint.md (사사리사 Windows REA 블루프린트)', path: path.join(VAULT_DIR, 'REA_SasariSa_Windows_Blueprint.md').replace(/\\/g, '/'), type: 'markdown' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'scripts/multi-llm-provider-hub.js (4대 멀티 LLM 통합 허브: GPT·Gemini·LM Studio·Ollama)', path: path.join(__dirname, 'scripts', 'multi-llm-provider-hub.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'scripts/rea-sasarisa-windows-engine.js (사사리사 Windows 11 네이티브 제어 엔진)', path: path.join(__dirname, 'scripts', 'rea-sasarisa-windows-engine.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'scripts/gemma2-multimodal-rag.js (EmbeddingGemma 300M 768d RAG)', path: path.join(__dirname, 'scripts', 'gemma2-multimodal-rag.js').replace(/\\/g, '/'), type: 'code' },
+      { group: '💻 자비스 코어 코드 (Core Code)', label: 'scripts/jarvis-autonomous-router.js (Gemma 4 멀티모달 자율 라우터)', path: path.join(__dirname, 'scripts', 'jarvis-autonomous-router.js').replace(/\\/g, '/'), type: 'code' },
       { group: '💻 자비스 코어 코드 (Core Code)', label: 'bin/jarvis-cli.js (자비스 CLI)', path: path.join(__dirname, 'bin', 'jarvis-cli.js').replace(/\\/g, '/'), type: 'code' },
       { group: '💻 자비스 코어 코드 (Core Code)', label: 'sdk/jarvis-sdk.js (자비스 SDK)', path: path.join(__dirname, 'sdk', 'jarvis-sdk.js').replace(/\\/g, '/'), type: 'code' },
       { group: '💻 자비스 코어 코드 (Core Code)', label: 'public/js/graph-engine.js (옵시디언 뉴런 엔진)', path: path.join(PUBLIC_DIR, 'js', 'graph-engine.js').replace(/\\/g, '/'), type: 'code' },
@@ -1571,6 +2276,83 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // 10-T. 4-Way Multi-LLM Hub API (OpenAI GPT + Google Gemini + LM Studio :1234 + Ollama :11434)
+  if (req.method === 'GET' && pathname === '/api/jarvis/llm-hub/status') {
+    const status = await getMultiLlmStatus();
+    return sendJson(res, 200, status);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/llm-hub/config') {
+    const body = await parseBody(req);
+    const updated = configureMultiLlmHub(body);
+    broadcastEvent('llm_hub_changed', updated);
+    logConsoleStream('🌐 Multi-LLM Hub', updated.message, 12, 900);
+    return sendJson(res, 200, updated);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/llm-hub/test') {
+    const body = await parseBody(req);
+    const testPrompt = String(body.prompt || '이건우 대표님께 현재 연결된 모델 이름과 상태를 한 문장으로 정중히 보고하세요.');
+    const testRes = await chatWithUnifiedLlm({
+      provider: body.provider,
+      model: body.model,
+      prompt: testPrompt,
+      maxTokens: 120,
+      temperature: 0.5
+    });
+    logConsoleStream(
+      '🔍 Multi-LLM Test',
+      `[${(testRes.provider || body.provider || 'ollama').toUpperCase()}:${testRes.model || ''}] ${testRes.latencyMs}ms (fallback=${Boolean(testRes.fallbackUsed)})`,
+      16,
+      780
+    );
+    return sendJson(res, 200, testRes);
+  }
+
+  // 10-U. REA SasariSa (사사리사) Windows 11 Native Edition API (/api/jarvis/sasarisa/*)
+  if (req.method === 'GET' && pathname === '/api/jarvis/sasarisa/blueprint') {
+    return sendJson(res, 200, getSasarisaReaBlueprintAndState());
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/sasarisa/command') {
+    const body = await parseBody(req);
+    const cmdText = String(body.command || body.prompt || '').trim();
+    if (!cmdText) {
+      return sendJson(res, 400, { ok: false, error: '음성 또는 텍스트 명령을 입력해 주십시오.' });
+    }
+    const result = await parseAndExecuteSasarisaVoiceCommand(cmdText, {
+      provider: body.provider,
+      model: body.model,
+      confirmed: Boolean(body.confirmed),
+      openExternalWindow: Boolean(body.openExternalWindow)
+    });
+    broadcastEvent('sasarisa_action', result);
+    logConsoleStream(
+      '🎙️ SasariSa Win11',
+      `[${result.intent?.skillId || 'SKILL'}] "${cmdText.slice(0, 36)}" -> ${result.status}`,
+      22,
+      1150
+    );
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/sasarisa/confirm') {
+    const body = await parseBody(req);
+    const confirmRes = await confirmOrCancelSasarisaAction(
+      body.confirmId,
+      body.decision || 'APPROVE',
+      Boolean(body.openExternalWindow)
+    );
+    broadcastEvent('sasarisa_confirmed', confirmRes);
+    logConsoleStream(
+      '🛡️ SasariSa Guardrail',
+      `[${confirmRes.status || 'DONE'}] confirmId=${body.confirmId}`,
+      14,
+      640
+    );
+    return sendJson(res, 200, confirmRes);
+  }
+
   // 11. Serve BSC Agent Images from C:/BeausCreators/.cursor/agent_images/
   if (req.method === 'GET' && pathname.startsWith('/agent_images/')) {
     const relImg = pathname.replace(/^\/agent_images\//, '');
@@ -1580,6 +2362,123 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
       return fs.createReadStream(imgPath).pipe(res);
     }
+  }
+
+  // 10-B. Barehands Full-Screen Webcam AR Spatial Interface (https://github.com/jaredrhod/barehands)
+  const BAREHANDS_DIR = path.join(__dirname, 'vendor', 'barehands');
+  const BAREHANDS_ORBS = [
+    { title: 'Notes', path: path.join(BAREHANDS_DIR, 'sample-notes'), kind: 'notes' },
+    { title: 'BSC_HQ', path: 'C:\\BeausCreators\\01.BSC_HQ\\1.Documents', kind: 'notes' },
+    { title: 'Research', path: 'C:\\BeausCreators\\03.Research', kind: 'notes' },
+    { title: 'Props', path: path.join(BAREHANDS_DIR, 'media'), kind: 'media' }
+  ];
+  if (!global.__barehandsState) global.__barehandsState = '{}';
+  if (!global.__barehandsCmds) global.__barehandsCmds = [];
+
+  if (pathname === '/config' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({
+      name: 'J.A.R.V.I.S.',
+      orbs: BAREHANDS_ORBS.map(o => ({ title: o.title, kind: o.kind }))
+    }));
+  }
+  if (pathname === '/orb' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ state: 'idle', mood: 'green', wave: null }));
+  }
+  if (pathname === '/state') {
+    if (req.method === 'POST') {
+      const bodyStr = await new Promise((resolve) => {
+        let d = '';
+        req.on('data', c => { if (d.length < 262144) d += c; });
+        req.on('end', () => resolve(d || '{}'));
+      });
+      global.__barehandsState = bodyStr;
+      const out = global.__barehandsCmds.splice(0, 8);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(out));
+    } else {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(global.__barehandsState);
+    }
+  }
+  if (pathname === '/cmd' && req.method === 'POST') {
+    const body = await parseBody(req);
+    if (body && body.a) {
+      global.__barehandsCmds.push(body);
+    }
+    res.writeHead(204);
+    return res.end();
+  }
+  if (pathname === '/tree' && req.method === 'GET') {
+    const orbIdx = parseInt(parsedUrl.query.orb || '0', 10) || 0;
+    const orbCfg = BAREHANDS_ORBS[orbIdx];
+    if (!orbCfg || orbCfg.kind !== 'notes' || !fs.existsSync(orbCfg.path)) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ name: orbCfg?.title || 'Notes', notes: [], dirs: [] }));
+    }
+    const walkNotes = (dir, depth = 0) => {
+      const out = { name: path.basename(dir), notes: [], dirs: [] };
+      if (depth > 3) return out;
+      let entries = [];
+      try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) {}
+      for (const e of entries.slice(0, 60)) {
+        if (e.name.startsWith('.') || e.name === 'node_modules') continue;
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          const sub = walkNotes(full, depth + 1);
+          if (sub.notes.length || sub.dirs.length) out.dirs.push(sub);
+        } else if (e.name.toLowerCase().endsWith('.md') && e.name !== 'CLAUDE.md') {
+          const rel = path.relative(orbCfg.path, full).split(path.sep).join('/');
+          out.notes.push({ title: path.basename(e.name, path.extname(e.name)), file: `${orbIdx}/${rel}` });
+        }
+      }
+      return out;
+    };
+    const tree = walkNotes(orbCfg.path);
+    tree.name = orbCfg.title;
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(tree));
+  }
+  if (pathname === '/note' && req.method === 'GET') {
+    const fParam = String(parsedUrl.query.f || '');
+    const slashIdx = fParam.indexOf('/');
+    const orbIdx = parseInt(fParam.slice(0, slashIdx), 10);
+    const rel = fParam.slice(slashIdx + 1);
+    const orbCfg = BAREHANDS_ORBS[orbIdx];
+    if (orbCfg && orbCfg.kind === 'notes' && rel) {
+      const target = path.resolve(orbCfg.path, rel);
+      if (target.startsWith(path.resolve(orbCfg.path)) && fs.existsSync(target) && fs.statSync(target).isFile()) {
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+        return res.end(fs.readFileSync(target, 'utf8'));
+      }
+    }
+    res.writeHead(404);
+    return res.end('Not found');
+  }
+  if (pathname === '/props' && req.method === 'GET') {
+    const mroot = path.join(BAREHANDS_DIR, 'media');
+    const EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.webm', '.glb', '.gltf']);
+    const walkMedia = (dir) => {
+      const out = { name: path.basename(dir), items: [], dirs: [] };
+      if (!fs.existsSync(dir)) return out;
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (e.name.startsWith('.')) continue;
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          const sub = walkMedia(full);
+          const hasReadme = fs.existsSync(path.join(full, 'README.md'));
+          if (sub.items.length || sub.dirs.length || hasReadme) out.dirs.push(sub);
+        } else if (EXTS.has(path.extname(e.name).toLowerCase())) {
+          out.items.push(path.relative(mroot, full).split(path.sep).join('/'));
+        }
+      }
+      return out;
+    };
+    const tree = walkMedia(mroot);
+    tree.name = 'Props';
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(tree));
   }
 
   // 11. Static Files from public/
@@ -1603,6 +2502,13 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('Not Found');
+  })().catch((err) => {
+    console.error('[jarvis] request error', err);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: '요청 처리 중 오류가 났습니다.' }));
+    }
+  });
 });
 
 server.listen(PORT, '0.0.0.0', () => {
@@ -1613,6 +2519,11 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐  PC HUD URL    : http://localhost:${PORT}`);
   console.log(`📱  Mobile Cam URL: http://192.168.219.239:${PORT}/mobile-cam`);
   console.log(`====================================================================`);
+  try { refreshCatalog(); } catch (e) {}
+  try { refreshLiveNeuronFeed(); } catch (e) {}
+  setInterval(() => {
+    try { refreshLiveNeuronFeed(); } catch (e) {}
+  }, 3 * 60 * 1000);
 
   // Non-blocking warm-up of gemma4:e4b in VRAM (keep_alive: 30m) for smart Tiki-Taka + Harness² replies
   fetch(`${OLLAMA_BASE_URL}/api/chat`, {

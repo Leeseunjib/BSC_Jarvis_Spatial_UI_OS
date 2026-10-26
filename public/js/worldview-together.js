@@ -14,10 +14,12 @@ window.BSC_WORLDVIEW = {
   ],
   verseIndex: 0,
   telemetry: {
-    rawBaselineTokens: 42800,
-    optimizedActualTokens: 4920,
-    savedTokens: 37880,
-    savingsPct: 88.5,
+    rawBaselineTokens: 0,
+    optimizedActualTokens: 0,
+    savedTokens: 0,
+    savingsPct: null,
+    sessionChars: 0,
+    measured: false,
     recentLogs: []
   },
 
@@ -50,10 +52,17 @@ window.BSC_WORLDVIEW = {
     const actEl = document.getElementById('tf-actual');
     const rawEl = document.getElementById('tf-raw');
 
-    if (pctEl) pctEl.textContent = `${data.savingsPct}% SAVED`;
-    if (barEl) barEl.style.width = `${Math.min(100, data.savingsPct)}%`;
-    if (actEl) actEl.textContent = `${(data.optimizedActualTokens / 1000).toFixed(1)}k`;
-    if (rawEl) rawEl.textContent = `${(data.rawBaselineTokens / 1000).toFixed(1)}k`;
+    if (!data.measured) {
+      if (pctEl) pctEl.textContent = '';
+      if (barEl) barEl.style.width = '0%';
+      if (actEl) actEl.textContent = '—';
+      if (rawEl) rawEl.textContent = '—';
+    } else {
+      if (pctEl) pctEl.textContent = `${data.sessionChars || 0}자`;
+      if (barEl) barEl.style.width = '0%';
+      if (actEl) actEl.textContent = String(data.sessionChars || 0);
+      if (rawEl) rawEl.textContent = '—';
+    }
 
     if (window.HUDWindowSpawner) {
       window.HUDWindowSpawner.refreshConsoleLogs(data);

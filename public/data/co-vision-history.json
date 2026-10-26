@@ -1,6 +1,69 @@
 {
   "sessions": [
     {
+      "id": "covision_1792674579443",
+      "timestamp": "2026-10-22 22:09:39",
+      "sourceType": "AUDIT",
+      "prompt": "전 기능 검증 리포트",
+      "visionAnalysis": "죄송합니다. 현재 제공해주신 이미지는 텍스트만 포함하고 있어, 제가 시각적인 장면을 분석하고 그에 따른 통찰을 제공하기 어렵습니다.\n\n**J.A.R.V.I.S.로서 분석을 제공해 드리기 위해서는 실제 영상이나 사진이 필요합니다.**\n\n카메라/화면 시야를 보여주시면, 제가 그 장면의 핵심 특징과 질문에 대한 통찰을 명확하게 분석하여 답변드리겠습니다.",
+      "files": {
+        "image": "/exports/co_vision/covision_1792674579443.png",
+        "video": "/exports/co_vision/covision_1792674579443_motion_video.html",
+        "md": "/exports/co_vision/covision_1792674579443.md",
+        "docx": "/exports/co_vision/covision_1792674579443.docx",
+        "pptx": "/exports/co_vision/covision_1792674579443.pptx",
+        "pdf": "/exports/co_vision/covision_1792674579443.pdf"
+      },
+      "syncedLocations": [
+        "C:/BSC_Javis_OS/vault/CoVision_Archive",
+        "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/08.CoVision_Assets",
+        "C:/BeausCreators/01.BSC_HQ/1.Documents/01.보고서/2026-10-22",
+        "C:/Users/USER/Google Drive/BSC_Jarvis_CoVision"
+      ]
+    },
+    {
+      "id": "covision_1792661196616",
+      "timestamp": "2026-10-22 18:26:36",
+      "sourceType": "PC_OR_MOBILE_CAMERA",
+      "prompt": "?? ?? ???? ? ??? ? ??�??�PPT 6? ??? ??",
+      "visionAnalysis": "죄송합니다. 제공해주신 이미지는 텍스트로 인식하기 어렵고, 제가 분석할 수 있는 시각적 정보가 부족합니다.\n\nJ.A.R.V.I.S.로서 이건우 대표님과 함께 보고 계신 장면의 핵심 특징과 질문에 대한 통찰을 드리기 위해서는 **실제 영상이나 이미지를 제공**해 주셔야 합니다.\n\n이미지를 다시 제공해 주시면, 제가 그 내용을 바탕으로 요청하신 대로 명확하고 통찰력 있는 답변을 드리겠습니다.",
+      "files": {
+        "image": "/exports/co_vision/covision_1792661196616.png",
+        "video": "/exports/co_vision/covision_1792661196616_motion_video.html",
+        "md": "/exports/co_vision/covision_1792661196616.md",
+        "docx": "/exports/co_vision/covision_1792661196616.docx",
+        "pptx": "/exports/co_vision/covision_1792661196616.pptx",
+        "pdf": "/exports/co_vision/covision_1792661196616.pdf"
+      },
+      "syncedLocations": [
+        "C:/BSC_Javis_OS/vault/CoVision_Archive",
+        "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/08.CoVision_Assets",
+        "C:/BeausCreators/01.BSC_HQ/1.Documents/01.보고서/2026-10-22",
+        "C:/Users/USER/Google Drive/BSC_Jarvis_CoVision"
+      ]
+    },
+    {
+      "id": "covision_1792661194787",
+      "timestamp": "2026-10-22 18:26:34",
+      "sourceType": "PC_OR_MOBILE_CAMERA",
+      "prompt": "Runnow 안에 있는 핵심 코드 파일들이 뭔지 역할까지 구체적으로 분석해줘.",
+      "visionAnalysis": "죄송합니다. 제공해주신 이미지는 텍스트가 아닌 **단순히 반복되는 문자열**로 보이며, 제가 분석할 수 있는 **실제 영상이나 장면 정보가 포함되어 있지 않습니다.**\n\n따라서 이건우 대표님과 함께 보고 있는 **카메라/화면 시야의 핵심 특징이나 대표님의 질문에 대한 통찰을 제공해 드릴 수 없습니다.**\n\n분석을 원하시는 **실제 영상이나 이미지를 다시 제공**해 주시면, J.A.R.V.I.S.로서 명확하고 통찰력 있는 답변을 드리겠습니다.",
+      "files": {
+        "image": "/exports/co_vision/covision_1792661194787.png",
+        "video": "/exports/co_vision/covision_1792661194787_motion_video.html",
+        "md": "/exports/co_vision/covision_1792661194787.md",
+        "docx": "/exports/co_vision/covision_1792661194787.docx",
+        "pptx": "/exports/co_vision/covision_1792661194787.pptx",
+        "pdf": "/exports/co_vision/covision_1792661194787.pdf"
+      },
+      "syncedLocations": [
+        "C:/BSC_Javis_OS/vault/CoVision_Archive",
+        "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/08.CoVision_Assets",
+        "C:/BeausCreators/01.BSC_HQ/1.Documents/01.보고서/2026-10-22",
+        "C:/Users/USER/Google Drive/BSC_Jarvis_CoVision"
+      ]
+    },
+    {
       "id": "covision_1792565287499",
       "timestamp": "2026-10-21 15:48:07",
       "sourceType": "pc-cam",

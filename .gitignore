@@ -9,3 +9,4 @@ research/repos/
 *.log
 .DS_Store
 Thumbs.db
+.firebase/

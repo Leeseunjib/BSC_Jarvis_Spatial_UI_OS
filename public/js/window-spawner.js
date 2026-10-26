@@ -161,11 +161,11 @@ window.HUDWindowSpawner = {
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
         <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(52,211,153,0.4);border-radius:8px;padding:8px 10px;">
           <div style="font-size:10px;color:#94a3b8;">2-HOP TOKEN SAVINGS</div>
-          <div style="font-size:16px;font-weight:800;color:#34d399;font-family:monospace;">${telemetry.savingsPct || 88.5}%</div>
+          <div style="font-size:16px;font-weight:800;color:#34d399;font-family:monospace;">${telemetry.measured ? `${telemetry.sessionChars || 0}자` : '—'}</div>
         </div>
         <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(0,240,255,0.4);border-radius:8px;padding:8px 10px;">
           <div style="font-size:10px;color:#94a3b8;">ACTUAL / SAVED TOKENS</div>
-          <div style="font-size:14px;font-weight:800;color:#00f0ff;font-family:monospace;">${telemetry.optimizedActualTokens || 4920} / -${telemetry.savedTokens || 37880}</div>
+          <div style="font-size:14px;font-weight:800;color:#00f0ff;font-family:monospace;">${telemetry.measured ? (telemetry.sessionChars || 0) : '—'} / —</div>
         </div>
         <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(251,191,36,0.4);border-radius:8px;padding:8px 10px;">
           <div style="font-size:10px;color:#94a3b8;">CHL HARNESS GATE</div>

@@ -33,3 +33,19 @@
 - [x] 대화 턴의 중복 파일 읽기, 모델 목록 조회, 본사 일지 동기화 지연
 - [ ] STT·비전 좌표·토큰 절감률을 실측값으로 교체
 - [ ] 미사용 `queryLocalOllamaGemma`의 소하 대사 요구 정리
+
+
+## [2026-10-22] 소비자 심리학 기반 실무 통합 대시보드 & .MD 심층 분석 시스템 검증 완료
+- [x] `index.html`, `graph-engine.js`, `jarvis-design-views.js` 내 모든 더미 텍스트·이미지(`소풍 홈페이지`, `sopoong-boat.jpg`, `서윤 PM`, `김태오`, `달빛 숲`, `월 한도 42%`) 100% 제거 (`zeroDummyInHtml: true`, `zeroDummyInJs: true`)
+- [x] 좌측 메뉴바(`#slim-left-dock`) 기반 6대 실무 대시보드(`HOME_GALAXY`, `ECOSYSTEM_DASHBOARD`, `DOC_IDE_DASHBOARD`, `AI_BRAIN_DASHBOARD`, `AGENT_OFFICE_DASHBOARD`, `SETTINGS_DASHBOARD`) 단일 스테이지 전환 구축
+- [x] 3대 기본 슬롯(`🏢 회사_HQ`, `🚀 회사_Branch`, `🧠 지식생태계 (데이터 || 옵시디언)`) 및 `[➕ 폴더 추가]` + 실시간 `.md` 마크다운 심층 파서(`analyzed-md-knowledge.json`) 연동 완료
+
+
+---
+## [2026-10-26] SasariSa (사사리사) REA Windows 11 포팅 & 4대 멀티 LLM 브릿지 통합 체크리스트
+- [x] `scripts/multi-llm-provider-hub.js` 구현 (OpenAI GPT + Google Gemini + LM Studio `:1234` + Ollama `:11434` 통합 라우팅, `.env` 키 격리, 자동 폴백)
+- [x] `scripts/rea-sasarisa-windows-engine.js` 구현 (`mvcompany8500-web/sasarisa` REA 4단계 역공학 블루프린트 및 Windows 11 6대 음성 자동화 스킬 + 2중 안전 확인 가드레일)
+- [x] `server.js` API 확장 (`/api/jarvis/llm-hub/*`, `/api/jarvis/sasarisa/*` 및 `/api/agent` 멀티 LLM 연동)
+- [x] `public/js/aistudio-catalog-and-domains.js` & `public/js/aistudio-windows.js`에 `rea-sasarisa-macos-to-win11` REA 역공학 타겟 및 4대 LLM 카탈로그 반영
+- [x] `public/index.html`, `public/css/jarvis-hud.css`, `public/js/multimodal-engine.js`, `public/js/jarvis-design-views.js`에 사사리사 Floating Voice Pill (`#sasarisa-voice-pill`, `Alt+Space`) 및 4대 LLM 허브 UI 통합
+- [x] 전 파일 `node --check` 구문 검사 및 엔드투엔드 검증 통과

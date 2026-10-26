@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>📱 J.A.R.V.I.S. Mobile Camera &amp; Hand Gesture Controller</title>
+  <title>📱 J.A.R.V.I.S. × 사사리사(SasariSa) Mobile &amp; PC Controller</title>
+  <script src="/js/jarvis-cloud-shim.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -185,20 +186,58 @@
   <!-- 🔗 1-Click URL & Mode Selector Bar -->
   <section class="card url-selector-card" style="padding:10px 12px;border-color:#fbbf24;background:rgba(15,23,42,0.95);">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
-      <span style="font-size:11.5px;font-weight:800;color:#fbbf24;">🔗 접속 주소 선택 (원하시는 모드를 클릭하세요)</span>
-      <span style="font-size:10px;color:#34d399;font-family:monospace;">🟢 ADE: C:\BeausCreators | 🟢 IDE: c:\BSC_Javis_OS | 🟢 Drive 연동</span>
+      <span style="font-size:11.5px;font-weight:800;color:#fbbf24;">🔗 접속 주소 선택 (Firebase 클라우드 / PC / 모바일 Wi-Fi)</span>
+      <span style="font-size:10px;color:#34d399;font-family:monospace;">🟢 4대 LLM (GPT·Gemini·LMStudio·Ollama) | 🟢 사사리사 Win11·Mobile</span>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:6px;">
-      <a href="http://192.168.219.239:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(52,211,153,0.18);border:1px solid #34d399;color:#34d399;font-size:11.5px;font-weight:800;text-align:center;">
-        📱 모바일 Wi-Fi 브릿지 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">192.168.219.239:7777/mobile-cam</span>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:6px;">
+      <a href="https://bsc-javis-dev.web.app" target="_blank" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(56,189,248,0.18);border:1px solid #38bdf8;color:#38bdf8;font-size:11.5px;font-weight:800;text-align:center;">
+        🌐 Firebase 메인 HUD (PC·태블릿)<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">bsc-javis-dev.web.app ↗</span>
       </a>
-      <a href="http://localhost:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(0,240,255,0.18);border:1px solid #00f0ff;color:#00f0ff;font-size:11.5px;font-weight:800;text-align:center;">
-        💻 PC 로컬 컨트롤러 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">localhost:7777/mobile-cam</span>
+      <a href="https://bsc-javis-dev.web.app/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(251,191,36,0.18);border:1px solid #fbbf24;color:#fbbf24;font-size:11.5px;font-weight:800;text-align:center;">
+        📱 Firebase 모바일 컨트롤러<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">bsc-javis-dev.web.app/mobile-cam</span>
+      </a>
+      <a href="http://192.168.219.239:7777/mobile-cam" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(52,211,153,0.18);border:1px solid #34d399;color:#34d399;font-size:11.5px;font-weight:800;text-align:center;">
+        📱 로컬 Wi-Fi 모바일 브릿지<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">192.168.219.239:7777/mobile-cam</span>
       </a>
       <a href="http://localhost:7777" target="_blank" style="text-decoration:none;padding:8px 10px;border-radius:8px;background:rgba(168,85,247,0.18);border:1px solid #c084fc;color:#c084fc;font-size:11.5px;font-weight:800;text-align:center;">
-        🌌 PC 메인 3D 자비스 HUD 열기<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">localhost:7777 (전체 화면) ↗</span>
+        💻 PC 로컬 메인 HUD<br/><span style="font-size:10px;color:#e2e8f0;font-family:monospace;">localhost:7777 (전체 화면) ↗</span>
       </a>
     </div>
+  </section>
+
+  <!-- 🎙️ SasariSa (사사리사) Mobile & PC Voice Assistant + 4-Way Multi-LLM Bar -->
+  <section class="card url-selector-card" style="padding:12px;border-color:#38bdf8;background:rgba(8,15,28,0.96);">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <div>
+        <span style="font-size:12.5px;font-weight:800;color:#38bdf8;">🎙️ 사사리사(SasariSa) 음성 비서 &amp; 4대 멀티 LLM 브릿지 (PC · 모바일 공용)</span>
+        <span style="font-size:10.5px;color:#94a3b8;margin-left:6px;">카톡·이메일 비가역 동작 2중 안전 확인 가드레일 내장</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:#cbd5e1;font-weight:700;">AI 두뇌:</span>
+        <select id="mob-sasa-provider" style="background:#050811;border:1px solid #38bdf8;color:#f8fafc;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;">
+          <option value="ollama">🦙 Ollama (Gemma 4 로컬 $0)</option>
+          <option value="lmstudio">🏠 LM Studio (로컬 GGUF $0)</option>
+          <option value="gemini">✨ Google Gemini 2.5 Flash</option>
+          <option value="openai">🟢 OpenAI GPT-4o</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+      <button type="button" class="btn mob-sasa-chip" data-cmd="신나는 재즈 음악 틀어줘" style="flex:0 0 auto;min-width:auto;padding:5px 10px;font-size:11px;">🎵 음악 재생</button>
+      <button type="button" class="btn mob-sasa-chip" data-cmd="쿠팡에서 무선 기계식 키보드 최저가 찾아줘" style="flex:0 0 auto;min-width:auto;padding:5px 10px;font-size:11px;">🛒 쿠팡 최저가</button>
+      <button type="button" class="btn mob-sasa-chip" data-cmd="카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘" style="flex:0 0 auto;min-width:auto;padding:5px 10px;font-size:11px;border-color:#fbbf24;color:#fbbf24;">💬 카톡 (2중확인)</button>
+      <button type="button" class="btn mob-sasa-chip" data-cmd="거래처 대표님께 프로젝트 일정 회신 이메일 보내줘" style="flex:0 0 auto;min-width:auto;padding:5px 10px;font-size:11px;border-color:#fbbf24;color:#fbbf24;">📧 이메일 (2중확인)</button>
+      <button type="button" class="btn mob-sasa-chip" data-cmd="바이브코딩으로 배열 중복 제거하는 자바스크립트 유틸 함수 코드 짜줘" style="flex:0 0 auto;min-width:auto;padding:5px 10px;font-size:11px;">💻 바이브 코딩</button>
+      <button type="button" class="btn mob-sasa-chip" data-cmd="윈도우 시스템 상태 점검해줘" style="flex:0 0 auto;min-width:auto;padding:5px 10px;font-size:11px;">🪟 시스템 제어</button>
+    </div>
+
+    <form class="cmd-bar" id="mob-sasa-form">
+      <button type="button" class="btn gold" id="btn-mob-sasa-mic" style="flex:0 0 92px;min-width:92px;">🎙️ 음성입력</button>
+      <input type="text" id="mob-sasa-input" placeholder="사사리사에게 말하거나 입력하세요 (예: 카톡으로 박 이사님께 자료 준비 완료 보내줘)" autocomplete="off" />
+      <button type="submit" class="btn emerald" style="flex:0 0 82px;min-width:82px;">실행 ↵</button>
+    </form>
+    <div id="mob-sasa-output" style="margin-top:8px;font-size:11.5px;color:#e2e8f0;"></div>
   </section>
 
   <main class="resp-dashboard-grid">
@@ -612,6 +651,136 @@
     document.getElementById('btn-mob-covision-export').addEventListener('click', async () => {
       await executeCoVisionSession();
     });
+
+    // 🎙️ SasariSa (사사리사) Mobile & PC Voice Assistant + 4-Way Multi-LLM Hub Controller
+    const sasaProviderSel = document.getElementById('mob-sasa-provider');
+    const sasaForm = document.getElementById('mob-sasa-form');
+    const sasaInput = document.getElementById('mob-sasa-input');
+    const sasaOutput = document.getElementById('mob-sasa-output');
+    const sasaMicBtn = document.getElementById('btn-mob-sasa-mic');
+
+    if (sasaProviderSel) {
+      sasaProviderSel.addEventListener('change', async () => {
+        const prov = sasaProviderSel.value;
+        try {
+          await fetch('/api/jarvis/llm-hub/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activeProvider: prov })
+          });
+        } catch (_) {}
+      });
+    }
+
+    async function runMobileSasariSaCommand(cmdText) {
+      if (!cmdText || !sasaOutput) return;
+      const prov = sasaProviderSel ? sasaProviderSel.value : 'ollama';
+      sasaOutput.innerHTML = `<div style="padding:8px 10px;background:#050811;border:1px solid #38bdf8;border-radius:8px;color:#38bdf8;">⏳ <b>사사리사(${prov.toUpperCase()})</b>가 "${cmdText}" 명령을 분석 중입니다...</div>`;
+
+      try {
+        const res = await fetch('/api/jarvis/sasarisa/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            command: cmdText,
+            provider: prov,
+            openExternalWindow: true
+          })
+        });
+        const data = await res.json();
+        if (data && data.status === 'REQUIRES_CONFIRMATION' && data.confirmItem) {
+          const cid = data.confirmItem.confirmId;
+          sasaOutput.innerHTML = `
+            <div style="padding:10px 12px;background:rgba(245,158,11,0.12);border:1.5px solid #fbbf24;border-radius:10px;">
+              <div style="font-weight:800;color:#fbbf24;margin-bottom:4px;">🛡️ [사사리사 2중 안전 확인] ${data.intent?.skillTitleKo || '비가역 동작'}</div>
+              <div style="color:#f8fafc;margin-bottom:6px;line-height:1.45;">${data.reply || ''}</div>
+              <div style="padding:8px;background:#030712;border:1px solid rgba(251,191,36,0.4);border-radius:6px;color:#fef3c7;margin-bottom:8px;white-space:pre-wrap;">${data.draftPreview || ''}</div>
+              <div style="display:flex;gap:8px;">
+                <button type="button" class="btn emerald" id="btn-mob-sasa-approve" style="padding:7px 12px;">✅ 승인 및 실행 (클립보드 복사)</button>
+                <button type="button" class="btn" id="btn-mob-sasa-cancel" style="padding:7px 12px;border-color:#fb7185;color:#fb7185;">❌ 안전 취소</button>
+              </div>
+            </div>
+          `;
+          const appBtn = document.getElementById('btn-mob-sasa-approve');
+          const canBtn = document.getElementById('btn-mob-sasa-cancel');
+          const handleDecision = async (decision) => {
+            if (decision === 'APPROVE' && data.draftPreview && navigator.clipboard && navigator.clipboard.writeText) {
+              try { await navigator.clipboard.writeText(data.draftPreview); } catch (_) {}
+            }
+            const cRes = await fetch('/api/jarvis/sasarisa/confirm', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ confirmId: cid, decision, openExternalWindow: true })
+            });
+            const cData = await cRes.json();
+            sasaOutput.innerHTML = `
+              <div style="padding:9px 11px;background:#050811;border:1px solid ${decision === 'APPROVE' ? '#34d399' : '#fb7185'};border-radius:8px;color:${decision === 'APPROVE' ? '#34d399' : '#fb7185'};">
+                <b>${decision === 'APPROVE' ? '✅ 승인 완료' : '🛡️ 취소 완료'}:</b> ${cData.reply || ''}
+              </div>
+            `;
+          };
+          if (appBtn) appBtn.addEventListener('click', () => handleDecision('APPROVE'));
+          if (canBtn) canBtn.addEventListener('click', () => handleDecision('CANCEL'));
+          return;
+        }
+
+        const linkHtml = data?.actionRecord?.targetUrl
+          ? `<div style="margin-top:6px;"><a href="${data.actionRecord.targetUrl}" target="_blank" style="color:#38bdf8;font-weight:800;text-decoration:underline;">🔗 생성된 링크 바로 열기 ↗</a></div>`
+          : '';
+        sasaOutput.innerHTML = `
+          <div style="padding:10px 12px;background:#050811;border:1px solid #34d399;border-radius:10px;">
+            <div style="color:#34d399;font-weight:800;margin-bottom:4px;">✅ [${data?.intent?.skillTitleKo || '사사리사 실행 완료'}] (${data?.llmUsed?.provider || prov}:${data?.llmUsed?.model || 'gemma4:e4b'})</div>
+            <div style="color:#f1f5f9;line-height:1.45;">${data.reply || ''}</div>
+            ${linkHtml}
+          </div>
+        `;
+      } catch (err) {
+        sasaOutput.innerHTML = `<div style="padding:8px;color:#fb7185;">오류가 발생했습니다: ${err.message}</div>`;
+      }
+    }
+
+    document.querySelectorAll('.mob-sasa-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-cmd') || '';
+        if (sasaInput) sasaInput.value = cmd;
+        runMobileSasariSaCommand(cmd);
+      });
+    });
+
+    if (sasaForm) {
+      sasaForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const val = sasaInput ? sasaInput.value.trim() : '';
+        if (!val) return;
+        sasaInput.value = '';
+        runMobileSasariSaCommand(val);
+      });
+    }
+
+    if (sasaMicBtn) {
+      sasaMicBtn.addEventListener('click', () => {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+          if (sasaInput) sasaInput.focus();
+          return;
+        }
+        const rec = new SR();
+        rec.lang = 'ko-KR';
+        rec.interimResults = false;
+        sasaMicBtn.textContent = '🔴 듣는중...';
+        rec.onresult = ev => {
+          const transcript = ev.results?.[0]?.[0]?.transcript || '';
+          sasaMicBtn.textContent = '🎙️ 음성입력';
+          if (transcript) {
+            if (sasaInput) sasaInput.value = transcript;
+            runMobileSasariSaCommand(transcript);
+          }
+        };
+        rec.onerror = () => { sasaMicBtn.textContent = '🎙️ 음성입력'; };
+        rec.onend = () => { sasaMicBtn.textContent = '🎙️ 음성입력'; };
+        rec.start();
+      });
+    }
 
     // Render 21-joint hand skeleton on mobile canvas
     function renderLoop() {

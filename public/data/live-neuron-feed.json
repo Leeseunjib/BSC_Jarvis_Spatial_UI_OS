@@ -1,0 +1,136 @@
+{
+  "generatedAt": "2026-10-26T10:22:03.102Z",
+  "cursor": 1,
+  "sources": {
+    "Warehouse": [
+      {
+        "path": "C:/Warehouse/2.BSC_Originals/sprite-gen-pipeline/SKILL.md",
+        "mtime": 1792726447679.7964,
+        "title": "🎮 Sprite-Gen 2D Game Asset & Animation Atlas Pipeline (`aldegad"
+      },
+      {
+        "path": "C:/Warehouse/docs/WorkLog.md",
+        "mtime": 1792393807029.8254,
+        "title": "# BSC_HQ Project WorkLog (Spoke Mirror)"
+      },
+      {
+        "path": "C:/Warehouse/2.BSC_Originals/voicebox/SKILL.md",
+        "mtime": 1791272630839.6409,
+        "title": "Voicebox: Open-Source AI Voice Studio & Synthesis"
+      },
+      {
+        "path": "C:/Warehouse/2.BSC_Originals/social-media-skills__skills/SKILL.md",
+        "mtime": 1791272601062.699,
+        "title": "Social Media Marketing & Content Creation Skills"
+      },
+      {
+        "path": "C:/Warehouse/00.운영/전사_토큰_최적화_및_프롬프트_캐싱_운영SOP.md",
+        "mtime": 1791271537813.4988,
+        "title": "⚡ 전사 토큰 최적화 및 프롬프트 캐싱 운영 표준 지침서 (SOP)"
+      },
+      {
+        "path": "C:/Warehouse/00.운영/OPTIMIZATION_ARCHITECTURE.md",
+        "mtime": 1791268408250.5193,
+        "title": "⚡ BSC 전사 지식·스킬 초경량 최적화 아키텍처 헌장 (Lean-Knowledge Protocol)"
+      },
+      {
+        "path": "C:/Warehouse/00.운영/2026-08-28_Proceed_Harness_매핑표.md",
+        "mtime": 1789359678392.3977,
+        "title": "Proceed — 드림팀 스킬팩 Harness 매핑표 (2026-08-28)"
+      },
+      {
+        "path": "C:/Warehouse/00.운영/PROVENANCE_2026-09-10.md",
+        "mtime": 1789359678350.2024,
+        "title": "PROVENANCE — 2026-09-10 photography bundle"
+      }
+    ],
+    "BeausCreators": [
+      {
+        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/context-notes.md",
+        "mtime": 1793000181437.9038,
+        "title": "APEX QUANT 맥락 메모"
+      },
+      {
+        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/checklist.md",
+        "mtime": 1793000181436.9043,
+        "title": "APEX QUANT 점검표"
+      },
+      {
+        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/plan.md",
+        "mtime": 1793000181435.9336,
+        "title": "APEX QUANT 분석 및 개편 계획"
+      },
+      {
+        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/generator-research-v2.0.2-20261026.md",
+        "mtime": 1793000181387.2725,
+        "title": "번호 생성기 v2.0.2: 반복 당첨 방식과 적중 검증"
+      },
+      {
+        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/generator-research-v2.0.1-20261026.md",
+        "mtime": 1792998930841.3577,
+        "title": "번호 생성기 v2.0.1: 반복 당첨 방식과 적중 검증"
+      },
+      {
+        "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/10.REA_Tech_Blueprints/REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+        "mtime": 1792998101425.8955,
+        "title": "🔬 [REA Clean-Room Blueprint] game_16_bsc_tycoon_metaverse 역공학 기"
+      },
+      {
+        "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/10.REA_Tech_Blueprints/REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+        "mtime": 1792997540960.9468,
+        "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 BSC "
+      },
+      {
+        "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/10.REA_Tech_Blueprints/REA_2026-10-26_BSC_OS.md",
+        "mtime": 1792995084273.3262,
+        "title": "🔬 [REA Clean-Room Blueprint] BSC_OS 역공학 기술 분석 및 BSC 내재화 설계서"
+      }
+    ],
+    "Antigravity": [
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/e5cd1456-d747-4e7a-bde6-1a9bee259f96/implementation_plan.md",
+        "mtime": 1792995799610.7937,
+        "title": "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (Implementation Plan)"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/c081ba36-cdd4-4adb-80d3-7b975632f6cb/implementation_plan.md",
+        "mtime": 1792995343859.1978,
+        "title": "🛡️ [Master Implementation Plan] SasariSa (사사리사) REA Windows 11 "
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/97a39350-f2da-454e-8f0e-5e4a7da658f1/implementation_plan.md",
+        "mtime": 1792756859275.3074,
+        "title": "마태복음 2장 성경 구속사 동화책 — 6살 따님 맞춤형 스토리텔링 & 재생/일시정지 플레이어 개편 계획서"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/fb1ad07a-0853-49d1-a0b9-f9f7bb3f0fe4",
+        "mtime": 1792756782141.4712,
+        "title": "안티그래비티 세션 fb1ad07a"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/98b06c16-13db-49bf-888b-450f973b83bf",
+        "mtime": 1792747582670.0222,
+        "title": "안티그래비티 세션 98b06c16"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/e52cc23d-38bc-49a0-a132-335b67926574",
+        "mtime": 1792744301497.5652,
+        "title": "안티그래비티 세션 e52cc23d"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/b827b049-03df-49a1-8bb4-af9b414b07f3",
+        "mtime": 1792744299625.7832,
+        "title": "안티그래비티 세션 b827b049"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/7c26bd17-dac9-4f38-b441-ab8f0a5bbf8c/implementation_plan.md",
+        "mtime": 1792739121948.4597,
+        "title": "🧠 BSC J.A.R.V.I.S. OS — Google Gemma 2 삼총사 (`Gemma 2` + `Embedd"
+      }
+    ]
+  },
+  "cursors": {
+    "Warehouse": 272,
+    "BeausCreators": 272
+  }
+}

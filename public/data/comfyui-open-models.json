@@ -1,0 +1,111 @@
+{
+  "scannedAt": "2026-10-26T06:19:02.413Z",
+  "comfyDesktop": "C:\\Users\\USER\\AppData\\Local\\Programs\\ComfyUI\\Comfy Desktop\\Comfy Desktop.exe",
+  "api": "http://127.0.0.1:8188",
+  "roots": [
+    "C:\\Users\\USER\\ComfyUI-Shared\\models",
+    "H:\\comfyUI\\models"
+  ],
+  "missingRoots": [],
+  "hasTextToImageCheckpoint": false,
+  "imageEditReady": true,
+  "videoReady": true,
+  "families": {
+    "MiniMax-Hailuo-H3": [
+      "video-diffusion",
+      "video-turbo-lora",
+      "video-text-encoder",
+      "video-audio-vae",
+      "video-vae"
+    ],
+    "Qwen-Image-Edit-2509": [
+      "image-edit-lora",
+      "image-text-encoder",
+      "image-edit-unet",
+      "image-vae"
+    ]
+  },
+  "models": [
+    {
+      "root": "C:\\Users\\USER\\ComfyUI-Shared\\models",
+      "folder": "diffusion_models",
+      "file": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "bytes": 20970379616,
+      "family": "MiniMax-Hailuo-H3",
+      "task": "video-diffusion",
+      "note": "MiniMax Hailuo H3 영상 디퓨전 가중치다. 텍스트만으로 영상을 만드는 쪽에 쓴다. 일반 SD 체크포인트가 아니다."
+    },
+    {
+      "root": "C:\\Users\\USER\\ComfyUI-Shared\\models",
+      "folder": "loras",
+      "file": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+      "bytes": 1956193000,
+      "family": "MiniMax-Hailuo-H3",
+      "task": "video-turbo-lora",
+      "note": "Hailuo H3 영상 디퓨전을 8스텝으로 줄이는 LoRA다."
+    },
+    {
+      "root": "C:\\Users\\USER\\ComfyUI-Shared\\models",
+      "folder": "text_encoders",
+      "file": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "bytes": 15687142551,
+      "family": "MiniMax-Hailuo-H3",
+      "task": "video-text-encoder",
+      "note": "Hailuo H3용 Qwen3-VL 텍스트 인코더다. 32B NVFP4라 메모리를 많이 쓴다."
+    },
+    {
+      "root": "C:\\Users\\USER\\ComfyUI-Shared\\models",
+      "folder": "vae",
+      "file": "minimax_h3_audio_vae_fp32.safetensors",
+      "bytes": 605254808,
+      "family": "MiniMax-Hailuo-H3",
+      "task": "video-audio-vae",
+      "note": "영상과 함께 쓰는 오디오 VAE다."
+    },
+    {
+      "root": "C:\\Users\\USER\\ComfyUI-Shared\\models",
+      "folder": "vae",
+      "file": "minimax_h3_video_vae_fp16.safetensors",
+      "bytes": 5207808496,
+      "family": "MiniMax-Hailuo-H3",
+      "task": "video-vae",
+      "note": "Hailuo H3 영상 VAE다."
+    },
+    {
+      "root": "H:\\comfyUI\\models",
+      "folder": "loras",
+      "file": "Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors",
+      "bytes": 849608296,
+      "family": "Qwen-Image-Edit-2509",
+      "task": "image-edit-lora",
+      "note": "글만으로 새 그림을 그리는 체크포인트가 아니다. 원본 이미지가 있어야 고친다. Lightning LoRA는 4스텝용이다."
+    },
+    {
+      "root": "H:\\comfyUI\\models",
+      "folder": "text_encoders",
+      "file": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "bytes": 9384670680,
+      "family": "Qwen-Image-Edit-2509",
+      "task": "image-text-encoder",
+      "note": "Qwen Image Edit 묶음의 텍스트 인코더 또는 VAE다. 편집 UNet과 같이 쓴다."
+    },
+    {
+      "root": "H:\\comfyUI\\models",
+      "folder": "unet",
+      "file": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+      "bytes": 20430698424,
+      "family": "Qwen-Image-Edit-2509",
+      "task": "image-edit-unet",
+      "note": "글만으로 새 그림을 그리는 체크포인트가 아니다. 원본 이미지가 있어야 고친다. Lightning LoRA는 4스텝용이다."
+    },
+    {
+      "root": "H:\\comfyUI\\models",
+      "folder": "vae",
+      "file": "qwen_image_vae.safetensors",
+      "bytes": 253806246,
+      "family": "Qwen-Image-Edit-2509",
+      "task": "image-vae",
+      "note": "Qwen Image Edit 묶음의 텍스트 인코더 또는 VAE다. 편집 UNet과 같이 쓴다."
+    }
+  ]
+}

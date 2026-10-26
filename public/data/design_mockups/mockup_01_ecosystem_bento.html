@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: #f4f5f7;
+    color: #18181b;
+    font-family: 'Pretendard', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+  }
+  /* Top Global Header Bar (Bright Minimal White) */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 10;
+  }
+  .brand-row { display: flex; align-items: center; gap: 10px; }
+  .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #18181b;
+  }
+  .brand-title { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; color: #111827; }
+  .design-pill {
+    font-size: 11px; font-weight: 600; color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .search-capsule {
+    width: 500px; height: 36px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; font-size: 12px; color: #6b7280;
+  }
+  .top-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #374151; }
+  .top-chip {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 5px 11px; border-radius: 8px; font-size: 11.5px; font-weight: 600; color: #374151;
+  }
+  /* Left Slim Dock (Clean White Card) */
+  .left-dock {
+    position: absolute;
+    top: 72px; left: 16px; bottom: 72px;
+    width: 68px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 12px 6px; gap: 6px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+  .dock-btn {
+    width: 54px; height: 54px;
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; color: #6b7280; font-size: 10px; font-weight: 600;
+  }
+  .dock-btn .ico { font-size: 17px; }
+  .dock-btn.active {
+    background: #18181b;
+    color: #ffffff; font-weight: 700;
+  }
+  /* Main Dashboard Stage */
+  .bento-stage {
+    position: absolute;
+    top: 72px; left: 98px; right: 20px; bottom: 72px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 22px 26px;
+    display: flex; flex-direction: column; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    z-index: 5;
+    overflow: hidden;
+  }
+  .stage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+  }
+  .sh-badge {
+    display: inline-block;
+    font-size: 10.5px; font-weight: 700; color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 3px 9px; border-radius: 6px; margin-bottom: 5px;
+  }
+  .sh-title { font-size: 19px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .sh-sub { font-size: 12.5px; color: #6b7280; margin-top: 3px; }
+  .sh-tabs {
+    display: flex; gap: 4px;
+    background: #f3f4f6;
+    padding: 4px; border-radius: 11px;
+    border: 1px solid #e5e7eb;
+  }
+  .sh-tab {
+    padding: 7px 13px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; color: #4b5563;
+  }
+  .sh-tab.home {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827; font-weight: 700;
+  }
+  .sh-tab.active {
+    background: #18181b;
+    color: #ffffff; font-weight: 700;
+  }
+  /* Minimal Monotone KPI Row */
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280; font-weight: 600; }
+  .kpi-val { font-size: 19px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .kpi-sub { font-size: 11.5px; color: #6b7280; }
+  .badge-delta {
+    font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+  }
+  /* Bento Panels */
+  .bento-grid-2 { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; flex: 1; min-height: 0; }
+  .bento-grid-3 { display: grid; grid-template-columns: 270px 1fr 330px; gap: 16px; flex: 1; min-height: 0; }
+  .bento-panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 12px;
+    min-height: 0; overflow: hidden;
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 12px; border-bottom: 1px solid #f3f4f6;
+  }
+  .panel-title { font-size: 15px; font-weight: 800; color: #111827; }
+  .panel-desc { font-size: 12px; color: #6b7280; margin-top: 3px; }
+  .btn {
+    padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 600;
+    background: #ffffff; border: 1px solid #d1d5db; color: #374151;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .btn.primary { background: #18181b; border-color: #18181b; color: #ffffff; font-weight: 700; }
+  .btn.soft { background: #f3f4f6; border-color: #e5e7eb; color: #111827; font-weight: 600; }
+  .item-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 13px 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .item-card.active {
+    background: #ffffff;
+    border: 1.5px solid #18181b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .chip {
+    font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .chip.dark { background: #18181b; color: #ffffff; border-color: #18181b; }
+  .chip.green { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+  /* Bottom Bar */
+  .bottom-bar {
+    position: absolute; left: 20px; right: 20px; bottom: 14px; height: 46px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 10;
+  }
+  .bb-pill {
+    background: #ffffff; border: 1px solid #e5e7eb;
+    border-radius: 999px; padding: 8px 16px; font-size: 12px; color: #374151;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+  .bb-prompt {
+    width: 560px; height: 42px; border-radius: 999px;
+    background: #ffffff; border: 1px solid #d1d5db;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px;
+    font-size: 12.5px; color: #6b7280;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+</style>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand-row">
+      <span class="logo-dot"></span>
+      <span class="brand-title">BSC J.A.R.V.I.S. OS</span>
+      <span class="design-pill">심플 모노톤 라이트 대시보드 · 시안 #01 (지식폴더 & 문서 인벤토리 대시보드)</span>
+    </div>
+    <div class="search-capsule">
+      <span>🔍 폴더, 마크다운(.md) 문서, 코드, 프로그램 검색...</span>
+      <kbd style="background:#f3f4f6;border:1px solid #e5e7eb;padding:2px 6px;border-radius:5px;font-size:10.5px;color:#4b5563;">⌘K</kbd>
+    </div>
+    <div class="top-right">
+      <span class="top-chip">● Gemma 4 로컬 코어 ($0)</span>
+      <span class="top-chip">🎙️ 현수 HD 자연 음성</span>
+      <span class="top-chip">10월 23일 (금) 오후 3:20</span>
+    </div>
+  </header>
+
+  <nav class="left-dock">
+    
+      <div class="dock-btn ">
+        <span class="ico">🧠</span>
+        <span>뉴런홈</span>
+      </div>
+    
+      <div class="dock-btn active">
+        <span class="ico">📂</span>
+        <span>지식폴더</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">📄</span>
+        <span>문서·IDE</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🤖</span>
+        <span>두뇌·도구</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🎨</span>
+        <span>ArtCraft</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">🏛️</span>
+        <span>회의·조직</span>
+      </div>
+    
+      <div class="dock-btn ">
+        <span class="ico">⚙️</span>
+        <span>설정·검증</span>
+      </div>
+    
+  </nav>
+
+  <main class="bento-stage">
+    <div class="stage-header">
+      <div>
+        <span class="sh-badge">MINIMAL LIGHT DESIGN #01 · 지식폴더 & 문서 인벤토리 대시보드</span>
+        <div class="sh-title">📂 지식생태계 폴더 연결 & 문서(.MD) 분석 대시보드</div>
+        <div class="sh-sub">복잡한 색상을 배제하고 깔끔한 화이트 & 그레이 톤으로 연결된 폴더와 마크다운 문서 현황을 한눈에 보여줍니다.</div>
+      </div>
+      <div class="sh-tabs">
+        
+          <div class="sh-tab home ">🧠 뉴런홈 복귀</div>
+        
+          <div class="sh-tab  active">📂 지식폴더</div>
+        
+          <div class="sh-tab  ">📄 문서 · IDE</div>
+        
+          <div class="sh-tab  ">🤖 AI 두뇌 · 도구</div>
+        
+          <div class="sh-tab  ">🎨 ArtCraft 제어</div>
+        
+          <div class="sh-tab  ">🏛️ 회의 · 조직</div>
+        
+          <div class="sh-tab  ">⚙️ 설정 · 검증</div>
+        
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>연결된 지식생태계 폴더</span>
+            <span class="badge-delta">실시간 동기화</span>
+          </div>
+          <div class="kpi-val">7개 폴더 연결됨</div>
+          <div class="kpi-sub">회사_HQ · Branch · 연구소 · 스킬창고</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>디스크 전체 파악 파일</span>
+            <span class="badge-delta">전수 파악</span>
+          </div>
+          <div class="kpi-val">23,595개 파일</div>
+          <div class="kpi-sub">하위 폴더 내 모든 문서·코드·에셋 포함</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>보유 마크다운(.MD) 문서</span>
+            <span class="badge-delta">심층 650개 추출</span>
+          </div>
+          <div class="kpi-val">1,420개 문서</div>
+          <div class="kpi-sub">목차·요약·태그 자동 정리 완료</div>
+        </div>
+      
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span>파악된 코드 & 오피스 문서</span>
+            <span class="badge-delta">누락 0건</span>
+          </div>
+          <div class="kpi-val">14,820개 파일</div>
+          <div class="kpi-sub">Word · PPT · PDF · 소스코드 통합</div>
+        </div>
+      
+    </div>
+
+    
+        <div class="bento-grid-2">
+          <section class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">1. 연결된 폴더 슬롯 목록</div>
+                <div class="panel-desc">폴더를 선택해 연결하면 내부 문서들이 자동으로 분류됩니다.</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <span class="btn primary">+ 폴더 추가</span>
+                <span class="btn">윈도우 탐색기 열기</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              
+                <div class="item-card active" style="flex-direction:column;align-items:stretch;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <strong style="font-size:13.5px;color:#111827;">🏢 회사_HQ (본사)</strong>
+                      <span style="font-family:monospace;font-size:11.5px;color:#6b7280;margin-left:8px;">C:/BeausCreators/01.BSC_HQ</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <span class="chip green">● 8,420개 파악됨</span>
+                      <span class="btn">폴더 변경</span>
+                    </div>
+                  </div>
+                  <div style="height:5px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+                    <div style="width:85%;height:100%;background:#18181b;border-radius:999px;"></div>
+                  </div>
+                  <div style="display:flex;gap:16px;font-size:11.5px;color:#6b7280;">
+                    <span>마크다운: <b style="color:#111827;">612개</b></span>
+                    <span>코드 파일: <b style="color:#111827;">3,190개</b></span>
+                    <span>오피스/PDF 포함</span>
+                  </div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:stretch;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <strong style="font-size:13.5px;color:#111827;">🚀 회사_Branch (지점)</strong>
+                      <span style="font-family:monospace;font-size:11.5px;color:#6b7280;margin-left:8px;">C:/BeausCreators/02.BSC_Branch</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <span class="chip green">● 6,840개 파악됨</span>
+                      <span class="btn">폴더 변경</span>
+                    </div>
+                  </div>
+                  <div style="height:5px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+                    <div style="width:72%;height:100%;background:#18181b;border-radius:999px;"></div>
+                  </div>
+                  <div style="display:flex;gap:16px;font-size:11.5px;color:#6b7280;">
+                    <span>마크다운: <b style="color:#111827;">340개</b></span>
+                    <span>코드 파일: <b style="color:#111827;">4,920개</b></span>
+                    <span>오피스/PDF 포함</span>
+                  </div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:stretch;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <strong style="font-size:13.5px;color:#111827;">🔬 연구소_Research</strong>
+                      <span style="font-family:monospace;font-size:11.5px;color:#6b7280;margin-left:8px;">C:/BeausCreators/03.Research</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <span class="chip green">● 3,910개 파악됨</span>
+                      <span class="btn">폴더 변경</span>
+                    </div>
+                  </div>
+                  <div style="height:5px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+                    <div style="width:58%;height:100%;background:#18181b;border-radius:999px;"></div>
+                  </div>
+                  <div style="display:flex;gap:16px;font-size:11.5px;color:#6b7280;">
+                    <span>마크다운: <b style="color:#111827;">218개</b></span>
+                    <span>코드 파일: <b style="color:#111827;">2,410개</b></span>
+                    <span>오피스/PDF 포함</span>
+                  </div>
+                </div>
+              
+                <div class="item-card " style="flex-direction:column;align-items:stretch;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <strong style="font-size:13.5px;color:#111827;">🧰 스킬창고_Warehouse</strong>
+                      <span style="font-family:monospace;font-size:11.5px;color:#6b7280;margin-left:8px;">C:/BeausCreators/05.BSC_Skill_Warehouse</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <span class="chip green">● 4,425개 파악됨</span>
+                      <span class="btn">폴더 변경</span>
+                    </div>
+                  </div>
+                  <div style="height:5px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+                    <div style="width:66%;height:100%;background:#18181b;border-radius:999px;"></div>
+                  </div>
+                  <div style="display:flex;gap:16px;font-size:11.5px;color:#6b7280;">
+                    <span>마크다운: <b style="color:#111827;">250개</b></span>
+                    <span>코드 파일: <b style="color:#111827;">2,890개</b></span>
+                    <span>오피스/PDF 포함</span>
+                  </div>
+                </div>
+              
+            </div>
+          </section>
+
+          <section class="bento-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">2. 분석된 마크다운(.MD) 문서 목록</div>
+                <div class="panel-desc">클릭 시 문서를 바로 열람·편집하거나 뉴런홈 위치로 이동합니다.</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <span class="btn">🔍 문서 검색...</span>
+                <span class="btn primary">전체 파일 검색</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              
+                <div class="item-card active">
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                      <span class="chip">회사_HQ</span>
+                      <strong style="font-size:13.5px;color:#111827;">AGENTS.md</strong>
+                      <span style="font-size:12px;color:#6b7280;">— BeausCreators 전사 에이전트 운영 헌장</span>
+                    </div>
+                    <div style="font-size:12px;color:#4b5563;line-height:1.45;">CHLGD 워크플로우, 데이터 유실 방지 원칙 및 26인 에이전트 운영 표준 정의</div>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <span class="btn primary">열람·편집</span>
+                    <span class="btn">뉴런 위치</span>
+                  </div>
+                </div>
+              
+                <div class="item-card ">
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                      <span class="chip">스킬창고</span>
+                      <strong style="font-size:13.5px;color:#111827;">control-protocol.md</strong>
+                      <span style="font-size:12px;color:#6b7280;">— ArtCraft 실시간 제어 프로토콜 명세서</span>
+                    </div>
+                    <div style="font-size:12px;color:#4b5563;line-height:1.45;">Loopback JSON-Lines 포트를 통한 화면 캡처(ui.screenshot) 및 도구 제어 명세</div>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <span class="btn primary">열람·편집</span>
+                    <span class="btn">뉴런 위치</span>
+                  </div>
+                </div>
+              
+                <div class="item-card ">
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                      <span class="chip">회사_HQ</span>
+                      <strong style="font-size:13.5px;color:#111827;">Minimal_Design_Guide.md</strong>
+                      <span style="font-size:12px;color:#6b7280;">— 심플 모노톤 라이트 대시보드 디자인 가이드</span>
+                    </div>
+                    <div style="font-size:12px;color:#4b5563;line-height:1.45;">눈의 피로를 줄이는 화이트·웜그레이·차콜 모노톤 레이아웃 및 타이포그래피 규격</div>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <span class="btn primary">열람·편집</span>
+                    <span class="btn">뉴런 위치</span>
+                  </div>
+                </div>
+              
+                <div class="item-card ">
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                      <span class="chip">연구소</span>
+                      <strong style="font-size:13.5px;color:#111827;">REA_2026-10-23_artcraft.md</strong>
+                      <span style="font-size:12px;color:#6b7280;">— REA ArtCraft 13종 역공학 블루프린트</span>
+                    </div>
+                    <div style="font-size:12px;color:#4b5563;line-height:1.45;">4단계 클린룸 역공학으로 추출한 Rust 크리에이티브 코어 및 AI 연동 구조</div>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <span class="btn primary">열람·편집</span>
+                    <span class="btn">뉴런 위치</span>
+                  </div>
+                </div>
+              
+            </div>
+          </section>
+        </div>
+      
+  </main>
+
+  
+  
+
+  <footer class="bottom-bar">
+    <div class="bb-pill">
+      <span>🧠 뉴런홈 은하 코어 유지</span>
+      <span>● 650 뉴런</span>
+      <span>● 23,595 파일 동기화</span>
+    </div>
+    <div class="bb-prompt">
+      <span>🎙️ 자비스에게 질문하거나 업무를 지시하세요...</span>
+      <span style="background:#18181b;color:#fff;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">➤</span>
+    </div>
+    <div class="bb-pill">
+      <span>💬 1:1 대화창</span>
+      <span>📂 지식폴더</span>
+      <span>📄 문서·IDE</span>
+      <span style="font-weight:700;color:#111827;">🎨 ArtCraft 제어</span>
+      <span style="font-weight:700;color:#111827;">🤖 두뇌·도구</span>
+    </div>
+  </footer>
+</body>
+</html>

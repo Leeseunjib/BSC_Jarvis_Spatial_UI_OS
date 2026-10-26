@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BSC J.A.R.V.I.S. — Spatial Camera Gesture OS & 10 Dashboard Suite</title>
+  <!-- MediaPipe Hands CDN for Real Webcam Hand Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg-deep: #040811;
+      --cyan: #00f0ff;
+      --cyan-dim: rgba(0, 240, 255, 0.18);
+      --cyan-glow: rgba(0, 240, 255, 0.55);
+      --blue: #0077ff;
+      --amber: #ffaa00;
+      --emerald: #00ff9d;
+      --crimson: #ff2a5f;
+      --glass: rgba(8, 18, 36, 0.72);
+      --glass-border: rgba(0, 240, 255, 0.35);
+      --font-tech: 'Segoe UI', 'Orbitron', 'Malgun Gothic', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, #0a192f 0%, #03070e 75%, #010306 100%);
+      color: #e6f9ff;
+      font-family: var(--font-tech);
+      perspective: 1400px;
+    }
+
+    /* Background Cyber Grid */
+    .cyber-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top HUD Header */
+    .hud-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: linear-gradient(180deg, rgba(4, 12, 26, 0.95) 0%, rgba(4, 12, 26, 0.4) 100%);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .arc-mini {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 15px var(--cyan), inset 0 0 10px var(--cyan);
+      position: relative;
+      animation: pulseSpin 4s linear infinite;
+    }
+
+    @keyframes pulseSpin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.08); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .brand-title span {
+      font-size: 11px;
+      color: #8ab4f8;
+      display: block;
+      letter-spacing: 1px;
+    }
+
+    /* Gesture Telemetry Pills */
+    .gesture-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gesture-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      background: rgba(0, 20, 40, 0.65);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+    }
+
+    .gesture-pill.active {
+      border-color: var(--emerald);
+      background: rgba(0, 255, 157, 0.18);
+      color: var(--emerald);
+      box-shadow: 0 0 14px rgba(0, 255, 157, 0.45);
+      transform: scale(1.05);
+    }
+
+    .gesture-pill.warn {
+      border-color: var(--amber);
+      background: rgba(255, 170, 0, 0.2);
+      color: var(--amber);
+      box-shadow: 0 0 14px rgba(255, 170, 0, 0.45);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* Header Controls */
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .hud-btn {
+      padding: 8px 16px;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-btn:hover, .hud-btn.gesture-hover {
+      background: var(--cyan);
+      color: #020813;
+      box-shadow: 0 0 18px var(--cyan);
+    }
+
+    .hud-btn.active-cam {
+      background: rgba(0, 255, 157, 0.22);
+      border-color: var(--emerald);
+      color: var(--emerald);
+    }
+
+    /* 3D Spatial Workspace */
+    #spatial-stage {
+      position: relative;
+      width: 100vw;
+      height: calc(100vh - 140px);
+      margin-top: 62px;
+      transform-style: preserve-3d;
+      transition: transform 0.08s linear;
+      z-index: 10;
+    }
+
+    /* Central 3D Arc Reactor Core */
+    #core-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 380px;
+      height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      z-index: 5;
+    }
+
+    #core-canvas {
+      width: 380px;
+      height: 380px;
+      cursor: grab;
+    }
+
+    .core-overlay-label {
+      position: absolute;
+      bottom: -14px;
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      background: rgba(4, 14, 28, 0.85);
+      padding: 5px 14px;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    }
+
+    /* Draggable & Rotatable HUD Cards */
+    .hud-card {
+      position: absolute;
+      width: 330px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 18px rgba(0, 240, 255, 0.07);
+      transition: box-shadow 0.2s, border-color 0.2s;
+      z-index: 20;
+      overflow: hidden;
+    }
+
+    .hud-card.gesture-target {
+      border-color: var(--cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.55), inset 0 0 20px rgba(0, 240, 255, 0.16);
+    }
+
+    .hud-card.dragging {
+      border-color: var(--emerald);
+      box-shadow: 0 0 35px rgba(0, 255, 157, 0.7);
+      z-index: 90 !important;
+    }
+
+    .card-header {
+      padding: 10px 14px;
+      background: linear-gradient(90deg, rgba(0, 240, 255, 0.2) 0%, rgba(0, 119, 255, 0.05) 100%);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.8px;
+    }
+
+    .card-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mini-btn {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .mini-btn:hover, .mini-btn.gesture-hover {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    .card-body {
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Interactive Elements inside Cards */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .toggle-row:hover, .toggle-row.gesture-hover {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.12);
+    }
+
+    .status-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .status-on {
+      background: rgba(0, 255, 157, 0.2);
+      color: var(--emerald);
+      border: 1px solid var(--emerald);
+    }
+
+    .status-off {
+      background: rgba(255, 42, 95, 0.2);
+      color: var(--crimson);
+      border: 1px solid var(--crimson);
+    }
+
+    /* Progress Bars */
+    .metric-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 5px 0 10px;
+    }
+
+    .metric-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      box-shadow: 0 0 8px var(--cyan);
+      transition: width 0.4s ease;
+    }
+
+    /* Camera Vision Tracking PIP Window */
+    #camera-pip {
+      position: fixed;
+      top: 76px;
+      right: 24px;
+      width: 290px;
+      height: 215px;
+      background: rgba(3, 10, 22, 0.9);
+      border: 1px solid var(--cyan);
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 120;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.3);
+    }
+
+    #camera-pip-header {
+      padding: 6px 12px;
+      background: rgba(0, 240, 255, 0.2);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #webcam-video {
+      display: none;
+    }
+
+    #tracking-canvas {
+      width: 100%;
+      height: calc(100% - 28px);
+      background: radial-gradient(circle, #07162c 0%, #02060d 100%);
+      display: block;
+    }
+
+    /* Bottom 10-Concept Dock */
+    .concept-dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 78px;
+      background: linear-gradient(0deg, rgba(3, 10, 22, 0.96) 0%, rgba(3, 10, 22, 0.65) 100%);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 16px;
+      z-index: 110;
+      backdrop-filter: blur(12px);
+      overflow-x: auto;
+    }
+
+    .dock-item {
+      min-width: 115px;
+      height: 54px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      background: rgba(6, 20, 40, 0.8);
+      padding: 6px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .dock-item:hover, .dock-item.gesture-hover, .dock-item.active {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.45);
+    }
+
+    .dock-num {
+      font-size: 10px;
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .dock-name {
+      font-size: 11px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* Spatial Hand Cursor */
+    #spatial-cursor {
+      position: fixed;
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--cyan);
+      transition: width 0.1s, height 0.1s, border-color 0.1s;
+    }
+
+    #spatial-cursor::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+    }
+
+    #spatial-cursor.pinching {
+      width: 28px;
+      height: 28px;
+      border-color: var(--emerald);
+      background: rgba(0, 255, 157, 0.25);
+      box-shadow: 0 0 28px var(--emerald);
+    }
+
+    #spatial-cursor.rotating {
+      border-color: var(--amber);
+      border-style: dashed;
+      box-shadow: 0 0 28px var(--amber);
+    }
+
+    .cursor-tag {
+      position: absolute;
+      top: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 10, 24, 0.9);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* Concept Lightbox Modal */
+    #concept-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 14, 0.88);
+      backdrop-filter: blur(14px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 40px;
+    }
+
+    #concept-modal.open {
+      display: flex;
+    }
+
+    .modal-box {
+      max-width: 1120px;
+      width: 92%;
+      background: rgba(8, 20, 42, 0.95);
+      border: 1px solid var(--cyan);
+      border-radius: 14px;
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.4);
+      overflow: hidden;
+    }
+
+    .modal-top {
+      padding: 14px 20px;
+      background: rgba(0, 240, 255, 0.15);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-content {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .modal-img-wrap {
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      position: relative;
+    }
+
+    .modal-img-wrap img {
+      width: 100%;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .modal-desc h3 {
+      color: var(--cyan);
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .modal-desc p {
+      font-size: 13px;
+      color: #c9e6ff;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .spec-list {
+      list-style: none;
+      font-size: 12px;
+      color: #9beeff;
+    }
+
+    .spec-list li {
+      margin-bottom: 8px;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .spec-list li::before {
+      content: '◈';
+      position: absolute;
+      left: 0;
+      color: var(--cyan);
+    }
+  </style>
+</head>
+<body>
+  <div class="cyber-grid"></div>
+
+  <!-- Spatial Hand Cursor -->
+  <div id="spatial-cursor">
+    <div class="cursor-tag" id="cursor-mode-label">RECOGNIZING [HOVER]</div>
+  </div>
+
+  <!-- Top HUD Header -->
+  <header class="hud-header">
+    <div class="brand-title">
+      <div class="arc-mini"></div>
+      <div>
+        <h1>BSC J.A.R.V.I.S. SPATIAL OS</h1>
+        <span>VISION GESTURE CONTROL: RECOGNIZE · CLICK · DRAG · 3D ROTATE</span>
+      </div>
+    </div>
+
+    <div class="gesture-bar">
+      <div class="gesture-pill active" id="pill-recognize">
+        <span class="dot"></span> 1. 인식 (Hover/Point)
+      </div>
+      <div class="gesture-pill" id="pill-click">
+        <span class="dot"></span> 2. 클릭 (Pinch Click)
+      </div>
+      <div class="gesture-pill" id="pill-drag">
+        <span class="dot"></span> 3. 이동 (Pinch Drag)
+      </div>
+      <div class="gesture-pill" id="pill-rotate">
+        <span class="dot"></span> 4. 회전 (Palm Twist / 3D)
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="hud-btn" id="btn-webcam" onclick="toggleWebcam()">
+        🎥 실시간 웹캠 제스처 ON
+      </button>
+      <button class="hud-btn" id="btn-sim-hand" onclick="toggleSimHand()">
+        🖐️ 가상 핸드 데모 투어
+      </button>
+      <button class="hud-btn" onclick="resetWorkspace()">
+        🔄 레이아웃 초기화
+      </button>
+    </div>
+  </header>
+
+  <!-- Camera Hand Skeleton PIP -->
+  <div id="camera-pip">
+    <div id="camera-pip-header">
+      <span id="cam-status-text">VISION SENSOR: MOUSE / SIM MODE</span>
+      <span id="fps-counter">60 FPS</span>
+    </div>
+    <video id="webcam-video" playsinline></video>
+    <canvas id="tracking-canvas" width="290" height="187"></canvas>
+  </div>
+
+  <!-- 3D Spatial Workspace Stage -->
+  <main id="spatial-stage">
+    <!-- Central 3D Holographic Arc Core -->
+    <div id="core-container">
+      <canvas id="core-canvas" width="380" height="380"></canvas>
+      <div class="core-overlay-label" id="core-angle-readout">
+        CORE ROTATION: X: 0° | Y: 0° | Z: 0° (드래그/제스처 회전)
+      </div>
+    </div>
+
+    <!-- Card 1: Multi-Agent Orchestrator -->
+    <section class="hud-card" id="card-agents" style="top: 30px; left: 32px;">
+      <div class="card-header">
+        <span>◈ 01. BSC 26-AGENT ORCHESTRATOR</span>
+        <div class="card-controls">
+          <button class="mini-btn" onclick="rotateCard('card-agents', -15)">⟲</button>
+          <button class="mini-btn" onclick="rotateCard('card-agents', 15)">⟳</button>
+          <button class="mini-btn" onclick="openConceptModal(1)">시안보기</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>수석비서 소하 (Order & Briefing)</span>
+          <span class="status-badge status-on">ACTIVE</span>
+        </div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>CTO 거누 (Architecture & Infra)</span>
+          <span class="status-badge status-on">ACTIVE</span>
+        </div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>수석디자이너 시안 (Spatial HUD)</span>
+          <span class="status-badge status-on">ACTIVE</span>
+        </div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>프론트엔드 유나 (WebRTC & Gesture)</span>
+          <span class="status-badge status-on">ACTIVE</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 2: Computer Use & OS Automation -->
+    <section class="hud-card" id="card-os" style="top: 300px; left: 32px;">
+      <div class="card-header">
+        <span>◈ 02. COMPUTER USE & OMNI-PARSER</span>
+        <div class="card-controls">
+          <button class="mini-btn" onclick="rotateCard('card-os', -15)">⟲</button>
+          <button class="mini-btn" onclick="rotateCard('card-os', 15)">⟳</button>
+          <button class="mini-btn" onclick="openConceptModal(3)">시안보기</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <p style="color:#9beeff; margin-bottom:6px;">Anthropic Computer Use + MS UFO Engine</p>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>Screen Bounding-Box UI 인식</span>
+          <span class="status-badge status-on">LOCKED</span>
+        </div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>Open-Interpreter 로컬 터미널 제어</span>
+          <span class="status-badge status-on">READY</span>
+        </div>
+        <div style="font-size:11px; color:#00ff9d; margin-top:6px;">
+          &gt; Action: Clicked [Deploy_Production] at (X:842, Y:410)
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 3: Smart Home IoT & Frigate Vision -->
+    <section class="hud-card" id="card-iot" style="top: 30px; left: 390px;">
+      <div class="card-header">
+        <span>◈ 03. SMART HOME & FRIGATE VISION</span>
+        <div class="card-controls">
+          <button class="mini-btn" onclick="rotateCard('card-iot', -15)">⟲</button>
+          <button class="mini-btn" onclick="rotateCard('card-iot', 15)">⟳</button>
+          <button class="mini-btn" onclick="openConceptModal(4)">시안보기</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>CEO 집무실 앰비언트 라이팅</span>
+          <span class="status-badge status-on">ON (24°C)</span>
+        </div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>Frigate NVR 안면/출입 보안 감지</span>
+          <span class="status-badge status-on">SECURE</span>
+        </div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>스마트 전동 블라인드 & 공조 시스템</span>
+          <span class="status-badge status-off">STANDBY</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 4: Local LLM & GPU Cluster Telemetry -->
+    <section class="hud-card" id="card-llm" style="top: 255px; right: 32px;">
+      <div class="card-header">
+        <span>◈ 04. LOCAL LLM & GPU TELEMETRY</span>
+        <div class="card-controls">
+          <button class="mini-btn" onclick="rotateCard('card-llm', -15)">⟲</button>
+          <button class="mini-btn" onclick="rotateCard('card-llm', 15)">⟳</button>
+          <button class="mini-btn" onclick="openConceptModal(6)">시안보기</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div>Ollama Local Cluster (DeepSeek-R1 / Qwen-2.5) — 142.8 tok/s</div>
+        <div class="metric-bar"><div class="metric-fill" style="width: 84%;"></div></div>
+        <div>Voice Pipeline Latency (Faster-Whisper + Kokoro TTS) — 175ms</div>
+        <div class="metric-bar"><div class="metric-fill" style="width: 92%;"></div></div>
+        <div class="toggle-row" onclick="toggleFeature(this)">
+          <span>Zero-Cloud 100% 프라이버시 실드</span>
+          <span class="status-badge status-on">PROTECTED</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom 10-Concept Dock -->
+  <nav class="concept-dock" id="concept-dock"></nav>
+
+  <!-- Concept Lightbox Modal -->
+  <div id="concept-modal">
+    <div class="modal-box">
+      <div class="modal-top">
+        <strong id="modal-title" style="color:var(--cyan); font-size:15px;">시안 상세 보기</strong>
+        <div style="display:flex; gap:8px;">
+          <button class="hud-btn" onclick="zoomModalImg(1.18)">🔍 확대</button>
+          <button class="hud-btn" onclick="rotateModalImg(15)">⟳ 시안 회전</button>
+          <button class="hud-btn" onclick="closeConceptModal()">✕ 닫기</button>
+        </div>
+      </div>
+      <div class="modal-content">
+        <div class="modal-img-wrap">
+          <img id="modal-img" src="" alt="JARVIS Concept" />
+        </div>
+        <div class="modal-desc">
+          <h3 id="modal-sub"></h3>
+          <p id="modal-text"></p>
+          <ul class="spec-list" id="modal-specs"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 10 Dashboard Concept Designs Metadata
+    const CONCEPTS = [
+      {
+        id: 1,
+        short: "메인 커맨드 HUD",
+        title: "시안 01. 마스터 홀로그래픽 커맨드 센터 (Master Command HUD)",
+        img: "jarvis_command_center_hud_1792731703383.jpg",
+        desc: "중앙 아크 리액터 코어를 중심으로 시스템 헬스, 신경망 토폴로지, 실시간 디바이스 상태를 총괄하는 메인 대시보드입니다.",
+        specs: ["중앙 3D 아크 코어 회전/줌 제어", "실시간 시스템 진단 텔레메트리", "글래스모피즘 플로팅 카드 UI"]
+      },
+      {
+        id: 2,
+        short: "멀티에이전트 지휘",
+        title: "시안 02. 멀티에이전트 오케스트레이션 매트릭스 (Agent Matrix)",
+        img: "jarvis_agent_orchestration_matrix_1792731723439.jpg",
+        desc: "Microsoft JARVIS(HuggingGPT), CrewAI, AutoGen 아키텍처를 반영하여 다중 하위 에이전트 간 협업과 메모리를 관제합니다.",
+        specs: ["3D 홀로그램 뉴럴 스피어", "26인 전문 에이전트 태스크 라우팅", "실시간 토큰 및 메모리 할당 매트릭스"]
+      },
+      {
+        id: 3,
+        short: "카메라 제스처 UI",
+        title: "시안 03. 카메라 비전 핸드 제스처 제어 UI (Spatial Camera Gesture)",
+        img: "jarvis_03_spatial_camera_gesture_ui_jpg_1792735155474.jpg",
+        desc: "웹캠 및 깊이 카메라로 손가락 관절(21 Keypoints)을 실시간 추적하여 허공에서 클릭(Pinch), 드래그 이동, 3D 회전을 수행합니다.",
+        specs: ["MediaPipe 21-Keypoint 손 관절 인식", "엄지-검지 핀치 클릭 & 드래그 이동", "손바닥 기울기 기반 3D 오브젝트 회전"]
+      },
+      {
+        id: 4,
+        short: "OS/브라우저 제어",
+        title: "시안 04. Computer Use & OS 자동 제어 대시보드 (OmniParser)",
+        img: "jarvis_04_computer_use_os_control_jpg_1792735173855.jpg",
+        desc: "Anthropic Computer Use, MS UFO, Open-Interpreter 기술을 결합해 화면 UI 요소를 바운딩 박스로 인식하고 마우스/키보드를 자율 제어합니다.",
+        specs: ["OmniParser 실시간 화면 버튼 감지", "자율 마우스 커서 궤적 시각화", "로컬 파이썬/터미널 샌드박스 실행기"]
+      },
+      {
+        id: 5,
+        short: "스마트홈 & NVR",
+        title: "시안 05. 스마트홈 IoT & Frigate 비전 보안 대시보드",
+        img: "jarvis_05_smarthome_iot_frigate_vision_jpg_1792735191245.jpg",
+        desc: "Home Assistant와 Jarvis-AIO, Frigate NVR을 통합하여 3D 평면도 기반 조명·공조 제어 및 실시간 CCTV 객체 인식을 수행합니다.",
+        specs: ["3D 아이소메트릭 공간 플로어플랜", "Frigate 실시간 안면/차량/택배 인식", "이상 징후 자율 경보 및 전력 분석"]
+      },
+      {
+        id: 6,
+        short: "초저지연 음성/감정",
+        title: "시안 06. 초저지연 음성 파이프라인 & 공감 오디오 HUD",
+        img: "jarvis_06_voice_pipeline_empathic_audio_jpg_1792735215284.jpg",
+        desc: "Faster-Whisper(STT), Kokoro-82M(TTS), Hume AI(EVI)를 결합해 180ms 초저지연 양방향 대화와 감정 톤 분석을 시각화합니다.",
+        specs: ["3D 주파수 스펙트로그램 파형", "Hume AI 실시간 감정/억양 레이더", "180ms 초저지연 인터럽트 응답 미터"]
+      },
+      {
+        id: 7,
+        short: "로컬 LLM & GPU",
+        title: "시안 07. 로컬 LLM 홈랩 & 멀티 GPU 클러스터 텔레메트리",
+        img: "jarvis_07_local_llm_gpu_telemetry_1792735157904.jpg",
+        desc: "NetworkChuck 스타일의 Proxmox + Ollama 로컬 서버 관제 화면으로, 클라우드 비용 $0 및 100% 데이터 프라이버시를 보장합니다.",
+        specs: ["멀티 GPU VRAM 및 발열 히트맵", "DeepSeek-R1 / Llama-3.3 초당 토큰 속도계", "Fast Intent 라우팅 플로우차트"]
+      },
+      {
+        id: 8,
+        short: "기억/지식 그래프",
+        title: "시안 08. 세컨드 브레인 장기기억 & RAG 지식 그래프",
+        img: "jarvis_08_memory_knowledge_rag_graph_1792735179997.jpg",
+        desc: "Khoj, Mem0, AnythingLLM 아키텍처를 기반으로 사내 문서, 일정, 대화 이력을 3D 벡터 성운 그래프로 연결·검색합니다.",
+        specs: ["120만 벡터 임베딩 3D 노드 탐색", "코사인 유사도 실시간 출처 하이라이트", "에피소드 장기기억 타임라인"]
+      },
+      {
+        id: 9,
+        short: "자율 코딩/DevOps",
+        title: "시안 09. 자율 소프트웨어 엔지니어링 & DevOps 관제 (OpenHands)",
+        img: "jarvis_09_devops_code_autonomous_swe_1792735203350.jpg",
+        desc: "OpenHands(OpenDevin) 및 조코딩 AI 에이전트 스타일의 자율 코딩·테스트·배포 파이프라인 통합 대시보드입니다.",
+        specs: ["실시간 코드 Diff 생성 및 리뷰", "348개 유닛 테스트 자동 검증 매트릭스", "Docker 샌드박스 컨테이너 리소스 모니터"]
+      },
+      {
+        id: 10,
+        short: "AR 글래스/헬멧 HUD",
+        title: "시안 10. 1인칭 AR 스마트 글래스 & 아이언맨 헬멧 바이저 HUD",
+        img: "jarvis_10_ar_wearable_helmet_hud_1792735228019.jpg",
+        desc: "Hacksmith 헬멧 HUD와 공간 컴퓨팅을 결합하여 실제 집무실 책상 위에 홀로그램 위젯을 띄우고 손으로 직접 조작하는 뷰입니다.",
+        specs: ["실제 공간 LiDAR 메쉬 스캐닝 오버레이", "1인칭 시선 추적 + 허공 핀치 조작", "생체 바이탈 및 일정 브리핑 바이저"]
+      }
+    ];
+
+    // Render Bottom Dock
+    const dockEl = document.getElementById('concept-dock');
+    CONCEPTS.forEach((c, idx) => {
+      const item = document.createElement('div');
+      item.className = 'dock-item' + (idx === 0 ? ' active' : '');
+      item.innerHTML = `<span class="dock-num">CONCEPT ${String(c.id).padStart(2, '0')}</span><span class="dock-name">${c.short}</span>`;
+      item.onclick = () => openConceptModal(idx);
+      dockEl.appendChild(item);
+    });
+
+    // Modal Logic
+    let modalScale = 1;
+    let modalRot = 0;
+    function openConceptModal(index) {
+      const c = CONCEPTS[index];
+      document.getElementById('modal-title').textContent = c.title;
+      document.getElementById('modal-sub').textContent = c.title;
+      document.getElementById('modal-text').textContent = c.desc;
+      const img = document.getElementById('modal-img');
+      img.src = c.img;
+      modalScale = 1;
+      modalRot = 0;
+      img.style.transform = `scale(1) rotate(0deg)`;
+      const ul = document.getElementById('modal-specs');
+      ul.innerHTML = c.specs.map(s => `<li>${s}</li>`).join('');
+      document.getElementById('concept-modal').classList.add('open');
+    }
+
+    function closeConceptModal() {
+      document.getElementById('concept-modal').classList.remove('open');
+    }
+
+    function zoomModalImg(factor) {
+      modalScale = modalScale >= 1.5 ? 1 : modalScale * factor;
+      document.getElementById('modal-img').style.transform = `scale(${modalScale}) rotate(${modalRot}deg)`;
+    }
+
+    function rotateModalImg(deg) {
+      modalRot = (modalRot + deg) % 360;
+      document.getElementById('modal-img').style.transform = `scale(${modalScale}) rotate(${modalRot}deg)`;
+    }
+
+    // Toggle Feature Row
+    function toggleFeature(row) {
+      const badge = row.querySelector('.status-badge');
+      if (!badge) return;
+      if (badge.classList.contains('status-on')) {
+        badge.classList.remove('status-on');
+        badge.classList.add('status-off');
+        badge.textContent = 'OFF';
+      } else {
+        badge.classList.remove('status-off');
+        badge.classList.add('status-on');
+        badge.textContent = 'ACTIVE';
+      }
+    }
+
+    // Individual Card 3D Rotation
+    const cardRotations = {};
+    function rotateCard(cardId, deltaY) {
+      cardRotations[cardId] = (cardRotations[cardId] || 0) + deltaY;
+      const el = document.getElementById(cardId);
+      el.style.transform = ` perspective(900px) rotateY(${cardRotations[cardId]}deg)`;
+    }
+
+    function resetWorkspace() {
+      document.getElementById('spatial-stage').style.transform = `rotateX(0deg) rotateY(0deg)`;
+      coreRotX = 0; coreRotY = 0; coreRotZ = 0;
+      document.querySelectorAll('.hud-card').forEach(c => {
+        c.style.transform = '';
+      });
+    }
+
+    // =====================================================
+    // 3D HOLOGRAPHIC ARC REACTOR CORE (Canvas 3D Engine)
+    // =====================================================
+    const coreCanvas = document.getElementById('core-canvas');
+    const coreCtx = coreCanvas.getContext('2d');
+    let coreRotX = 0.3, coreRotY = 0.5, coreRotZ = 0;
+
+    function drawHologramCore() {
+      coreCtx.clearRect(0, 0, 380, 380);
+      const cx = 190, cy = 190;
+      coreRotY += 0.012;
+
+      // Outer Glowing Rings
+      for (let r = 150; r >= 50; r -= 32) {
+        coreCtx.save();
+        coreCtx.translate(cx, cy);
+        coreCtx.rotate(coreRotZ + r * 0.02);
+        coreCtx.beginPath();
+        coreCtx.ellipse(0, 0, r, r * Math.max(0.25, Math.abs(Math.cos(coreRotX + r * 0.01))), coreRotY * 0.4, 0, Math.PI * 2);
+        coreCtx.strokeStyle = r === 150 ? 'rgba(0, 240, 255, 0.75)' : 'rgba(0, 180, 255, 0.45)';
+        coreCtx.lineWidth = r === 150 ? 2.5 : 1.5;
+        coreCtx.setLineDash([18, 10]);
+        coreCtx.stroke();
+        coreCtx.restore();
+      }
+
+      // 3D Neural Sphere Nodes
+      const numPts = 42;
+      for (let i = 0; i < numPts; i++) {
+        const phi = Math.acos(-1 + (2 * i) / numPts);
+        const theta = Math.sqrt(numPts * Math.PI) * phi + coreRotY;
+        const radius = 105;
+        const x = radius * Math.cos(theta) * Math.sin(phi);
+        const y = radius * Math.sin(theta) * Math.sin(phi) * Math.cos(coreRotX) - radius * Math.cos(phi) * Math.sin(coreRotX);
+        const z = radius * Math.sin(theta) * Math.sin(phi) * Math.sin(coreRotX) + radius * Math.cos(phi) * Math.cos(coreRotX);
+        const scale = 260 / (260 + z);
+        const px = cx + x * scale;
+        const py = cy + y * scale;
+
+        coreCtx.beginPath();
+        coreCtx.arc(px, py, Math.max(1.5, 3.5 * scale), 0, Math.PI * 2);
+        coreCtx.fillStyle = z > 0 ? '#00f0ff' : 'rgba(0, 140, 255, 0.35)';
+        coreCtx.fill();
+      }
+
+      // Center Energy Core
+      const grad = coreCtx.createRadialGradient(cx, cy, 4, cx, cy, 46);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.35, '#00f0ff');
+      grad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+      coreCtx.fillStyle = grad;
+      coreCtx.beginPath();
+      coreCtx.arc(cx, cy, 46, 0, Math.PI * 2);
+      coreCtx.fill();
+
+      document.getElementById('core-angle-readout').textContent =
+        `CORE 3D: X:${Math.round((coreRotX * 57.3) % 360)}° | Y:${Math.round((coreRotY * 57.3) % 360)}° | Z:${Math.round((coreRotZ * 57.3) % 360)}°`;
+
+      requestAnimationFrame(drawHologramCore);
+    }
+    drawHologramCore();
+
+    // =====================================================
+    // UNIFIED SPATIAL GESTURE ENGINE (Recognize / Click / Drag / Rotate)
+    // =====================================================
+    const cursorEl = document.getElementById('spatial-cursor');
+    const cursorLabel = document.getElementById('cursor-mode-label');
+    const stageEl = document.getElementById('spatial-stage');
+
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
+    let isPinching = false;
+    let wasPinching = false;
+    let isRotatingGesture = false;
+    let activeDragCard = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let lastHoveredEl = null;
+
+    function setGesturePill(activeId) {
+      ['pill-recognize', 'pill-click', 'pill-drag', 'pill-rotate'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('active', 'warn');
+      });
+      const target = document.getElementById(activeId);
+      if (target) target.classList.add(activeId === 'pill-rotate' ? 'warn' : 'active');
+    }
+
+    function updateSpatialInteraction(x, y, pinching, rotating) {
+      pointerX = x;
+      pointerY = y;
+      cursorEl.style.left = `${x}px`;
+      cursorEl.style.top = `${y}px`;
+
+      cursorEl.classList.toggle('pinching', pinching);
+      cursorEl.classList.toggle('rotating', rotating);
+
+      // 4. ROTATE MODE (3D Core & Stage Rotation)
+      if (rotating) {
+        setGesturePill('pill-rotate');
+        cursorLabel.textContent = '4. 3D ROTATE [PALM TWIST]';
+        const normX = (x / window.innerWidth - 0.5) * 2;
+        const normY = (y / window.innerHeight - 0.5) * 2;
+        coreRotY += normX * 0.08;
+        coreRotX += normY * 0.08;
+        stageEl.style.transform = `rotateY(${normX * 14}deg) rotateX(${-normY * 10}deg)`;
+        return;
+      }
+
+      // 3. DRAG MOVE MODE
+      if (pinching && activeDragCard) {
+        setGesturePill('pill-drag');
+        cursorLabel.textContent = `3. DRAGGING [${activeDragCard.id}]`;
+        activeDragCard.style.left = `${x - dragOffsetX}px`;
+        activeDragCard.style.top = `${y - dragOffsetY - 62}px`;
+        return;
+      }
+
+      // Element Recognition under Spatial Cursor
+      const elem = document.elementFromPoint(x, y);
+      if (lastHoveredEl && lastHoveredEl !== elem) {
+        lastHoveredEl.classList.remove('gesture-hover');
+        const prevCard = lastHoveredEl.closest('.hud-card');
+        if (prevCard) prevCard.classList.remove('gesture-target');
+      }
+
+      if (elem) {
+        const card = elem.closest('.hud-card');
+        if (card) card.classList.add('gesture-target');
+
+        const interactive = elem.closest('.hud-btn, .mini-btn, .toggle-row, .dock-item');
+        if (interactive) {
+          interactive.classList.add('gesture-hover');
+          lastHoveredEl = interactive;
+        } else {
+          lastHoveredEl = card;
+        }
+
+        // 2. PINCH CLICK OR START DRAG
+        if (pinching && !wasPinching) {
+          setGesturePill('pill-click');
+          cursorLabel.textContent = '2. PINCH CLICK [TRIGGERED]';
+
+          if (interactive) {
+            interactive.click();
+          } else if (card) {
+            activeDragCard = card;
+            card.classList.add('dragging');
+            const rect = card.getBoundingClientRect();
+            dragOffsetX = x - rect.left;
+            dragOffsetY = y - rect.top;
+          }
+        } else if (!pinching) {
+          // 1. HOVER RECOGNITION
+          setGesturePill('pill-recognize');
+          cursorLabel.textContent = interactive
+            ? `1. TARGET LOCKED [${interactive.textContent.trim().slice(0, 16)}]`
+            : '1. RECOGNIZING [HOVER]';
+        }
+      }
+
+      if (!pinching && activeDragCard) {
+        activeDragCard.classList.remove('dragging');
+        activeDragCard = null;
+      }
+
+      wasPinching = pinching;
+    }
+
+    // Mouse Fallback (Left drag = Pinch & Drag, Right drag or Shift+Move = 3D Rotate)
+    window.addEventListener('mousemove', e => {
+      if (webcamActive || simHandActive) return;
+      const rotating = e.shiftKey || e.buttons === 2;
+      const pinching = e.buttons === 1;
+      updateSpatialInteraction(e.clientX, e.clientY, pinching, rotating);
+    });
+    window.addEventListener('mousedown', e => {
+      if (webcamActive || simHandActive) return;
+      updateSpatialInteraction(e.clientX, e.clientY, e.button === 0, e.button === 2 || e.shiftKey);
+    });
+    window.addEventListener('mouseup', e => {
+      if (webcamActive || simHandActive) return;
+      updateSpatialInteraction(e.clientX, e.clientY, false, false);
+    });
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+    // =====================================================
+    // VIRTUAL AI HAND DEMO TOUR (Auto Demonstrates Recognize/Click/Drag/Rotate)
+    // =====================================================
+    const trackCanvas = document.getElementById('tracking-canvas');
+    const trackCtx = trackCanvas.getContext('2d');
+    let simHandActive = false;
+    let simTick = 0;
+
+    function toggleSimHand() {
+      simHandActive = !simHandActive;
+      const btn = document.getElementById('btn-sim-hand');
+      btn.classList.toggle('active-cam', simHandActive);
+      document.getElementById('cam-status-text').textContent =
+        simHandActive ? 'VISION: AI VIRTUAL HAND DEMO' : 'VISION SENSOR: MOUSE / SIM MODE';
+      if (!simHandActive) {
+        updateSpatialInteraction(window.innerWidth / 2, window.innerHeight / 2, false, false);
+      }
+    }
+
+    function drawSimulatedHandSkeleton(normX, normY, pinch, rotate) {
+      trackCtx.clearRect(0, 0, 290, 187);
+      const hx = normX * 220 + 35;
+      const hy = normY * 120 + 40;
+
+      // Draw Synthetic Hand Keypoints (21 Landmarks style)
+      trackCtx.strokeStyle = rotate ? '#ffaa00' : (pinch ? '#00ff9d' : '#00f0ff');
+      trackCtx.lineWidth = 2;
+      const fingers = [
+        [hx - 24, hy - 10], // Thumb
+        [hx - 10, pinch ? hy - 12 : hy - 38], // Index
+        [hx + 4, hy - 42],  // Middle
+        [hx + 16, hy - 36], // Ring
+        [hx + 26, hy - 24]  // Pinky
+      ];
+
+      fingers.forEach(f => {
+        trackCtx.beginPath();
+        trackCtx.moveTo(hx, hy + 25);
+        trackCtx.lineTo(f[0], f[1]);
+        trackCtx.stroke();
+
+        trackCtx.beginPath();
+        trackCtx.arc(f[0], f[1], 4, 0, Math.PI * 2);
+        trackCtx.fillStyle = '#ffffff';
+        trackCtx.fill();
+      });
+
+      trackCtx.fillStyle = '#9beeff';
+      trackCtx.font = '10px Segoe UI';
+      trackCtx.fillText(
+        rotate ? 'GESTURE: PALM 3D ROTATE' : (pinch ? 'GESTURE: PINCH / DRAG' : 'GESTURE: INDEX POINTING'),
+        10, 175
+      );
+    }
+
+    setInterval(() => {
+      if (!simHandActive) {
+        if (!webcamActive) {
+          drawSimulatedHandSkeleton(pointerX / window.innerWidth, pointerY / window.innerHeight, isPinching, false);
+        }
+        return;
+      }
+      simTick += 0.025;
+      const phase = Math.floor(simTick % 12);
+      const nx = 0.5 + 0.32 * Math.sin(simTick);
+      const ny = 0.45 + 0.25 * Math.cos(simTick * 0.8);
+      const sx = nx * window.innerWidth;
+      const sy = ny * window.innerHeight;
+
+      const pinch = (phase >= 3 && phase <= 6);
+      const rot = (phase >= 9 && phase <= 11);
+
+      drawSimulatedHandSkeleton(nx, ny, pinch, rot);
+      updateSpatialInteraction(sx, sy, pinch, rot);
+    }, 30);
+
+    // =====================================================
+    // REAL WEBCAM MEDIAPIPE HANDS TRACKING
+    // =====================================================
+    let webcamActive = false;
+    let mpCamera = null;
+
+    async function toggleWebcam() {
+      const btn = document.getElementById('btn-webcam');
+      if (webcamActive) {
+        webcamActive = false;
+        if (mpCamera) mpCamera.stop();
+        btn.classList.remove('active-cam');
+        btn.textContent = '🎥 실시간 웹캠 제스처 ON';
+        document.getElementById('cam-status-text').textContent = 'VISION SENSOR: MOUSE / SIM MODE';
+        return;
+      }
+
+      try {
+        document.getElementById('cam-status-text').textContent = 'INITIALIZING MEDIAPIPE HANDS...';
+        const videoElement = document.getElementById('webcam-video');
+
+        const hands = new Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.65,
+          minTrackingConfidence: 0.65
+        });
+
+        hands.onResults((results) => {
+          trackCtx.save();
+          trackCtx.clearRect(0, 0, trackCanvas.width, trackCanvas.height);
+          trackCtx.translate(trackCanvas.width, 0);
+          trackCtx.scale(-1, 1);
+          trackCtx.drawImage(results.image, 0, 0, trackCanvas.width, trackCanvas.height);
+
+          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const lm = results.multiHandLandmarks[0];
+            drawConnectors(trackCtx, lm, HAND_CONNECTIONS, { color: '#00f0ff', lineWidth: 2 });
+            drawLandmarks(trackCtx, lm, { color: '#00ff9d', lineWidth: 1, radius: 2.5 });
+
+            // Mirror X coordinate for natural screen interaction
+            const indexTip = lm[8];
+            const thumbTip = lm[4];
+            const pinkyTip = lm[20];
+            const wrist = lm[0];
+
+            const screenX = (1 - indexTip.x) * window.innerWidth;
+            const screenY = indexTip.y * window.innerHeight;
+
+            // Pinch distance between thumb (#4) and index (#8)
+            const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+            const pinching = pinchDist < 0.055;
+
+            // Palm twist / Fist rotation detection (pinky folded or hand tilted)
+            const pinkyDist = Math.hypot(pinkyTip.x - wrist.x, pinkyTip.y - wrist.y);
+            const rotating = pinkyDist < 0.18 && !pinching;
+
+            updateSpatialInteraction(screenX, screenY, pinching, rotating);
+          }
+          trackCtx.restore();
+        });
+
+        mpCamera = new Camera(videoElement, {
+          onFrame: async () => {
+            if (webcamActive) await hands.send({ image: videoElement });
+          },
+          width: 640,
+          height: 480
+        });
+
+        await mpCamera.start();
+        webcamActive = true;
+        simHandActive = false;
+        btn.classList.add('active-cam');
+        btn.textContent = '🎥 실시간 웹캠 ON (작동중)';
+        document.getElementById('cam-status-text').textContent = 'MEDIAPIPE 21-PT TRACKING LIVE';
+      } catch (err) {
+        alert('웹캠 접근이 거부되었거나 카메라가 감지되지 않아 [가상 핸드 데모 투어] 모드로 전환합니다.');
+        toggleSimHand();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -178,6 +178,16 @@ async function runFullSystemAuditAndVerification() {
     detail: '열어 달라는 말에 비전·얼굴 교감 창이 열림'
   });
 
+  // 7. Check 4-Way Multi-LLM Hub & REA SasariSa Windows 11 Edition
+  const multiLlmExists = fs.existsSync(path.join(__dirname, 'multi-llm-provider-hub.js'));
+  const sasarisaExists = fs.existsSync(path.join(__dirname, 'rea-sasarisa-windows-engine.js'));
+  checks.push({
+    category: '3. 검증 (4-Way Multi-LLM & SasariSa Win11)',
+    item: '4대 멀티 LLM 브릿지(GPT · Gemini · LM Studio · Ollama) & 사사리사 REA Windows 11 엔진',
+    passed: multiLlmExists && sasarisaExists && serverCode.includes('/api/jarvis/sasarisa/command'),
+    detail: `멀티LLM 허브(${multiLlmExists ? '정상' : '누락'}) · 사사리사 Windows 11 엔진(${sasarisaExists ? '정상' : '누락'})`
+  });
+
   const allPassed = checks.every(c => c.passed);
 
   // 4. Recursive Self-Evolution: Record verification milestone in Harness² Experience Library R

@@ -42,3 +42,14 @@
 - Harness^2의 `runProposeProbeCompose`는 초안이 멀쩡해도 표면 파일을 다시 읽고, 초안이 짧거나 기계적이면 모델을 한 번 더 부른다. 그 호출을 대화 경로에서 뺐다. 엔진 파일은 수정하지 않았다.
 - 재귀의 기본 경로는 로컬 검사다. 모델 수리는 기계적 문장, 질문 반복, REA 오독일 때만 하고 8초에서 끊는다.
 - 교훈은 `vault/jarvis-recursion/lessons.json`에만 쌓는다. 다음 프롬프트에는 이번 말과 겹치는 두 줄만 넣는다.
+
+
+---
+## [2026-10-26 Context Notes — SasariSa Windows 11 REA Edition & 4-Way Multi-LLM Hub]
+- **참조 영상 및 레포지토리**:
+  - YouTube: `https://youtube.com/watch?v=muY9-sCxZlg` (터틀메이커 / MV COMPANY — 말로 컴퓨터를 조작하는 AI 비서 '사사리사 SasariSa')
+  - GitHub: `https://github.com/mvcompany8500-web/sasarisa` (`brew install --cask mvcompany8500-web/tap/sasarisa`)
+- **핵심 요구사항 및 아키텍처 결정**:
+  1. 원본 `sasarisa`는 macOS 14(Sonoma) + Apple Silicon 전용(`AppleScript`, `Accessibility API`, `Whisper`, `SwiftUI`)이므로, REA(`Invoke-ReaAnalyzer.js`) 클린룸 역공학 체계를 통해 Windows 11 네이티브 환경(`PowerShell/Win32/COM/Browser/IDE Bridge`)으로 1:1 재구축한다.
+  2. LLM은 **GPT(OpenAI), Gemini(Google), LM Studio(로컬 GGUF), Ollama(로컬 Gemma 4 등)** 4대 프로바이더를 모두 연결하여 자유롭게 선택·테스트·폴백할 수 있도록 `scripts/multi-llm-provider-hub.js`를 구축한다.
+  3. 그동안 만든 BSC J.A.R.V.I.S. OS의 모든 기술 자산은 단 하나도 빠짐없이 100% 유지한다.

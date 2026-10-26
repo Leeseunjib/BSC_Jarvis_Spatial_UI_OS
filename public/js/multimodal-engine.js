@@ -34,6 +34,7 @@ window.MultimodalEngine = {
   init() {
     this.initSSE();
     this.initVoiceEngine();
+    this.initIosAudioUnlocker();
     this.bindUIControls();
 
     // Load persisted Master Settings from disk
@@ -229,16 +230,19 @@ window.MultimodalEngine = {
           ? '<span style="background:rgba(52,211,153,0.18);border:1px solid #34d399;color:#34d399;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;">📋 정식 보고서 (Report)</span>'
           : '<span style="background:rgba(251,191,36,0.18);border:1px solid #fbbf24;color:#fbbf24;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;">🏛️ 전사 회의 (Council Meeting)</span>');
 
-      const entriesHtml = (s.entries || []).map(e => `
+      const entriesHtml = (s.entries || []).map(e => {
+        const agentId = e.agentId || 'taejun';
+        const bannerUrl = `/agent_images/${agentId}/avatar_10pct.png`;
+        return `
         <div style="padding:10px 12px;background:rgba(15,23,42,0.86);border:1px solid rgba(148,163,184,0.22);border-radius:10px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-            <img src="${e.avatar || '/agent_images/taejun/tactics.png'}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid #fbbf24;" onerror="this.style.display='none'" />
-            <b style="color:#f8fafc;font-size:12px;">${e.speaker}</b>
-            <span style="font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(251,191,36,0.15);color:#fbbf24;">${e.roleTag || '발언'}</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+            <img src="${bannerUrl}" alt="${e.speaker || agentId}" style="height:36px;width:auto;max-width:82%;object-fit:contain;" onerror="this.style.display='none'" />
+            <span style="font-size:10px;padding:2px 7px;border-radius:6px;background:rgba(251,191,36,0.15);color:#fbbf24;white-space:nowrap;">${e.roleTag || '발언'}</span>
           </div>
           <div style="font-size:12.5px;line-height:1.58;color:#e2e8f0;">${String(e.text || '').replace(/\*\*/g, '').replace(/\n/g, '<br/>')}</div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       return `
         <div style="padding:12px 14px;background:rgba(8,14,28,0.92);border:1px solid rgba(251,191,36,0.35);border-radius:12px;display:flex;flex-direction:column;gap:8px;">
@@ -385,12 +389,176 @@ window.MultimodalEngine = {
     }
   },
 
-  stopAllSpeech() {
-    this.speechQueueToken = (this.speechQueueToken || 0) + 1;
+  selectedVoiceId: (typeof localStorage !== 'undefined' && localStorage.getItem('jarvis_voice_id')) || 'ko-KR-HyunsuMultilingualNeural',
+
+  setNeuralVoice(voiceId, speakSample = false) {
+    if (!voiceId) return;
+    this.selectedVoiceId = voiceId;
+    try { localStorage.setItem('jarvis_voice_id', voiceId); } catch (_) {}
+    const labelMap = {
+      'ko-KR-HyunsuMultilingualNeural': '현수 HD (차분한 남성 아나운서)',
+      'ko-KR-SunHiNeural': '선희 HD (따뜻한 여성 비서)',
+      'ko-KR-InJoonNeural': '인준 HD (부드러운 남성 대화)'
+    };
+    const label = labelMap[voiceId] || voiceId;
+    if (speakSample) {
+      this.speakText(`이건우 대표님, 자비스 음성을 ${label} 목소리로 변경했습니다. 훨씬 자연스러운 톤으로 안내해 드리겠습니다.`);
+    }
+  },
+
+  // 40ms ultra-quiet WAV data URI to prime HTMLAudioElement synchronously inside iPad/iOS user tap gestures
+  _silentWavDataUri: 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA',
+
+  primeSharedAudioForIos() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.audioCtx = this.audioCtx || new AudioCtx();
+        if (this.audioCtx.state === 'suspended') {
+          this.audioCtx.resume().catch(() => {});
+        }
+      }
+    } catch (_) {}
+    try {
+      if (!this.sharedAudioEl) {
+        this.sharedAudioEl = new Audio();
+        this.sharedAudioEl.playsInline = true;
+        this.sharedAudioEl.preload = 'auto';
+      }
+      if (!this._sharedAudioPrimedOnce) {
+        this._sharedAudioPrimedOnce = true;
+        this.sharedAudioEl.src = this._silentWavDataUri;
+        const p = this.sharedAudioEl.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      }
+    } catch (_) {}
+  },
+
+  initIosAudioUnlocker() {
+    if (this._iosAudioUnlockerBound) return;
+    this._iosAudioUnlockerBound = true;
+
+    if (window.speechSynthesis && window.speechSynthesis.getVoices) {
+      window.speechSynthesis.getVoices();
+      if ('onvoiceschanged' in window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          try { window.speechSynthesis.getVoices(); } catch (_) {}
+        };
+      }
+    }
+
+    const unlockOnce = () => {
+      this.primeSharedAudioForIos();
+      if (this._iosAudioUnlocked) return;
+      this._iosAudioUnlocked = true;
+      try {
+        if (window.speechSynthesis && typeof window.SpeechSynthesisUtterance !== 'undefined') {
+          window.speechSynthesis.resume();
+          const silentUtter = new SpeechSynthesisUtterance(' ');
+          silentUtter.volume = 0.01;
+          silentUtter.rate = 2.0;
+          silentUtter.lang = 'ko-KR';
+          window.speechSynthesis.speak(silentUtter);
+        }
+      } catch (_) {}
+    };
+
+    ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown'].forEach(evtName => {
+      window.addEventListener(evtName, unlockOnce, { passive: true, once: false });
+    });
+  },
+
+  normalizeKoreanSpeechTextClient(rawText) {
+    return String(rawText || '')
+      .replace(/```[\s\S]*?```/g, ' 코드 블록은 화면을 참고해 주십시오. ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/[A-Za-z]:\\[^\s"'<>]+/g, ' 로컬 폴더 ')
+      .replace(/(\d),(\d{3})/g, '$1$2')
+      .replace(/(\d),(\d{3})/g, '$1$2')
+      .replace(/\bJ\.?A\.?R\.?V\.?I\.?S\.?\b/gi, '자비스')
+      .replace(/\bAPI\b/gi, '에이피아이')
+      .replace(/\bRAG\b/gi, '래그')
+      .replace(/\bMD\b/gi, '마크다운')
+      .replace(/\.md\b/gi, ' 마크다운 ')
+      .replace(/\bTTS\b/gi, '티티에스')
+      .replace(/\bSTT\b/gi, '에스티티')
+      .replace(/\bIDE\b/gi, '아이디이')
+      .replace(/\bADE\b/gi, '에이디이')
+      .replace(/\bBSC\b/gi, '비에스씨')
+      .replace(/\bGemma\s*4\b/gi, '제마 포')
+      .replace(/(\d+)\s*%/g, '$1퍼센트')
+      .replace(/\(([^)]{1,60})\)/g, ', $1, ')
+      .replace(/[*#_~>|『』「」《》〈〉【】\[\]()]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
+  speakViaBrowserSpeechSync(rawText, myToken) {
+    if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance === 'undefined') {
+      return Promise.resolve(false);
+    }
+    return new Promise((resolve) => {
+      try {
+        const normalized = this.normalizeKoreanSpeechTextClient(rawText);
+        if (!normalized) return resolve(false);
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+
+        // Keep track on window so iOS Safari GC never collects the active utterance mid-speech
+        const utter = new SpeechSynthesisUtterance(normalized);
+        window.__jarvisActiveUtterance = utter;
+        utter.lang = 'ko-KR';
+        utter.volume = 1.0;
+        utter.rate = 1.02;
+        utter.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+        const koVoice =
+          voices.find(v => /ko[-_]KR/i.test(v.lang) && /Siri|Yuna|Minsu|Hyunsu|InJoon|Google|Natural|Enhanced|Premium/i.test(v.name)) ||
+          voices.find(v => /ko[-_]KR/i.test(v.lang)) ||
+          voices.find(v => /^ko/i.test(v.lang));
+        if (koVoice) {
+          utter.voice = koVoice;
+        }
+
+        if (this.speechPulseInterval) clearInterval(this.speechPulseInterval);
+        this.speechPulseInterval = setInterval(() => {
+          if (window.JarvisReactorCore) {
+            window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
+          }
+          // iOS Safari workaround: keep speechSynthesis resumed on long utterances
+          if (window.speechSynthesis && window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+          }
+        }, 140);
+
+        const done = (okState) => {
+          clearTimeout(timer);
+          if (this.speechPulseInterval) {
+            clearInterval(this.speechPulseInterval);
+            this.speechPulseInterval = null;
+          }
+          resolve(okState);
+        };
+
+        const timer = setTimeout(() => done(true), 22000);
+        utter.onend = () => done(true);
+        utter.onerror = () => done(false);
+
+        // Speak synchronously inside the current call stack so iPad/iOS Safari allows it!
+        window.speechSynthesis.speak(utter);
+      } catch (_) {
+        resolve(false);
+      }
+    });
+  },
+
+  haltPlayback() {
     if (this.currentAudio) {
       try {
         this.currentAudio.pause();
-        this.currentAudio.src = '';
+        this.currentAudio.removeAttribute('src');
       } catch (e) {}
       this.currentAudio = null;
     }
@@ -398,8 +566,13 @@ window.MultimodalEngine = {
       clearInterval(this.speechPulseInterval);
       this.speechPulseInterval = null;
     }
-    if (window.speechSynthesis && window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
+  },
+
+  stopAllSpeech() {
+    this.speechQueueToken = (this.speechQueueToken || 0) + 1;
+    this.haltPlayback();
+    if (window.speechSynthesis) {
+      try { window.speechSynthesis.cancel(); } catch (_) {}
     }
   },
 
@@ -408,80 +581,102 @@ window.MultimodalEngine = {
     const text = String(turn && turn.text ? turn.text : '').replace(/\*\*/g, '').trim();
     if (!text) return;
     const cfg = (window.AIStudioData && window.AIStudioData.routerConfig) || {};
-    const persona = 'jarvis'; // Locked to J.A.R.V.I.S. Single Voice per CEO directive
+    const activeVoiceId = turn.voiceId || this.selectedVoiceId || 'ko-KR-HyunsuMultilingualNeural';
+    const voiceTitleMap = {
+      'ko-KR-HyunsuMultilingualNeural': '🎙️ 현수 96kbps HD 자연음성',
+      'ko-KR-SunHiNeural': '🎙️ 선희 96kbps HD 자연음성',
+      'ko-KR-InJoonNeural': '🎙️ 인준 96kbps HD 자연음성'
+    };
     const speaker = '🤖 J.A.R.V.I.S.';
-    const avatar = '/agent_images/geonu/analyze.png';
-    const voiceBadge = '🎙️ 현수 성우 · 자비스 단독 음성';
+    const avatar = /SunHi/i.test(activeVoiceId) ? '/agent_images/soha/avatar_10pct.png' : '/agent_images/geonu/analyze.png';
+    const voiceBadge = voiceTitleMap[activeVoiceId] || '🎙️ 96kbps HD 자연음성';
 
     window.BSC_WORLDVIEW.showToast(speaker, text, avatar, voiceBadge);
 
     if (cfg.autoSpeakResponses === false && !turn.voiceId) return;
 
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const res = await fetch('/api/jarvis/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text,
-            persona: 'jarvis',
-            voiceId: 'ko-KR-HyunsuMultilingualNeural',
-            speechRate: 1.01,
-            pitchHz: '+0Hz'
-          })
-        });
-        if (myToken !== this.speechQueueToken) return;
-        const data = await res.json();
-        if (data && data.ok && data.audioBase64) {
-          const played = await new Promise((resolve) => {
-            const audio = new Audio(`data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`);
-            this.currentAudio = audio;
-            this.speechPulseInterval = setInterval(() => {
-              if (window.JarvisReactorCore) {
-                window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
-              }
-            }, 110);
-            const cleanup = (ok) => {
-              if (this.speechPulseInterval) {
-                clearInterval(this.speechPulseInterval);
-                this.speechPulseInterval = null;
-              }
-              resolve(ok);
-            };
-            audio.onended = () => cleanup(true);
-            audio.onerror = () => cleanup(false);
-            audio.play().catch(() => cleanup(false));
-          });
-          if (played) return;
+    this.haltPlayback();
+
+    // Always try 96kbps HD Neural MP3 first (on both Local PC and iPad/Cloud via pre-cached 96kbps Neural MP3!)
+    try {
+      const res = await fetch('/api/jarvis/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          persona: 'jarvis',
+          voiceId: activeVoiceId,
+          speechRate: 1.04,
+          pitchHz: '+0Hz'
+        })
+      });
+      if (myToken !== this.speechQueueToken) return;
+      const data = await res.json();
+      if (data && data.ok && (data.audioBase64 || data.audioUrl)) {
+        const audio = this.sharedAudioEl || new Audio();
+        audio.playsInline = true;
+        audio.src = data.audioBase64
+          ? `data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`
+          : data.audioUrl;
+        this.currentAudio = audio;
+        const started = await audio.play().then(() => true).catch(() => false);
+        if (!started) {
+          this.haltPlayback();
+          await this.speakViaBrowserSpeechSync(text, myToken);
+          return;
         }
-      } catch (e) {}
+        if (myToken !== this.speechQueueToken) {
+          this.haltPlayback();
+          return;
+        }
+        this.speechPulseInterval = setInterval(() => {
+          if (window.JarvisReactorCore) {
+            window.JarvisReactorCore.pulseSpeech(0.95 + Math.random() * 0.45);
+          }
+        }, 110);
+        await new Promise((resolve) => {
+          audio.onended = resolve;
+          audio.onerror = resolve;
+        });
+        this.haltPlayback();
+      } else {
+        await this.speakViaBrowserSpeechSync(text, myToken);
+      }
+    } catch (e) {
+      this.haltPlayback();
+      await this.speakViaBrowserSpeechSync(text, myToken);
     }
-    // Mechanical Windows SAPI5 fallback (window.speechSynthesis) permanently removed per CEO directive!
   },
 
   async speakNeuralTurns(dialogueTurns, fallbackText = '') {
+    const parts = Array.isArray(dialogueTurns) && dialogueTurns.length > 0
+      ? dialogueTurns.map(t => String(t.text || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim()).filter(Boolean)
+      : [String(fallbackText || '').replace(/\s+/g, ' ').trim()];
+    const fullText = parts.filter((part, index) => part && part !== parts[index - 1]).join(' ');
+    if (!fullText) return;
+    const now = Date.now();
+    if (fullText === this.lastSpokenKey && now - (this.lastSpokenAt || 0) < 4000) return;
+    this.lastSpokenKey = fullText;
+    this.lastSpokenAt = now;
     this.stopAllSpeech();
     const myToken = this.speechQueueToken;
-    // Combine all turns into a single seamless J.A.R.V.I.S. speech turn so only J.A.R.V.I.S. speaks and reads 100% to the end
-    const fullText = Array.isArray(dialogueTurns) && dialogueTurns.length > 0
-      ? dialogueTurns.map(t => t.text).filter(Boolean).join(' ')
-      : fallbackText;
-
     await this.playSingleNeuralTurn({ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text: fullText }, myToken);
   },
 
   speakText(text) {
+    this.primeSharedAudioForIos();
     this.speakStewardReply(text);
   },
 
   speakStewardReply(text) {
     if (!text) return;
+    this.primeSharedAudioForIos();
+    const clean = String(text).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
     const calloutEl = document.getElementById('jarvis-orb-callout-text');
-    if (calloutEl) {
-      const cleanShort = String(text).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
-      calloutEl.textContent = `"${cleanShort.slice(0, 88)}${cleanShort.length > 88 ? '...' : ''}"`;
+    if (calloutEl && clean) {
+      calloutEl.textContent = `"${clean.slice(0, 88)}${clean.length > 88 ? '...' : ''}"`;
     }
-    this.speakNeuralTurns([{ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text }], text);
+    this.speakNeuralTurns([{ persona: 'jarvis', speaker: '🤖 J.A.R.V.I.S.', text: clean }], clean);
   },
 
   clearThinkingBubble() {
@@ -490,6 +685,8 @@ window.MultimodalEngine = {
 
   async sendCommandToJarvis(message) {
     if (!message) return;
+    // Unlock iPad/iOS HTMLAudioElement synchronously inside the user's submit/tap gesture
+    this.primeSharedAudioForIos();
     if (this.pendingPcActionKey && /^(승인(해(요|주세요)?)?|실행\s*승인|허락(해(요)?)?|오케이|ok|yes)\s*[.!]?\s*$/i.test(message.trim())) {
       this.executeApprovedPcAction(this.pendingPcActionKey);
       return;
@@ -521,6 +718,18 @@ window.MultimodalEngine = {
       thinkDiv.appendChild(thinkMeta);
       feed.appendChild(thinkDiv);
       feed.scrollTop = feed.scrollHeight;
+    }
+
+    // 🍎 iPadOS / iOS Safari Audio Activation Guarantee:
+    // If running on Firebase Cloud Hosting and cached data is ready, start speaking SYNCHRONOUSLY inside the user's tap gesture!
+    let alreadySpokenSyncOnCloud = false;
+    const isRemoteCloud = !['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isRemoteCloud && typeof window.getInstantCloudReply === 'function') {
+      const instantReply = window.getInstantCloudReply(message);
+      if (instantReply) {
+        alreadySpokenSyncOnCloud = true;
+        this.speakStewardReply(instantReply);
+      }
     }
 
     try {
@@ -558,14 +767,41 @@ window.MultimodalEngine = {
       if (data.pcProposal) {
         this.openPcApprovalModal(data.pcProposal);
       }
+      if (data.closeStudioHub || data.openIde) {
+        const layer = document.getElementById('floating-windows-layer');
+        if (layer) layer.innerHTML = '';
+        document.querySelectorAll('.hud-window').forEach(el => {
+          if (el.id !== 'jarvis-ide-2-window') el.style.display = 'none';
+        });
+      }
+      if (data.openIde && window.JarvisIdeWorkbench) {
+        const ide = window.JarvisIdeWorkbench;
+        ide.currentFilePath = data.openIde.filePath;
+        ide.openFloatingIdeWorkbench('DOC_PREVIEW');
+        await ide.loadFileIntoEditor(data.openIde.filePath);
+      }
+      if (data.saveCurrentFile && window.JarvisIdeWorkbench) {
+        const ide = window.JarvisIdeWorkbench;
+        const content = document.getElementById('ide-code-textarea')?.value || '';
+        const saved = await fetch('/api/jarvis/ide-save-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filePath: ide.currentFilePath, content })
+        }).then(r => r.json()).catch(() => null);
+        if (saved && saved.ok) {
+          window.BSC_WORLDVIEW?.showToast('💾 파일 안전 저장', saved.message);
+        }
+      }
       if (data.telemetry) {
         window.BSC_WORLDVIEW.updateTelemetryUI(data.telemetry);
       }
       this.clearThinkingBubble();
-      if (data.dialogueTurns && data.dialogueTurns.length > 0) {
-        this.speakNeuralTurns(data.dialogueTurns, data.reply);
-      } else if (data.reply) {
-        this.speakStewardReply(data.reply);
+      if (!alreadySpokenSyncOnCloud) {
+        if (data.dialogueTurns && data.dialogueTurns.length > 0) {
+          this.speakNeuralTurns(data.dialogueTurns, data.reply);
+        } else if (data.reply) {
+          this.speakStewardReply(data.reply);
+        }
       }
     } catch (e) {
       this.clearThinkingBubble();
@@ -1208,7 +1444,7 @@ window.MultimodalEngine = {
       this.toggleBscCouncilWindow();
     });
     document.getElementById('btn-open-council-from-drawer')?.addEventListener('click', () => {
-      this.toggleBscCouncilWindow(true);
+      window.JarvisDesignViews?.openWorkspace('AGENT_OFFICE_DASHBOARD');
     });
     document.getElementById('btn-close-bsc-council')?.addEventListener('click', () => {
       this.toggleBscCouncilWindow(false);
@@ -1240,7 +1476,21 @@ window.MultimodalEngine = {
       this.runFullSystemVerificationUI();
     });
 
-    // Toast Full-Read & Stop Voice Controls
+    // Toast Full-Read, Voice Actor Selector & Stop Voice Controls
+    const voiceActorSelect = document.getElementById('jarvis-voice-actor-select');
+    if (voiceActorSelect) {
+      voiceActorSelect.value = this.selectedVoiceId || 'ko-KR-HyunsuMultilingualNeural';
+      voiceActorSelect.addEventListener('change', () => {
+        this.setNeuralVoice(voiceActorSelect.value, true);
+      });
+    }
+    document.getElementById('btn-toast-cycle-voice')?.addEventListener('click', () => {
+      const voices = ['ko-KR-HyunsuMultilingualNeural', 'ko-KR-SunHiNeural', 'ko-KR-InJoonNeural'];
+      const curIdx = voices.indexOf(this.selectedVoiceId || 'ko-KR-HyunsuMultilingualNeural');
+      const nextVoice = voices[(curIdx + 1) % voices.length];
+      if (voiceActorSelect) voiceActorSelect.value = nextVoice;
+      this.setNeuralVoice(nextVoice, true);
+    });
     document.getElementById('btn-toast-read-full')?.addEventListener('click', () => {
       const txt = window.BSC_WORLDVIEW?.lastSpokenText || document.getElementById('toast-text')?.textContent || '';
       if (txt) {
@@ -1382,6 +1632,163 @@ window.MultimodalEngine = {
       document.getElementById('pc-approval-modal').style.display = 'none';
       this.pendingPcActionKey = null;
       window.BSC_WORLDVIEW.showToast('J.A.R.V.I.S.', '이건우 대표님, 컴퓨터 제어 요청을 취소했습니다.');
+    });
+
+    // 🎙️ SasariSa (사사리사) Windows 11 Floating Voice Pill & 4-Way Multi-LLM Switcher
+    this.initSasarisaVoicePill();
+  },
+
+  toggleSasarisaVoicePill(forceOpen) {
+    const pill = document.getElementById('sasarisa-voice-pill');
+    if (!pill) return;
+    const isHidden = pill.style.display === 'none' || !pill.style.display;
+    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : isHidden;
+    pill.style.display = shouldOpen ? 'block' : 'none';
+    if (shouldOpen) {
+      document.getElementById('sasarisa-pill-input')?.focus();
+    }
+  },
+
+  initSasarisaVoicePill() {
+    const pill = document.getElementById('sasarisa-voice-pill');
+    if (!pill) return;
+
+    // Load initial Multi-LLM Hub status to sync pill badge & selector
+    fetch('/api/jarvis/llm-hub/status')
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.ok && res.state) {
+          const prov = res.state.activeProvider || 'ollama';
+          const mod = res.state.activeModel || 'gemma4:e4b';
+          const badge = document.getElementById('sasarisa-pill-llm-badge');
+          if (badge) badge.textContent = `${prov.toUpperCase()} · ${mod}`;
+          const sel = document.getElementById('sasarisa-pill-provider-select');
+          if (sel) sel.value = prov;
+        }
+      })
+      .catch(() => {});
+
+    document.getElementById('btn-top-sasarisa-pill')?.addEventListener('click', () => {
+      this.toggleSasarisaVoicePill();
+    });
+    document.getElementById('btn-sasarisa-pill-close')?.addEventListener('click', () => {
+      this.toggleSasarisaVoicePill(false);
+    });
+    document.getElementById('btn-sasarisa-open-hub')?.addEventListener('click', () => {
+      this.toggleSasarisaVoicePill(false);
+      window.JarvisDesignViews?.openWorkspace?.('AI_BRAIN_DASHBOARD');
+    });
+    document.getElementById('btn-sasarisa-pill-mic')?.addEventListener('click', () => {
+      this.toggleVoiceListening();
+    });
+
+    // Global Hotkey: Alt+Space or Ctrl+Shift+S to summon SasariSa Floating Voice Pill
+    window.addEventListener('keydown', e => {
+      if ((e.altKey && e.code === 'Space') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's')) {
+        e.preventDefault();
+        this.toggleSasarisaVoicePill();
+      }
+    });
+
+    // Provider Switcher inside Pill
+    document.getElementById('sasarisa-pill-provider-select')?.addEventListener('change', async e => {
+      const provider = e.target.value;
+      const defaultModels = {
+        ollama: 'gemma4:e4b',
+        lmstudio: 'local-model',
+        gemini: 'gemini-2.5-flash',
+        openai: 'gpt-4o'
+      };
+      const model = defaultModels[provider] || 'gemma4:e4b';
+      const res = await fetch('/api/jarvis/llm-hub/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeProvider: provider, activeModel: model })
+      }).then(r => r.json()).catch(() => null);
+      if (res && res.ok) {
+        const badge = document.getElementById('sasarisa-pill-llm-badge');
+        if (badge) badge.textContent = `${provider.toUpperCase()} · ${res.state?.activeModel || model}`;
+        const mainPill = document.getElementById('active-model-pill');
+        if (mainPill) mainPill.textContent = `${provider.toUpperCase()}:${res.state?.activeModel || model}`;
+        window.BSC_WORLDVIEW?.showToast('🌐 사사리사 × 멀티 LLM 브릿지', res.message);
+      }
+    });
+
+    const runPillCommand = async (cmdText) => {
+      const statusBox = document.getElementById('sasarisa-pill-status-box');
+      const selProv = document.getElementById('sasarisa-pill-provider-select')?.value || '';
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = `<span style="color:#38bdf8;">⏳ 사사리사 Windows 11 엔진 실행 중: "${this.escapeHtml(cmdText)}"...</span>`;
+      }
+      const res = await fetch('/api/jarvis/sasarisa/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmdText, provider: selProv || undefined })
+      }).then(r => r.json()).catch(() => null);
+
+      if (!res || !res.ok) {
+        if (statusBox) statusBox.innerHTML = `<span style="color:#f87171;">⚠️ 명령 처리 중 오류가 발생했습니다.</span>`;
+        return;
+      }
+
+      if (res.reply) {
+        this.speakStewardReply(res.reply, 'jarvis');
+      }
+
+      if (res.requiresConfirmation && res.confirmItem && statusBox) {
+        const ci = res.confirmItem;
+        statusBox.innerHTML = `
+          <div style="border-left:3px solid #fbbf24;padding-left:8px;">
+            <div style="font-weight:800;color:#fbbf24;margin-bottom:3px;">🛡️ [사사리사 2중 안전장치] ${this.escapeHtml(ci.intent?.skillTitleKo || '')}</div>
+            <div style="font-size:10.5px;color:#fde68a;margin-bottom:4px;">${this.escapeHtml(ci.intent?.riskReasonKo || '')}</div>
+            <div style="background:#050b16;padding:6px 8px;border-radius:6px;margin-bottom:6px;color:#f8fafc;">${this.escapeHtml(ci.draftContent || '')}</div>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="win-ctrl-btn btn-pill-confirm" data-id="${this.escapeHtml(ci.confirmId)}" data-dec="APPROVE" style="border-color:#34d399;color:#34d399;font-weight:800;">✅ 승인 및 실행</button>
+              <button type="button" class="win-ctrl-btn btn-pill-confirm" data-id="${this.escapeHtml(ci.confirmId)}" data-dec="CANCEL" style="border-color:#f87171;color:#f87171;">✕ 취소</button>
+            </div>
+          </div>
+        `;
+        statusBox.querySelectorAll('.btn-pill-confirm').forEach(b => {
+          b.addEventListener('click', async () => {
+            const cRes = await fetch('/api/jarvis/sasarisa/confirm', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ confirmId: b.dataset.id, decision: b.dataset.dec })
+            }).then(r => r.json()).catch(() => null);
+            if (cRes && statusBox) {
+              statusBox.innerHTML = `<span style="color:#34d399;font-weight:700;">✅ ${this.escapeHtml(cRes.reply || '처리 완료')}</span>`;
+              if (cRes.reply) this.speakStewardReply(cRes.reply, 'jarvis');
+            }
+          });
+        });
+      } else if (statusBox) {
+        const rec = res.actionRecord || {};
+        statusBox.innerHTML = `
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+              <strong style="color:#34d399;">${this.escapeHtml(rec.icon || '✅')} ${this.escapeHtml(rec.skillTitleKo || '실행 완료')}</strong>
+              <span style="font-size:10px;color:#38bdf8;">${this.escapeHtml(rec.llmUsed || '')} (${res.elapsedMs || 0}ms)</span>
+            </div>
+            <div style="color:#e2e8f0;">${this.escapeHtml(res.reply || '')}</div>
+            ${rec.targetUrl ? `<div style="margin-top:4px;"><a href="${this.escapeHtml(rec.targetUrl)}" target="_blank" style="color:#00f0ff;font-size:11px;font-weight:700;">🔗 생성된 링크 바로 열기 (${this.escapeHtml(rec.targetUrl.slice(0, 55))}...)</a></div>` : ''}
+          </div>
+        `;
+      }
+    };
+
+    document.getElementById('sasarisa-pill-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const inp = document.getElementById('sasarisa-pill-input');
+      const val = inp?.value?.trim();
+      if (val) {
+        inp.value = '';
+        runPillCommand(val);
+      }
+    });
+
+    pill.querySelectorAll('.btn-sasarisa-pill-chip').forEach(btn => {
+      btn.addEventListener('click', () => runPillCommand(btn.dataset.cmd));
     });
   }
 };

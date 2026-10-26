@@ -225,7 +225,7 @@ function scanAllBscProjects(ideConversations = []) {
           mtime = fs.statSync(subPath).mtimeMs;
         } catch (e) {}
 
-        if (['projects', 'Games', 'Applications'].includes(entry.name)) {
+        if (['projects', 'sandbox', 'Games', 'Applications', 'Classes'].includes(entry.name)) {
           try {
             const subProjects = fs.readdirSync(subPath, { withFileTypes: true })
               .filter(s => s.isDirectory() && !s.name.startsWith('.'));
@@ -336,15 +336,195 @@ function buildLiveIdeAndProjectPromptContext() {
     .map(p => p.name)
     .join(', ');
 
+  // 연결된 상업용 슬롯(회사_HQ, 회사_Branch, 지식생태계 등), .md 분석 인덱스 및 남은 전체 파일 전수 센서스 실시간 주입
+  let connectedMdBlock = '';
+  try {
+    const ecoFile = path.join(__dirname, '..', 'public', 'data', 'connected-ecosystems.json');
+    const mdIdxFile = path.join(__dirname, '..', 'public', 'data', 'analyzed-md-knowledge.json');
+    if (fs.existsSync(ecoFile)) {
+      const eco = JSON.parse(fs.readFileSync(ecoFile, 'utf8'));
+      const activeSlots = (eco.slots || []).filter(s => s.connected && s.path);
+      if (activeSlots.length > 0) {
+        const slotDesc = activeSlots.map(s => {
+          const c = s.analysisSummary?.fullDiskCensus || {};
+          return `${s.label}(${s.path}: 디스크 전체 ${(c.totalAllFilesOnDisk || 0).toLocaleString()}개 파일 [.md ${(c.totalMdFilesOnDisk || 0).toLocaleString()}개, 코드 ${(c.totalCodeFilesOnDisk || 0).toLocaleString()}개, 문서 ${(c.totalOfficeDocsOnDisk || 0).toLocaleString()}개, 기타 ${(c.totalOtherAssetsOnDisk || 0).toLocaleString()}개] 전수 파악 완료 / 핵심 뉴런 ${s.analysisSummary?.totalFilesScanned || 0}개 심층 추출)`;
+        }).join('\n  • ');
+        connectedMdBlock += `\n- 현재 뉴런 홈에 연결된 지식생태계 슬롯(${activeSlots.length}개) 및 전수 파일 센서스(추출된 파일 + 남은 파일 100% 파악):\n  • ${slotDesc}`;
+      }
+    }
+    if (fs.existsSync(mdIdxFile)) {
+      const mdIdx = JSON.parse(fs.readFileSync(mdIdxFile, 'utf8'));
+      if (Array.isArray(mdIdx.entries) && mdIdx.entries.length > 0) {
+        const topMd = mdIdx.entries.slice(0, 8).map(e => `[${e.slotLabel}] ${e.fileName}(${e.title}): ${e.summary.slice(0, 80)}`).join('\n  • ');
+        connectedMdBlock += `\n- 연결된 폴더에서 실시간 심층 추출된 핵심 .md 문서(${mdIdx.totalAnalyzedMarkdownFiles}개 중 상위):\n  • ${topMd}`;
+      }
+    }
+  } catch (_) {}
+
   return [
     '[최상위 기준: 안티그래비티 2.0 (Antigravity 2.0) & IDE 실시간 대화·워크스페이스 동기화 팩트]',
     `- 현재 열려 있는 안티그래비티 2.0 / IDE 대화 세션(${snap.totalConversationsScanned}개) 및 최근 대표님 지시사항:`,
     convSummary || '  (실시간 연동 완료)',
-    `- 현재 연동된 IDE 및 C:\\BeausCreators 전체 프로젝트(${snap.totalProjectsCount}개): ${branchProjects}`
+    `- 현재 연동된 IDE 및 C:\\BeausCreators 전체 프로젝트(${snap.totalProjectsCount}개): ${branchProjects}${connectedMdBlock}`
   ].join('\n');
+}
+
+/**
+ * 🔍 실시간 로컬 디스크 경로 & 프로젝트 정밀 스캐너 (Real-Time Path & Project Inspector)
+ * - 대표님께서 "C:\BeausCreators에 Runnow 프로그램이 있어. 확인가능해?" 처럼 특정 경로나 프로그램/프로젝트를 언급하시면
+ *   즉시 실제 디스크(fs.readdirSync / fs.statSync / 핵심 파일 내용)를 스캔하여 100% 검증된 팩트를 반환합니다.
+ */
+function inspectLocalPathAndProject(userMessage = '') {
+  const msg = String(userMessage || '').trim();
+  if (!msg) return { matched: false, targets: [], promptBlock: '' };
+
+  const snap = getLiveIdeAndProjectsSnapshot();
+  const matchedDirs = new Map();
+
+  // 1. 명시적 로컬 경로 추출 (예: C:\BeausCreators\..., C:\BSC_Javis_OS\...)
+  const pathRegex = /[A-Za-z]:[\\/][^\s"'?<>|]+/g;
+  const rawPaths = msg.match(pathRegex) || [];
+  for (const rp of rawPaths) {
+    const cleanP = rp.replace(/[.,;!?)]+$/, '').replace(/\//g, '\\');
+    if (fs.existsSync(cleanP)) {
+      try {
+        const st = fs.statSync(cleanP);
+        const dirP = st.isDirectory() ? cleanP : path.dirname(cleanP);
+        // C:\BeausCreators 루트만 단독으로 언급된 경우 하위 핵심 매칭으로 넘김
+        if (dirP.toLowerCase() !== 'c:\\beauscreators') {
+          matchedDirs.set(dirP.toLowerCase(), { name: path.basename(dirP), path: dirP, reason: '명시적 경로 지정' });
+        }
+      } catch (e) {}
+    }
+  }
+
+  // 2. 전체 프로젝트 목록(01.BSC_HQ ~ 06.BSC_DataCenter, projects/*, sandbox/*, Games/*, Applications/*) 키워드 매칭
+  const msgLower = msg.toLowerCase();
+  const aliasMap = [
+    { regex: /runnow|런나우|런닝|러닝/i, paths: ['C:\\BeausCreators\\02.BSC_Branch\\projects\\Runnow', 'C:\\BeausCreators\\02.BSC_Branch\\sandbox\\Runnow_APP_V'] },
+    { regex: /소풍|sopoong|낚시/i, paths: ['C:\\BeausCreators\\02.BSC_Branch\\00.소풍', 'C:\\BeausCreators\\02.BSC_Branch\\sandbox'] },
+    { regex: /출판|아름다운\s*세상|publisher|epub/i, paths: ['C:\\BeausCreators\\04.Publisher'] },
+    { regex: /스킬\s*창고|warehouse/i, paths: ['C:\\BeausCreators\\05.BSC_Skill_Warehouse'] },
+    { regex: /laya|유니티|unity/i, paths: ['C:\\BeausCreators\\03.Research\\Laya_Unity_Integration', 'C:\\BeausCreators\\02.BSC_Branch\\Games'] },
+    { regex: /bsc_javis_os|자비스\s*폴더|자비스\s*프로젝트|jarvis_engine/i, paths: ['c:\\BSC_Javis_OS', 'C:\\BeausCreators\\02.BSC_Branch\\Jarvis_Engine'] }
+  ];
+
+  for (const al of aliasMap) {
+    if (al.regex.test(msg)) {
+      for (const p of al.paths) {
+        if (fs.existsSync(p)) {
+          matchedDirs.set(p.toLowerCase(), { name: path.basename(p), path: p, reason: '프로젝트 별칭 매칭' });
+        }
+      }
+    }
+  }
+
+  for (const proj of (snap.projects || [])) {
+    const baseName = path.basename(proj.path).toLowerCase();
+    if (baseName.length >= 3 && msgLower.includes(baseName) && fs.existsSync(proj.path)) {
+      matchedDirs.set(proj.path.toLowerCase(), { name: proj.name, path: proj.path, reason: '워크스페이스 프로젝트 매칭' });
+    }
+  }
+
+  // 2-B. 사용자가 뉴런 홈에 직접 연결한 슬롯(회사_HQ, 회사_Branch, 지식생태계 등) 폴더 매칭
+  try {
+    const ecoFile = path.join(__dirname, '..', 'public', 'data', 'connected-ecosystems.json');
+    if (fs.existsSync(ecoFile)) {
+      const eco = JSON.parse(fs.readFileSync(ecoFile, 'utf8'));
+      for (const s of (eco.slots || [])) {
+        if (!s.connected || !s.path || !fs.existsSync(s.path)) continue;
+        const folderBase = path.basename(s.path).toLowerCase();
+        const slotClean = String(s.label || '').replace(/[^\w가-힣]/g, '').toLowerCase();
+        if (
+          (folderBase.length >= 2 && msgLower.includes(folderBase)) ||
+          (slotClean.length >= 2 && msgLower.replace(/\s+/g, '').includes(slotClean)) ||
+          (/회사_?hq|본사/i.test(msg) && s.slotId === 'slot_company_hq') ||
+          (/회사_?branch|지점/i.test(msg) && s.slotId === 'slot_company_branch') ||
+          (/지식\s*생태계|옵시디언|obsidian/i.test(msg) && s.slotId === 'slot_knowledge_ecosystem')
+        ) {
+          matchedDirs.set(s.path.toLowerCase(), { name: `${s.label} (${path.basename(s.path)})`, path: s.path, reason: '연결된 지식생태계 슬롯 매칭' });
+        }
+      }
+    }
+  } catch (_) {}
+
+  // 만약 "C:\BeausCreators"만 언급하고 특정 하위 프로젝트명이 없다면 C:\BeausCreators 루트 구조를 스캔
+  if (matchedDirs.size === 0 && /beauscreators|뷰스크리에이터/i.test(msg) && fs.existsSync(BEAUS_ROOT)) {
+    matchedDirs.set(BEAUS_ROOT.toLowerCase(), { name: 'BeausCreators (전사 루트)', path: BEAUS_ROOT, reason: '전사 루트 경로 조회' });
+  }
+
+  if (matchedDirs.size === 0) {
+    return { matched: false, targets: [], promptBlock: '' };
+  }
+
+  const targets = [];
+  for (const item of Array.from(matchedDirs.values()).slice(0, 3)) {
+    try {
+      const entries = fs.readdirSync(item.path, { withFileTypes: true });
+      const subDirs = entries
+        .filter(e => e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules')
+        .map(e => e.name);
+      const files = entries
+        .filter(e => e.isFile() && !e.name.startsWith('.'))
+        .map(e => {
+          let sizeKb = 0;
+          try { sizeKb = Math.round(fs.statSync(path.join(item.path, e.name)).size / 1024); } catch (_) {}
+          return { name: e.name, sizeKb };
+        });
+
+      const codeFiles = files.filter(f => /\.(js|ts|tsx|jsx|py|html|css|cjs|mjs|json)$/i.test(f.name));
+      const docFiles = files.filter(f => /\.(md|docx|pptx|pdf|xlsx|xls|txt)$/i.test(f.name));
+
+      // 핵심 설명/스펙 파일에서 실제 내용 요약 추출
+      let specPreview = '';
+      const priorityDoc = files.find(f => /^(README\.md|06_OnDevice.*|01_Stitch.*|package\.json|plan\.md|context-notes\.md)$/i.test(f.name)) || docFiles[0];
+      if (priorityDoc && /\.(md|json|txt)$/i.test(priorityDoc.name)) {
+        try {
+          const rawTxt = fs.readFileSync(path.join(item.path, priorityDoc.name), 'utf8');
+          specPreview = rawTxt
+            .replace(/[#*`>-]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 280);
+        } catch (_) {}
+      }
+
+      targets.push({
+        name: item.name,
+        path: item.path,
+        subDirs: subDirs.slice(0, 12),
+        totalFilesCount: files.length,
+        codeFiles: codeFiles.slice(0, 10).map(f => `${f.name}(${f.sizeKb}KB)`),
+        docFiles: docFiles.slice(0, 8).map(f => `${f.name}(${f.sizeKb}KB)`),
+        specPreview
+      });
+    } catch (e) {}
+  }
+
+  if (targets.length === 0) {
+    return { matched: false, targets: [], promptBlock: '' };
+  }
+
+  const promptLines = [
+    '[🔍 자비스 실시간 로컬 디스크 경로·프로그램 정밀 스캔 결과 (100% 실제 파일 검증 완료 — 절대 확인 불가라고 답하지 말 것!)]'
+  ];
+  for (const t of targets) {
+    promptLines.push(`- 실제 확인된 경로: ${t.path}`);
+    if (t.subDirs.length > 0) promptLines.push(`  • 하위 폴더(${t.subDirs.length}개): ${t.subDirs.join(', ')}`);
+    if (t.codeFiles.length > 0) promptLines.push(`  • 핵심 프로그램/코드 파일: ${t.codeFiles.join(', ')}`);
+    if (t.docFiles.length > 0) promptLines.push(`  • 핵심 기획·스펙·보고서 문서: ${t.docFiles.join(', ')}`);
+    if (t.specPreview) promptLines.push(`  • 문서 핵심 요약: "${t.specPreview}"`);
+  }
+
+  return {
+    matched: true,
+    targets,
+    promptBlock: promptLines.join('\n')
+  };
 }
 
 module.exports = {
   getLiveIdeAndProjectsSnapshot,
-  buildLiveIdeAndProjectPromptContext
+  buildLiveIdeAndProjectPromptContext,
+  inspectLocalPathAndProject
 };

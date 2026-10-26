@@ -1,0 +1,202 @@
+[
+  {
+    "actionId": "sasarisa-act-1792997857970",
+    "timestamp": "오후 3:57:37",
+    "commandText": "바이브코딩으로 배열 중복 제거하는 자바스크립트 유틸 함수 코드 짜줘",
+    "skillId": "VOICE_CODING",
+    "skillTitleKo": "💻 말로 하는 AI 코딩 & IDE 브릿지",
+    "icon": "💻",
+    "reply": "배열의 중복을 제거하는 가장 쉬운 방법은 Set 자료형을 이용하는 거예요. 이 방법은 중복을 자동으로 걸러주기 때문에 굉장히 직관적이고 코드가 간결하답니다.\n\n자바스크립트에서 배열을 Set으로 변환한 다음, 다시 스프레드 연산자(...)를 사용해서 배열로 되돌려주면 돼요.\n\n```javascript\nconst removeDuplicates = (arr) => {\n  return [...new Set(arr)];\n};\n\n// 예시 사용법\nconst numbers = [1, 2, 2, 3, 1, 4];\nconst uniqueArray = removeDuplicates(numbers);\nconsole.log(uniqueArray); // [1, 2, 3, 4]\n```\n\n핵심 원리는 배열을 Set에 넣으면 중복 값이 사라지고, 다시 스프레드 연산자로 펼쳐서 배열로 만드는 거예요. 코드는 정말 짧지만, 성능도 좋아서 추천드립니다.",
+    "targetUrl": "",
+    "generatedFile": "c:/BSC_Javis_OS/public/exports/sasarisa_code_1792997857968.js",
+    "steps": [
+      "자비스 IDE 2.0 코드 파일 생성 완료: c:/BSC_Javis_OS/public/exports/sasarisa_code_1792997857968.js"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-cancel-1792997855414",
+    "timestamp": "오후 3:57:35",
+    "commandText": "거래처 김 대표님께 계약서 검토 완료 회신 이메일 보내줘",
+    "skillId": "EMAIL_ASSISTANT",
+    "skillTitleKo": "✉️ 메일 확인 & AI 답장 작성",
+    "icon": "🛡️",
+    "reply": "대표님 지시에 따라 실행을 안전하게 취소했습니다.",
+    "steps": [
+      "2중 안전장치 취소 처리 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "CANCELLED"
+  },
+  {
+    "actionId": "sasarisa-approved-1792997853959",
+    "timestamp": "오후 3:57:33",
+    "commandText": "카카오톡으로 박 이사님께 오후 4시 브리핑 준비 완료되었다고 메시지 보내줘",
+    "skillId": "KAKAOTALK_MESSAGE",
+    "skillTitleKo": "💬 카카오톡 / 메신저 전송",
+    "icon": "💬",
+    "reply": "네, 박 이사님께 오후 4시 브리핑 준비 완료되었다고 보내드릴게요.\n\n\"이사님, 오후 4시 브리핑 자료 준비 모두 완료했습니다. 확인 부탁드립니다.\" 이렇게 보내시면 자연스러울 것 같아요.",
+    "targetUrl": "",
+    "steps": [
+      "대표님 2중 안전 승인 완료",
+      "메시지 본문 Windows 클립보드 자동 복사 완료 (Ctrl+V 즉시 붙여넣기 가능)",
+      "카카오톡 안전 전송 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "APPROVED_AND_EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-act-1792997852836",
+    "timestamp": "오후 3:57:32",
+    "commandText": "쿠팡에서 맥북 거치대 최저가 찾아줘",
+    "skillId": "SHOPPING_SEARCH",
+    "skillTitleKo": "🛒 스마트 쇼핑 검색 (쿠팡)",
+    "icon": "🛒",
+    "reply": "쿠팡에서 맥북 거치대 최저가를 검색해 드릴게요. 검색창에 '맥북 거치대'를 입력하고 가격 필터를 이용하시면 최저가 상품들을 한눈에 확인하실 수 있을 거예요. 필요하신 브랜드나 기능을 추가해서 검색 범위를 좁히시면 더 딱 맞는 제품을 찾을 수 있을 거예요.",
+    "targetUrl": "https://www.coupang.com/np/search?q=%EB%A7%A5%EB%B6%81%20%EA%B1%B0%EC%B9%98%EB%8C%80",
+    "generatedFile": "",
+    "steps": [
+      "쇼핑 플랫폼(COUPANG) 검색 URL 생성: https://www.coupang.com/np/search?q=%EB%A7%A5%EB%B6%81%20%EA%B1%B0%EC%B9%98%EB%8C%80",
+      "최저가/추천 비교 링크 생성 및 AI 구매 가이드 합성 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-approved-1792995565761",
+    "timestamp": "오후 3:19:25",
+    "commandText": "카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘",
+    "skillId": "KAKAOTALK_MESSAGE",
+    "skillTitleKo": "💬 카카오톡 / 메신저 전송",
+    "icon": "💬",
+    "reply": "김 팀장님께 오후 회의가 시작한다고 보내드릴게요.\n\n\"팀장님, 지금부터 오후 회의 시작하겠습니다. 모두 자리 잘 지켜주세요.\" 이렇게 보내시면 될 것 같아요.",
+    "targetUrl": "",
+    "steps": [
+      "대표님 2중 안전 승인 완료",
+      "메시지 본문 Windows 클립보드 자동 복사 완료 (Ctrl+V 즉시 붙여넣기 가능)",
+      "카카오톡 안전 전송 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "APPROVED_AND_EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-act-1792995564619",
+    "timestamp": "오후 3:19:24",
+    "commandText": "신나는 재즈 음악 틀어줘",
+    "skillId": "MUSIC_CONTROL",
+    "skillTitleKo": "🎵 Windows 미디어 & 음악 재생 제어",
+    "icon": "🎵",
+    "reply": "네, 신나는 재즈 음악으로 바로 틀어드릴게요. 시작하실 음악을 재생하려면, 작업 표시줄의 시작 메뉴나 실행창에서 '음악' 앱을 검색하신 후, '재즈'를 검색해서 플레이리스트를 선택해 주시면 돼요. 이렇게 하시면 원하는 장르의 음악을 빠르게 찾아서 들으실 수 있을 거예요.",
+    "targetUrl": "https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+    "generatedFile": "",
+    "steps": [
+      "Windows Media Session 준비 및 검색 URL 생성: https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+      "음악 스트리밍 바로가기 링크 및 재생 컨트롤 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-approved-1792995319346",
+    "timestamp": "오후 3:15:19",
+    "commandText": "카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘",
+    "skillId": "KAKAOTALK_MESSAGE",
+    "skillTitleKo": "💬 카카오톡 / 메신저 전송",
+    "icon": "💬",
+    "reply": "네, 김 팀장님께 오후 회의 시작한다고 메시지를 보내드릴게요.\n\n\"팀장님, 오후 회의 시작하겠습니다. 잠시만 기다려주세요.\" 이렇게 보내면 좋을 것 같아요.",
+    "targetUrl": "",
+    "steps": [
+      "대표님 2중 안전 승인 완료",
+      "메시지 본문 Windows 클립보드 자동 복사 완료 (Ctrl+V 즉시 붙여넣기 가능)",
+      "카카오톡 안전 전송 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "APPROVED_AND_EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-act-1792995318202",
+    "timestamp": "오후 3:15:18",
+    "commandText": "신나는 재즈 음악 틀어줘",
+    "skillId": "MUSIC_CONTROL",
+    "skillTitleKo": "🎵 Windows 미디어 & 음악 재생 제어",
+    "icon": "🎵",
+    "reply": "신나는 재즈 음악으로 바로 재생해 드릴게요. 작업 표시줄의 위젯이나 검색창에 '신나는 재즈'라고 검색하고 재생 버튼만 누르시면 돼요. 이렇게 하면 원하는 분위기의 음악을 빠르게 찾을 수 있답니다.",
+    "targetUrl": "https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+    "generatedFile": "",
+    "steps": [
+      "Windows Media Session 준비 및 검색 URL 생성: https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+      "음악 스트리밍 바로가기 링크 및 재생 컨트롤 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-approved-1792995002550",
+    "timestamp": "오후 3:10:02",
+    "commandText": "카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘",
+    "skillId": "KAKAOTALK_MESSAGE",
+    "skillTitleKo": "💬 카카오톡 / 메신저 전송",
+    "icon": "💬",
+    "reply": "네, 김 팀장님께 오후 회의 시작한다고 메시지를 보내 드릴게요.\n\n\"팀장님, 지금부터 오후 회의 시작하겠습니다. 다들 자리 맡아주세요.\" 이렇게 보내면 될 것 같아요.",
+    "targetUrl": "",
+    "steps": [
+      "대표님 2중 안전 승인 완료",
+      "메시지 본문 Windows 클립보드 자동 복사 완료 (Ctrl+V 즉시 붙여넣기 가능)",
+      "카카오톡 안전 전송 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "APPROVED_AND_EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-act-1792995001420",
+    "timestamp": "오후 3:10:01",
+    "commandText": "신나는 재즈 음악 틀어줘",
+    "skillId": "MUSIC_CONTROL",
+    "skillTitleKo": "🎵 Windows 미디어 & 음악 재생 제어",
+    "icon": "🎵",
+    "reply": "자비스가 바로 신나는 재즈 음악으로 분위기를 바꿔드릴게요. 작업 표시줄의 검색창에 '재즈'라고 검색하시고, 원하는 플레이리스트나 곡을 바로 재생하시면 돼요. 이렇게 하면 원하는 분위기의 음악을 빠르고 쉽게 찾을 수 있답니다.",
+    "targetUrl": "https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+    "generatedFile": "",
+    "steps": [
+      "Windows Media Session 준비 및 검색 URL 생성: https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+      "음악 스트리밍 바로가기 링크 및 재생 컨트롤 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-approved-1792993885495",
+    "timestamp": "오후 2:51:25",
+    "commandText": "카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘",
+    "skillId": "KAKAOTALK_MESSAGE",
+    "skillTitleKo": "💬 카카오톡 / 메신저 전송",
+    "icon": "💬",
+    "reply": "이건우 대표님, 사사리사 Windows 엔진이 [💬 카카오톡 / 메신저 전송] 명령(\"카카오톡으로 김 팀장에게 오후 회의 시작한다고 메시지 보내줘\")을 준비했습니다.",
+    "targetUrl": "",
+    "steps": [
+      "대표님 2중 안전 승인 완료",
+      "메시지 본문 Windows 클립보드 자동 복사 완료 (Ctrl+V 즉시 붙여넣기 가능)",
+      "카카오톡 안전 전송 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "APPROVED_AND_EXECUTED"
+  },
+  {
+    "actionId": "sasarisa-act-1792993883445",
+    "timestamp": "오후 2:51:23",
+    "commandText": "신나는 재즈 음악 틀어줘",
+    "skillId": "MUSIC_CONTROL",
+    "skillTitleKo": "🎵 Windows 미디어 & 음악 재생 제어",
+    "icon": "🎵",
+    "reply": "이건우 대표님, 사사리사 Windows 엔진이 [🎵 Windows 미디어 & 음악 재생 제어] 명령(\"신나는 재즈 음악 틀어줘\")을 준비했습니다.",
+    "targetUrl": "https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+    "generatedFile": "",
+    "steps": [
+      "Windows Media Session 준비 및 검색 URL 생성: https://music.youtube.com/search?q=%EC%8B%A0%EB%82%98%EB%8A%94%20%EC%9E%AC%EC%A6%88",
+      "음악 스트리밍 바로가기 링크 및 재생 컨트롤 준비 완료"
+    ],
+    "llmUsed": "OLLAMA · gemma4:e4b",
+    "status": "EXECUTED"
+  }
+]

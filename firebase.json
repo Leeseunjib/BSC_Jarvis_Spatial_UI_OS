@@ -1,0 +1,33 @@
+{
+  "hosting": {
+    "site": "bsc-javis-dev",
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "data/ide_backups/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/mobile-cam",
+        "destination": "/mobile-cam.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|html|json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  }
+}
