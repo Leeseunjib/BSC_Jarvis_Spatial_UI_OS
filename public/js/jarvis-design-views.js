@@ -1066,6 +1066,22 @@ window.JarvisDesignViews = {
               }).join('')}
             </div>
 
+            <!-- 🔐 Google AI Ultra 계정 OAuth 로그인 모드 ($0 추가과금) -->
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(6,28,45,0.85);padding:9px 12px;border-radius:10px;border:1px solid rgba(56,189,248,0.45);margin-bottom:8px;flex-wrap:wrap;">
+              <div style="font-size:11.5px;color:#e0f2fe;flex:1;min-width:260px;">
+                <strong style="color:#00f0ff;">🔐 Google Gemini CLI &amp; AI Ultra 계정 OAuth 로그인 모드 (권장 · 추가 API 과금 $0)</strong><br/>
+                <span style="color:#94a3b8;">유료 API Key를 쓰지 않고 대표님의 Google 요금제(OAuth 토큰 <code>~/.gemini/oauth_creds.json</code>)를 공유하여 <code>Gemini 4 Argon</code> · <code>Gemini 2.5 Pro/Flash</code> 및 <code>Google Gemini CLI</code>를 추가 비용 0원으로 사용합니다.</span>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" id="btn-ud-oauth-gemini" class="ud-btn emerald small" style="white-space:nowrap;font-weight:800;">
+                  🔐 OAuth ($0) 모드 활성화
+                </button>
+                <button type="button" id="btn-ud-oauth-gemini-cli-win" class="ud-btn primary small" style="white-space:nowrap;font-weight:800;">
+                  💻 Gemini CLI 로그인 창 열기
+                </button>
+              </div>
+            </div>
+
             <!-- API Key & 로컬 서버 엔드포인트 설정 바 (.env 격리 저장) -->
             <form id="form-hub-credentials" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center;background:#050b16;padding:10px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);">
               <input type="password" id="inp-openai-key" class="ud-input" placeholder="🔑 OpenAI API Key (sk-...) ${providers.openai?.maskedKey ? `[저장됨: ${providers.openai.maskedKey}]` : ''}" style="font-size:11px;" />
@@ -1356,6 +1372,37 @@ window.JarvisDesignViews = {
     });
 
     // 🌐 4-Way Multi-LLM Hub Events (GPT · Gemini · LM Studio · Ollama)
+    stage.querySelector('#btn-ud-oauth-gemini')?.addEventListener('click', async () => {
+      const selEl = stage.querySelector('.sel-hub-model[data-provider="gemini"]');
+      const chosenModel = selEl?.value || 'gemini-4-argon';
+      const res = await fetch('/api/jarvis/llm-hub/oauth-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: chosenModel, launchBrowserLogin: false })
+      }).then(r => r.json()).catch(() => null);
+      if (res && res.ok) {
+        const pill = document.getElementById('active-model-pill');
+        if (pill) pill.textContent = `GEMINI:${chosenModel} (OAuth $0)`;
+        window.BSC_WORLDVIEW?.showToast('🔐 Google OAuth ($0) 활성화 완료', res.message);
+        window.MultimodalEngine?.speakStewardReply?.(res.message, 'jarvis');
+        await this.renderAiBrainDashboard(stage);
+      }
+    });
+
+    stage.querySelector('#btn-ud-oauth-gemini-cli-win')?.addEventListener('click', async () => {
+      const selEl = stage.querySelector('.sel-hub-model[data-provider="gemini"]');
+      const chosenModel = selEl?.value || 'gemini-4-argon';
+      const res = await fetch('/api/jarvis/llm-hub/oauth-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: chosenModel, launchBrowserLogin: true })
+      }).then(r => r.json()).catch(() => null);
+      if (res && res.ok) {
+        window.BSC_WORLDVIEW?.showToast('💻 Google Gemini CLI OAuth 창 실행', '외부 터미널에서 Google 계정 OAuth 로그인 창이 열렸습니다. 로그인 완료 시 ~/.gemini/oauth_creds.json 토큰이 자비스와 자동 연동됩니다.');
+        await this.renderAiBrainDashboard(stage);
+      }
+    });
+
     stage.querySelector('#btn-ud-open-sasarisa-pill')?.addEventListener('click', () => {
       window.MultimodalEngine?.toggleSasarisaVoicePill?.(true);
     });
@@ -2242,9 +2289,9 @@ window.JarvisDesignViews = {
                 <h2 class="ud-panel-title">🖐️ 카메라 비전 4대 공간 제스처 제어 (MediaPipe 21-Keypoints)</h2>
                 <p class="ud-panel-desc">웹캠 또는 가상 핸드 모드로 화면의 버튼과 카드를 인식·클릭·드래그·3D 회전합니다.</p>
               </div>
-              <div style="display:flex;gap:6px;">
-                <button type="button" class="ud-btn primary small" id="btn-jres-toggle-cam">🎥 손 제스처 PIP 열기</button>
-                <a href="/assets/research_concepts/BSC_JARVIS_Camera_Gesture_OS.html" target="_blank" class="ud-btn outline small" style="text-decoration:none;">↗ 풀스크린 제스처 OS</a>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="/stage.html" class="ud-btn primary small" style="text-decoration:none;">🖐️ Barehands 풀스크린 AR 카메라 실행</a>
+                <button type="button" class="ud-btn outline small" id="btn-jres-toggle-cam">🎥 손 제스처 PIP 열기</button>
               </div>
             </div>
 

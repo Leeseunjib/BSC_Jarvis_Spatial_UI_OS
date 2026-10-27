@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 240" width="420" height="240">
+    <rect width="420" height="240" rx="18" fill="#06191e" stroke="#00f0ff" stroke-width="2"/>
+    <rect x="16" y="16" width="388" height="36" rx="8" fill="rgba(0,240,255,0.12)" stroke="rgba(0,240,255,0.35)"/>
+    <circle cx="36" cy="34" r="6" fill="#10b981"/>
+    <text x="52" y="39" fill="#8ff0e4" font-family="monospace" font-size="14" font-weight="bold">J.A.R.V.I.S. SPATIAL HUD MONITOR</text>
+    <rect x="24" y="68" width="112" height="90" rx="12" fill="rgba(16,185,129,0.12)" stroke="#34d399"/>
+    <text x="80" y="102" fill="#a7f3d0" font-family="sans-serif" font-size="12" text-anchor="middle">HAND TRACKING</text>
+    <text x="80" y="132" fill="#10b981" font-family="monospace" font-size="22" font-weight="bold" text-anchor="middle">60 FPS</text>
+    <rect x="154" y="68" width="112" height="90" rx="12" fill="rgba(0,240,255,0.12)" stroke="#00f0ff"/>
+    <text x="210" y="102" fill="#bae6fd" font-family="sans-serif" font-size="12" text-anchor="middle">21-KEYPOINTS</text>
+    <text x="210" y="132" fill="#00f0ff" font-family="monospace" font-size="22" font-weight="bold" text-anchor="middle">ACTIVE</text>
+    <rect x="284" y="68" width="112" height="90" rx="12" fill="rgba(251,191,36,0.12)" stroke="#fbbf24"/>
+    <text x="340" y="102" fill="#fde68a" font-family="sans-serif" font-size="12" text-anchor="middle">SPATIAL UI</text>
+    <text x="340" y="132" fill="#fbbf24" font-family="monospace" font-size="22" font-weight="bold" text-anchor="middle">READY</text>
+    <rect x="24" y="176" width="372" height="42" rx="10" fill="rgba(14,42,46,0.8)" stroke="rgba(143,240,228,0.35)"/>
+    <text x="210" y="202" fill="#d1fae5" font-family="sans-serif" font-size="13" text-anchor="middle">🖐️ 핀치(🤏)로 드래그 이동 · 양손으로 크기 조절 · 탭하여 닫기</text>
+  </svg>

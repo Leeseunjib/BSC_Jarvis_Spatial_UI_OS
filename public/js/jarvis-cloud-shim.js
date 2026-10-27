@@ -220,6 +220,112 @@
       });
     }
 
+    if (pathname === '/api/brain/neuron-detail') {
+      const qId = parsed.searchParams.get('id') || '';
+      const qPath = parsed.searchParams.get('path') || '';
+      const qLabel = parsed.searchParams.get('label') || '';
+      const nodes = brain.nodes || [];
+      const links = brain.links || [];
+      const matched = nodes.find(n => String(n.id) === qId) ||
+        nodes.find(n => qPath && String(n.path || '').toLowerCase() === qPath.toLowerCase()) ||
+        nodes.find(n => qLabel && String(n.label || '').toLowerCase().includes(qLabel.toLowerCase())) ||
+        nodes[0] || { id: 'root_jarvis_core', label: qLabel || 'J.A.R.V.I.S. 코어', cat: 'doc' };
+
+      const outlinks = [];
+      const backlinks = [];
+      for (const lk of links) {
+        const s = typeof lk.source === 'object' ? lk.source.id : lk.source;
+        const t = typeof lk.target === 'object' ? lk.target.id : lk.target;
+        if (String(s) === String(matched.id)) {
+          const tn = nodes.find(x => String(x.id) === String(t));
+          if (tn) outlinks.push({ id: tn.id, label: tn.label, cat: tn.cat, path: tn.path || '' });
+        } else if (String(t) === String(matched.id)) {
+          const sn = nodes.find(x => String(x.id) === String(s));
+          if (sn) backlinks.push({ id: sn.id, label: sn.label, cat: sn.cat, path: sn.path || '' });
+        }
+      }
+      const mdContent = [
+        `# 🧠 ${matched.label}`,
+        `- **생태계 영역**: ${matched.area || matched.slotLabel || 'BSC 지식생태계'}`,
+        `- **경로**: \`${matched.path || 'vault/neurons'}\``,
+        ``,
+        `## 📌 핵심 내용 요약`,
+        matched.note || matched.summary || '이 뉴런의 내용을 확인하고 노션(/) 블록 및 옵시디언 [[위키링크]]로 확장할 수 있습니다.',
+        ``,
+        `## 🔗 연결된 시냅스`,
+        ...outlinks.slice(0, 8).map(o => `- [[${o.label}]]`)
+      ].join('\n');
+
+      return jsonRes({
+        ok: true,
+        neuron: {
+          id: matched.id,
+          label: matched.label,
+          cat: matched.cat || 'doc',
+          slotLabel: matched.area || '지식생태계 뉴런',
+          path: matched.path || '',
+          fileKind: 'markdown'
+        },
+        content: mdContent,
+        directoryChildren: [],
+        obsidianMeta: {
+          tags: ['자비스뉴런', '옵시디언노트'],
+          wikiLinks: outlinks.slice(0, 8).map(o => ({ target: o.label, alias: o.label })),
+          headings: [{ level: 1, text: matched.label }],
+          codeBlocks: [],
+          charCount: mdContent.length,
+          lineCount: mdContent.split('\n').length
+        },
+        graphConnections: {
+          outlinks: outlinks.slice(0, 20),
+          backlinks: backlinks.slice(0, 20),
+          localGraphNodes: [
+            { id: matched.id, label: matched.label, isCenter: true },
+            ...outlinks.slice(0, 10).map(o => ({ id: o.id, label: o.label, isCenter: false }))
+          ]
+        }
+      });
+    }
+
+    if (pathname === '/api/brain/neuron-note') {
+      const body = parseBody(init);
+      const title = body.title || '새 뉴런 노트';
+      const newNode = {
+        id: `neuron-cloud-${Date.now()}`,
+        label: title,
+        cat: 'doc',
+        area: '옵시디언×노션 볼트',
+        note: body.content || '',
+        val: 15
+      };
+      if (Array.isArray(brain.nodes)) brain.nodes.push(newNode);
+      return jsonRes({
+        ok: true,
+        mainNode: newNode,
+        createdNodes: [newNode],
+        createdLinks: [],
+        message: `✅ [${title}] 뉴런 노트가 저장되었으며 3D 뉴런홈 그래프에 즉시 반영되었습니다.`
+      });
+    }
+
+    if (pathname === '/api/jarvis/llm-hub/oauth-login') {
+      return jsonRes({
+        ok: true,
+        authMode: 'oauth',
+        extraApiCostUsd: 0,
+        message: '🔐 Google AI Ultra 계정 OAuth 로그인 모드가 활성화되었습니다. 추가 API 과금 $0(0원)으로 Gemini 4 Argon 및 Google Gemini CLI가 작동합니다.'
+      });
+    }
+
+    if (pathname === '/api/jarvis/stt') {
+      const body = parseBody(init);
+      return jsonRes({
+        ok: true,
+        engine: 'HYBRID_STT_FALLBACK',
+        transcript: body.hintText || body.transcript || ''
+      });
+    }
+
     if (pathname === '/api/read-node') {
       const p = parsed.searchParams.get('path') || '';
       const entries = mdKnowledge.entries || [];
@@ -396,26 +502,130 @@
     }
     if (pathname === '/tree') {
       const orbIdx = parsed.searchParams.get('orb') || '0';
+      const entries = mdKnowledge.entries || [];
+      if (orbIdx === '0') {
+        return jsonRes({
+          name: 'Notes',
+          notes: [],
+          dirs: [
+            {
+              name: 'Getting Started',
+              dirs: [],
+              notes: [
+                { title: 'Welcome', file: '0/Getting Started/Welcome.md' },
+                { title: 'The Gestures', file: '0/Getting Started/The Gestures.md' },
+                { title: 'Wire In Your AI', file: '0/Getting Started/Wire In Your AI.md' }
+              ]
+            },
+            {
+              name: 'Field Guide',
+              dirs: [],
+              notes: [
+                { title: 'Make It Yours', file: '0/Field Guide/Make It Yours.md' },
+                { title: 'Props and Models', file: '0/Field Guide/Props and Models.md' },
+                { title: 'Streaming and Recording', file: '0/Field Guide/Streaming and Recording.md' }
+              ]
+            }
+          ]
+        });
+      }
+      if (orbIdx === '1') {
+        const hqEntries = entries.filter(e => String(e.filePath || '').includes('01.BSC_HQ')).slice(0, 40);
+        const byFolder = new Map();
+        for (const e of hqEntries) {
+          const parts = String(e.filePath || '').replace(/\\/g, '/').split('/');
+          const subName = parts[parts.indexOf('01.BSC_HQ') + 1] || 'Documents';
+          if (!byFolder.has(subName)) byFolder.set(subName, []);
+          byFolder.get(subName).push({
+            title: (e.fileName || 'Document').replace(/\.md$/i, ''),
+            file: `1/${e.filePath || e.fileName}`
+          });
+        }
+        const dirs = Array.from(byFolder.entries()).map(([name, notes]) => ({ name, dirs: [], notes }));
+        return jsonRes({
+          name: 'BSC_HQ',
+          notes: [
+            { title: 'AGENTS (BSC 헌장 정본)', file: '1/AGENTS.md' },
+            { title: 'BSC J.A.R.V.I.S. 59대 글로벌 마스터 리포트', file: '1/jarvis_deep_research_report.md' }
+          ],
+          dirs: dirs.length ? dirs : [
+            {
+              name: '01.보고서 & 기획서',
+              dirs: [],
+              notes: [
+                { title: 'BSC 전사 26인 에이전트 아키텍처', file: '1/01.BSC_HQ/2.Agents/AGENTS.md' },
+                { title: 'Gemma 4 멀티모달 & 사사리사 브릿지', file: '1/01.BSC_HQ/1.Documents/Gemma4_Architecture.md' }
+              ]
+            }
+          ]
+        });
+      }
+      if (orbIdx === '2') {
+        const resEntries = entries.filter(e => !String(e.filePath || '').includes('01.BSC_HQ')).slice(0, 40);
+        const bySlot = new Map();
+        for (const e of resEntries) {
+          const gName = (e.slotLabel || e.ecosystemLabel || 'Research').replace(/^[^\s]+\s/, '');
+          if (!bySlot.has(gName)) bySlot.set(gName, []);
+          bySlot.get(gName).push({
+            title: (e.fileName || 'ResearchNote').replace(/\.md$/i, ''),
+            file: `2/${e.filePath || e.fileName}`
+          });
+        }
+        const dirs = Array.from(bySlot.entries()).map(([name, notes]) => ({ name, dirs: [], notes }));
+        return jsonRes({
+          name: 'Research',
+          notes: [
+            { title: '59 Global & Domestic JARVIS Benchmark', file: '2/59_Global_JARVIS_Benchmark.md' },
+            { title: 'ArtCraft 13-App Creative Suite Specs', file: '2/ArtCraft_13_Suite_Specs.md' }
+          ],
+          dirs
+        });
+      }
       return jsonRes({
-        name: orbIdx === '1' ? 'BSC_HQ' : (orbIdx === '2' ? 'Research' : 'Notes'),
-        notes: [
-          { title: 'AGENTS', file: `${orbIdx}/AGENTS.md` },
-          { title: 'The Gestures', file: `${orbIdx}/Getting Started/The Gestures.md` },
-          { title: 'Welcome', file: `${orbIdx}/Getting Started/Welcome.md` }
-        ],
+        name: 'Notes',
+        notes: [{ title: 'Welcome', file: '0/Getting Started/Welcome.md' }],
         dirs: []
       });
     }
     if (pathname === '/note') {
       const f = parsed.searchParams.get('f') || '';
-      const text = `# ${f}\n\n## BSC J.A.R.V.I.S. Barehands Spatial Note\n- Tap (Quick Pinch): Open/Close Ring & Orbs\n- Pinch-Drag: Move notes & 3D models across screen\n- Hold Still While Carrying: 3D Rotate\n- Two Hands: Stretch / Scale\n- The Claw: Force-pull cards across the room\n- Clap: Sweep the board clean`;
+      const entries = mdKnowledge.entries || [];
+      const cleanPath = f.replace(/^[0-9]+\//, '');
+      const matched = entries.find(e =>
+        String(e.filePath || '').toLowerCase() === cleanPath.toLowerCase() ||
+        String(e.fileName || '').toLowerCase() === cleanPath.split('/').pop().toLowerCase()
+      );
+      if (matched) {
+        const mdText = [
+          `# ${matched.title || matched.fileName}`,
+          `Path: ${matched.filePath} (${matched.sizeKb || 1}KB · ${matched.lineCount || 0} lines)`,
+          ``,
+          `## 핵심 요약 (Executive Summary)`,
+          matched.summary || 'BSC J.A.R.V.I.S. 지식생태계에 연결된 실시간 마크다운 문서입니다.',
+          ``,
+          `## 주요 목차 (Headings)`,
+          ...((matched.headings || []).map(h => `- ${typeof h === 'string' ? h : h.text}`))
+        ].join('\n');
+        return new Response(mdText, { status: 200, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+      }
+      const BUILTIN_NOTES = {
+        '0/Getting Started/Welcome.md': `# Welcome to Barehands × BSC J.A.R.V.I.S.\n\nMove things on your screen with your bare hands — or with your mouse/touch in hybrid mode.\n\n## Quick Controls\n- **Tap the Ring**: Bloom or retract the 4 Orbs (Notes, BSC_HQ, Research, Props)\n- **Tap an Orb**: Open its folder & file tree browser pane\n- **Tap a File / Prop**: Unfurl the full glass Markdown note or stage a 3D hologram / FX prop\n- **Drag (Pinch-Move)**: Carry any Ring, Note, or Prop anywhere on screen\n- **Hold Still ~1s While Dragging (or Right-Drag)**: Latch into 3D Rotate mode\n- **Mouse Wheel / Two Hands**: Scale items up to 12x or scroll inside notes`,
+        '0/Getting Started/The Gestures.md': `# The Gesture Vocabulary\n\n## 1. The Tap (Quick Pinch / Click)\nTap the **J.A.R.V.I.S. Ring** to bloom the Orbs. Tap any Orb (**Notes**, **BSC_HQ**, **Research**, **Props**) to open its folder tree. Tap any file row to open it.\n\n## 2. Pinch-Drag & Fling\nGrab any card, panel title bar, or 3D model to move it across the full screen. Flick fast and release to toss it off-screen.\n\n## 3. 3D Spatial Rotation\nHold a grabbed item still for 1 second (or hold **Shift / Right-Click** with the mouse) to rotate it in 3D space.\n\n## 4. The Claw (Force Pull)\nFlash your hand open, hook your fingers into a Claw aimed at a distant card, hold the strain for 2 seconds, and SNAP your fist shut to rip the card into your hand.`,
+        '0/Getting Started/Wire In Your AI.md': `# Wire In Your AI (J.A.R.V.I.S. Bus)\n\nYour AI assistant controls this stage live over HTTP:\n- **POST /cmd** with \`{"a":"add_card","title":"Report","body":"...","hand":1}\` delivers a card straight into your hand.\n- **POST /cmd** with \`{"a":"present","src":"/media/fx/fireball.png"}\` spotlights an item center stage.\n- **POST /cmd** with \`{"a":"explode"}\` parts a 3D hologram into its sub-components.`
+      };
+      const text = BUILTIN_NOTES[f] || `# ${cleanPath}\n\n## BSC J.A.R.V.I.S. Spatial Document\n- **문서 식별자**: ${f}\n- **조작 안내**: 상단 바(Title Bar)를 드래그하면 창이 이동하며, 상단 바를 짧게 클릭(Tap)하면 창이 닫힙니다.\n- 본문 영역을 위아래로 드래그하거나 마우스 휠을 굴리면 문서를 스크롤할 수 있습니다.`;
       return new Response(text, { status: 200, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     }
     if (pathname === '/props') {
       return jsonRes({
         name: 'Props',
-        items: ['fx/fireball.png', 'misc/glass-hands.png'],
-        dirs: [{ name: 'holo', items: [], dirs: [] }, { name: 'models', items: [], dirs: [] }]
+        items: [],
+        dirs: [
+          { name: 'fx', items: ['fx/fireball.png'], dirs: [] },
+          { name: 'misc', items: ['misc/glass-hands.png'], dirs: [] },
+          { name: 'holo', items: ['fx/fireball.png'], dirs: [] },
+          { name: 'models', items: ['misc/glass-hands.png'], dirs: [] }
+        ]
       });
     }
 
@@ -946,7 +1156,7 @@
 
   window.fetch = async function (input, init) {
     const urlStr = typeof input === 'string' ? input : (input && input.url ? input.url : String(input));
-    const isApiCall = urlStr.startsWith('/api/') || urlStr.includes('/api/brain') || urlStr.includes('/api/jarvis') || urlStr.includes('/api/agent') || urlStr.includes('/api/read-node') || urlStr.includes('/api/token-flow') || urlStr.includes('/api/tts');
+    const isApiCall = urlStr.startsWith('/api/') || urlStr.includes('/api/brain') || urlStr.includes('/api/jarvis') || urlStr.includes('/api/agent') || urlStr.includes('/api/read-node') || urlStr.includes('/api/token-flow') || urlStr.includes('/api/tts') || /^\/(config|orb|state|cmd|tree|note|props)(\?|$)/.test(urlStr);
 
     if (isApiCall) {
       if (isFirebaseOrRemote) {

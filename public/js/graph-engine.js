@@ -153,6 +153,10 @@ window.BrainGraphEngine = {
     }
   },
 
+  async reloadFromDisk() {
+    return this.loadBrainData();
+  },
+
   async pollLiveNeurons() {
     try {
       const brain = await fetch('/api/brain').then(r => r.json());
@@ -349,7 +353,7 @@ window.BrainGraphEngine = {
         if (hubId) {
           const target = this.nodes.find(n => n.id === hubId);
           if (target) {
-            this.selectNode(target, false);
+            this.selectNode(target, true);
             this.flyToNode(target);
           }
         } else {
@@ -928,7 +932,7 @@ window.BrainGraphEngine = {
     const ctx = this.ctx;
     this.tick += 0.016;
 
-    if (this.autoRotate && (this.viewMode === '3d' || this.viewMode === 'brain')) {
+    if (this.autoRotate && !this.hoveredNode && (this.viewMode === '3d' || this.viewMode === 'brain')) {
       this.rotY += 0.00085;
     }
 
@@ -1069,7 +1073,7 @@ window.BrainGraphEngine = {
         }
 
         if (!overlaps) {
-          this._placedLabelBoxes.push({ x: lx, y: ly, w: estW, h: estH });
+          this._placedLabelBoxes.push({ x: lx, y: ly, w: estW, h: estH, node: n });
           ctx.globalAlpha = isHub || isDirectTarget ? 1.0 : 0.92;
           ctx.shadowColor = isLight ? 'rgba(255, 255, 255, 0.96)' : 'rgba(0, 0, 0, 0.92)';
           ctx.shadowBlur = isLight ? 4 : 5;
@@ -1089,14 +1093,32 @@ window.BrainGraphEngine = {
   },
 
   findNodeAt(x, y) {
+    // 1. Find closest visible neuron dot within generous click radius
+    let bestNode = null;
+    let bestDistSq = Infinity;
     for (let i = 0; i < this.nodes.length; i++) {
       const n = this.nodes[i];
       if (!this.isNodeVisible(n)) continue;
-      const hitPad = n.isFeaturedHub ? 18 : n.isFeaturedChild ? 9 : 5;
-      const r = Math.max(7, n.r * (n.scale || 1) + hitPad);
+      const hitPad = n.isFeaturedHub ? 24 : n.isFeaturedChild ? 15 : 11;
+      const r = Math.max(12, n.r * (n.scale || 1) + hitPad);
       const dx = n.sx - x;
       const dy = n.sy - y;
-      if (dx * dx + dy * dy <= r * r) return n;
+      const dSq = dx * dx + dy * dy;
+      if (dSq <= r * r && dSq < bestDistSq) {
+        bestDistSq = dSq;
+        bestNode = n;
+      }
+    }
+    if (bestNode) return bestNode;
+
+    // 2. Also allow clicking directly on the rendered neuron text label box
+    if (Array.isArray(this._placedLabelBoxes)) {
+      for (let i = this._placedLabelBoxes.length - 1; i >= 0; i--) {
+        const b = this._placedLabelBoxes[i];
+        if (b && b.node && x >= b.x - 4 && x <= b.x + b.w + 4 && y >= b.y - 4 && y <= b.y + b.h + 6) {
+          return b.node;
+        }
+      }
     }
     return null;
   },
@@ -1138,7 +1160,9 @@ window.BrainGraphEngine = {
     if (actEl) actEl.style.display = 'flex';
 
     if (openWindow) {
-      if (window.JarvisDesignViews && node.workspaceTarget) {
+      if (window.NeuronContentStudio && typeof window.NeuronContentStudio.openNeuronModal === 'function') {
+        window.NeuronContentStudio.openNeuronModal(node);
+      } else if (window.JarvisDesignViews && node.workspaceTarget) {
         window.JarvisDesignViews.openWorkspace(node.workspaceTarget, node);
       } else if (node.path) {
         this.openNodeInReportWindow(node);
@@ -1172,14 +1196,19 @@ window.BrainGraphEngine = {
   },
 
   bindEvents() {
-    let dragging = false, startX = 0, startY = 0, moved = false;
+    let dragging = false, startX = 0, startY = 0, downX = 0, downY = 0, moved = false, downHit = null;
 
     this.canvas.addEventListener('mousedown', e => {
       dragging = true;
       moved = false;
       startX = e.clientX;
       startY = e.clientY;
-      this.autoRotate = false;
+      downX = e.clientX;
+      downY = e.clientY;
+      downHit = this.findNodeAt(e.clientX, e.clientY) || this.hoveredNode;
+      if (!downHit) {
+        this.autoRotate = false;
+      }
     });
 
     window.addEventListener('mousemove', e => {
@@ -1188,9 +1217,16 @@ window.BrainGraphEngine = {
         this.canvas.style.cursor = this.hoveredNode ? 'pointer' : 'grab';
         return;
       }
+      const totalDist = Math.hypot(e.clientX - downX, e.clientY - downY);
+      const threshold = downHit ? 14 : 6;
+      if (totalDist > threshold) {
+        moved = true;
+        this.autoRotate = false;
+      }
+      if (!moved) return;
+
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
 
       if (this.viewMode === '3d' || this.viewMode === 'brain') {
         this.rotY += dx * 0.0045;
@@ -1204,15 +1240,27 @@ window.BrainGraphEngine = {
     });
 
     window.addEventListener('mouseup', e => {
-      if (dragging && !moved && e.target === this.canvas) {
-        const hit = this.findNodeAt(e.clientX, e.clientY);
-        if (hit) this.selectNode(hit, false);
+      if (dragging && !moved) {
+        const hit = this.findNodeAt(e.clientX, e.clientY) || downHit || this.hoveredNode;
+        if (hit) {
+          this.selectNode(hit, true);
+        }
       }
       dragging = false;
+      downHit = null;
+    });
+
+    this.canvas.addEventListener('click', e => {
+      if (!moved) {
+        const hit = this.findNodeAt(e.clientX, e.clientY) || this.hoveredNode;
+        if (hit && (!window.NeuronContentStudio || !window.NeuronContentStudio.isOpen)) {
+          this.selectNode(hit, true);
+        }
+      }
     });
 
     this.canvas.addEventListener('dblclick', e => {
-      const hit = this.findNodeAt(e.clientX, e.clientY);
+      const hit = this.findNodeAt(e.clientX, e.clientY) || this.hoveredNode || this.selectedNode;
       if (hit) this.selectNode(hit, true);
     });
 
@@ -1274,7 +1322,7 @@ window.BrainGraphEngine = {
         if (e.key === 'Enter' && this.searchQuery) {
           const match = this.nodes.find(n => this.isNodeVisible(n));
           if (match) {
-            this.selectNode(match, false);
+            this.selectNode(match, true);
             this.flyToNode(match);
           }
         }

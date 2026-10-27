@@ -12,26 +12,26 @@
       "path": "C:\\\\BeausCreators\\\\01.BSC_HQ",
       "connectedAt": "2026-10-22T12:41:20.984Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:32.137Z",
+        "analyzedAt": "2026-10-27T09:08:18.858Z",
         "totalFilesScanned": 133,
         "markdownFileCount": 102,
         "otherFileCount": 31,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 428,
-          "totalAllFilesOnDisk": 2528,
-          "totalMdFilesOnDisk": 903,
-          "totalCodeFilesOnDisk": 261,
+          "totalDirsOnDisk": 435,
+          "totalAllFilesOnDisk": 2558,
+          "totalMdFilesOnDisk": 934,
+          "totalCodeFilesOnDisk": 260,
           "totalOfficeDocsOnDisk": 91,
           "totalOtherAssetsOnDisk": 1273,
-          "remainingUnextractedFiles": 2395,
-          "remainingUnextractedMdFiles": 801,
+          "remainingUnextractedFiles": 2425,
+          "remainingUnextractedMdFiles": 832,
           "subDomains": [
             {
               "name": "1.Documents",
               "path": "C:/BeausCreators/01.BSC_HQ/1.Documents",
-              "dirs": 98,
-              "all": 461,
-              "md": 333,
+              "dirs": 104,
+              "all": 491,
+              "md": 363,
               "code": 25,
               "docs": 72,
               "other": 31
@@ -49,9 +49,9 @@
             {
               "name": "6.Knowledge_Index",
               "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index",
-              "dirs": 104,
-              "all": 192,
-              "md": 146,
+              "dirs": 105,
+              "all": 193,
+              "md": 147,
               "code": 15,
               "docs": 18,
               "other": 13
@@ -60,9 +60,9 @@
               "name": "3.CompanyOS",
               "path": "C:/BeausCreators/01.BSC_HQ/3.CompanyOS",
               "dirs": 16,
-              "all": 146,
+              "all": 145,
               "md": 17,
-              "code": 111,
+              "code": 110,
               "docs": 0,
               "other": 18
             },
@@ -120,7 +120,7 @@
         },
         "totalHeadingsCount": 455,
         "totalWikiLinksCount": 90,
-        "totalWordCount": 101302,
+        "totalWordCount": 101303,
         "extractedTags": [],
         "topMarkdownDocs": [
           {
@@ -536,37 +536,37 @@
       "path": "C:\\\\BeausCreators\\\\02.BSC_Branch",
       "connectedAt": "2026-10-22T12:41:21.758Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:33.044Z",
+        "analyzedAt": "2026-10-27T09:08:19.406Z",
         "totalFilesScanned": 99,
-        "markdownFileCount": 37,
-        "otherFileCount": 62,
+        "markdownFileCount": 36,
+        "otherFileCount": 63,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 766,
-          "totalAllFilesOnDisk": 5696,
-          "totalMdFilesOnDisk": 406,
-          "totalCodeFilesOnDisk": 898,
+          "totalDirsOnDisk": 765,
+          "totalAllFilesOnDisk": 5726,
+          "totalMdFilesOnDisk": 413,
+          "totalCodeFilesOnDisk": 920,
           "totalOfficeDocsOnDisk": 91,
-          "totalOtherAssetsOnDisk": 4301,
-          "remainingUnextractedFiles": 5597,
-          "remainingUnextractedMdFiles": 369,
+          "totalOtherAssetsOnDisk": 4302,
+          "remainingUnextractedFiles": 5627,
+          "remainingUnextractedMdFiles": 377,
           "subDomains": [
             {
               "name": "projects",
               "path": "C:/BeausCreators/02.BSC_Branch/projects",
-              "dirs": 224,
-              "all": 1288,
-              "md": 149,
-              "code": 333,
+              "dirs": 223,
+              "all": 1315,
+              "md": 154,
+              "code": 354,
               "docs": 25,
-              "other": 781
+              "other": 782
             },
             {
               "name": "sandbox",
               "path": "C:/BeausCreators/02.BSC_Branch/sandbox",
               "dirs": 110,
-              "all": 1097,
-              "md": 145,
-              "code": 309,
+              "all": 1100,
+              "md": 147,
+              "code": 310,
               "docs": 23,
               "other": 620
             },
@@ -642,9 +642,9 @@
             }
           ]
         },
-        "totalHeadingsCount": 167,
+        "totalHeadingsCount": 165,
         "totalWikiLinksCount": 2,
-        "totalWordCount": 33160,
+        "totalWordCount": 29129,
         "extractedTags": [],
         "topMarkdownDocs": [
           {
@@ -981,20 +981,6 @@
             "sizeKb": 1
           },
           {
-            "fileName": "teardown_report.md",
-            "filePath": "C:/BeausCreators/02.BSC_Branch/projects/01.게임/2.5D/game_16_bsc_tycoon_metaverse/docs/teardown_report.md",
-            "title": "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clea",
-            "headings": [
-              "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clean-Room Bui",
-              "1. 구현 체크리스트 (checklist.md 통합)"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "프로젝트 경로: C:\\BeausCreators\\02.BSCBranch\\projects\\01.게임\\2.5D\\game16bsctycoonmetaverse · 본사 REA 블루프린트 정본: C:\\BeausCreators\\01.BSCHQ\\6.KnowledgeIndex\\10.REATechBlueprints\\REA2026-10-26ZepGatherTownTycoonMetaver · Owner: 거누 (CTO), 시안 (CDO), 유나 (",
-            "lineCount": 21,
-            "sizeKb": 2
-          },
-          {
             "fileName": "STATUS.md",
             "filePath": "C:/BeausCreators/02.BSC_Branch/sandbox/01.APP_test/STATUS.md",
             "title": "STATUS — ARCHIVE",
@@ -1034,6 +1020,19 @@
             "summary": "Test third-party API integration and app state synchronization for mobile/web running apps. · Geolocation API telemetry logging. · Offline data storage & sync buffer.",
             "lineCount": 9,
             "sizeKb": 1
+          },
+          {
+            "fileName": "CLAUDE.md",
+            "filePath": "C:/BeausCreators/02.BSC_Branch/sandbox/앱 연동 테스트/Runnow_Test/CLAUDE.md",
+            "title": "📱 Running App Test Codebase Directive",
+            "headings": [
+              "📱 Running App Test Codebase Directive"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "Location: 6.샌드박스/앱 연동 테스트/runningapp · Test sandbox codebase directives for AI Agents.",
+            "lineCount": 5,
+            "sizeKb": 1
           }
         ]
       }
@@ -1048,7 +1047,7 @@
       "path": "C:\\\\Warehouse",
       "connectedAt": "2026-10-22T12:41:23.863Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:34.631Z",
+        "analyzedAt": "2026-10-27T09:08:20.753Z",
         "totalFilesScanned": 96,
         "markdownFileCount": 54,
         "otherFileCount": 42,
@@ -1555,19 +1554,19 @@
       "path": "C:\\\\BeausCreators\\\\03.Research",
       "connectedAt": "2026-10-22T12:41:26.178Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:34.960Z",
+        "analyzedAt": "2026-10-27T09:08:20.840Z",
         "totalFilesScanned": 82,
         "markdownFileCount": 49,
         "otherFileCount": 33,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 44,
-          "totalAllFilesOnDisk": 187,
-          "totalMdFilesOnDisk": 71,
-          "totalCodeFilesOnDisk": 46,
+          "totalDirsOnDisk": 56,
+          "totalAllFilesOnDisk": 281,
+          "totalMdFilesOnDisk": 78,
+          "totalCodeFilesOnDisk": 53,
           "totalOfficeDocsOnDisk": 11,
-          "totalOtherAssetsOnDisk": 59,
-          "remainingUnextractedFiles": 105,
-          "remainingUnextractedMdFiles": 22,
+          "totalOtherAssetsOnDisk": 139,
+          "remainingUnextractedFiles": 199,
+          "remainingUnextractedMdFiles": 29,
           "subDomains": [
             {
               "name": "바이브코딩 연구",
@@ -1588,6 +1587,16 @@
               "code": 20,
               "docs": 1,
               "other": 17
+            },
+            {
+              "name": "Zep_GatherTown_Metaverse_Reference",
+              "path": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference",
+              "dirs": 12,
+              "all": 94,
+              "md": 7,
+              "code": 7,
+              "docs": 0,
+              "other": 80
             },
             {
               "name": "notes",
@@ -1611,9 +1620,9 @@
             }
           ]
         },
-        "totalHeadingsCount": 376,
+        "totalHeadingsCount": 399,
         "totalWikiLinksCount": 26,
-        "totalWordCount": 84010,
+        "totalWordCount": 74865,
         "extractedTags": [
           "FF6B6B"
         ],
@@ -1939,104 +1948,120 @@
             "sizeKb": 1
           },
           {
-            "fileName": "README.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/holo/README.md",
-            "title": "holo/",
+            "fileName": "BSC_Browser_Platform_Chrome_and_Dedicated_Browser_Planning_2026-08-26.md",
+            "filePath": "C:/BeausCreators/03.Research/notes/2026-08-26_기획참고/BSC_Browser_Platform_Chrome_and_Dedicated_Browser_Planning_2026-08-26.md",
+            "title": "BSC Browser Platform",
             "headings": [
-              "holo/"
+              "BSC Browser Platform",
+              "Chrome Agent Extension + Company Dedicated Browser",
+              "1. 핵심 전략",
+              "2. 전체 아키텍처",
+              "3. Chrome Client"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "The same model files render as the blue hologram wireframe here. The folder IS the render law.",
-            "lineCount": 4,
-            "sizeKb": 1
+            "summary": "작성 기준일: 2026-08-26 · 목표: 공통 Agent Core를 기반으로 Chrome용 BSC Agent와 회사 전용 독립 BSC Browser를 동시에 운영하는 Browser Execution OS 구축 · Chrome용 BSC Agent Extension과 회사 전용 BSC Dedicated Browser를 둘 다 만든다.",
+            "lineCount": 191,
+            "sizeKb": 7
           },
           {
-            "fileName": "README.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/misc/README.md",
-            "title": "misc/",
+            "fileName": "REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+            "title": "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기",
             "headings": [
-              "misc/"
+              "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기술 분석 및 BSC",
+              "1. Stage 1 — 물리적 표면 및 기술 스택 분포 (Physical Surface Census)",
+              "2. Stage 2 — 핵심 아키텍처 패턴 및 심볼 역추적 (AST / Structural Deconstruction)",
+              "3. Stage 3 — 법무(엘렌) · 보안(수호) 감사 및 방어 기술 (Defensive Adaptation)",
+              "4. Stage 4 — BSC 클린룸 재구축 및 Google Harness² 연동 지침"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "Images land here. Stage with board.sh as misc/<file>, or tap the ring, then the Props orb.",
-            "lineCount": 4,
-            "sizeKb": 1
+            "summary": "분석 일시: 2026-10-26T07:01:41.343Z · 분석 대상 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse · 실측 물리 지표: 파일 6개 | 용량 82,194 bytes | 코드/문서 1,906 lines",
+            "lineCount": 42,
+            "sizeKb": 3
           },
           {
-            "fileName": "README.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/models/README.md",
-            "title": "models/",
+            "fileName": "BSC_2027_BM_및_프로덕트_수익화_마스터플랜.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/BSC_2027_BM_및_프로덕트_수익화_마스터플랜.md",
+            "title": "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (CEO 승인 정본)",
             "headings": [
-              "models/"
+              "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (CEO 승인 정본)",
+              "1. 다중 에이전트 워룸 라운드테이블 (War Room Roundtable)",
+              "2. 전사 보유 자산 실측 인벤토리 (Implemented vs. Planned Split)",
+              "3. 2027년 중반기 수익화 시뮬레이션 및 가격(Pricing) 설계",
+              "3-1. 프로덕트별 기준 단가안 (초안 — 추후 단계별 조정 가능)"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "3D models (.glb/.gltf) render REAL here: full textures. Parted models can EXPLODE.",
-            "lineCount": 4,
-            "sizeKb": 1
+            "summary": "승인 일자: 2026-10-26 · 승인자: 이건우 대표님 (CEO, BeausCreators) · 수립 및 총괄: 수석비서 소하(soha), 비서실장 태준(taejun), CFO 도현(dohyun), BI 다인(dain), CTO 거누(geonu), 수석디자이너 시안(sian), 유니티코어 제이(jay), 게임개",
+            "lineCount": 157,
+            "sizeKb": 25
           },
           {
-            "fileName": "Make It Yours.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Make It Yours.md",
-            "title": "Make It Yours",
+            "fileName": "REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+            "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 ",
             "headings": [
-              "Make It Yours",
-              "The config (barehands.json)",
-              "Ideas people have asked for"
+              "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 BSC 타이쿤 메타",
+              "1. Stage 1 — 4분할 증거 추적 (4-Split Evidence Provenance)",
+              "1-1. Observations (관측된 물리적·기능적 팩트)",
+              "1-2. Derivations (수학적·구조적 파생 공식)",
+              "1-3. Inferences (BSC 타이쿤 메타버스 확장을 위한 아키텍처 추론)"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "Everything here is a starting point. The whole system is one HTML page, one small Python server, and one config file. No · name: what the ring says. Your assistant's name, in lights. · port: where the server listens (default 8794).",
+            "summary": "분석 일시: 2026-10-26T15:52:00+09:00 · 분석 대상: ZEP (zep.us / ZEP Map Editor & ZEP Script SDK) 및 Gather.town (gather.town / Spatial Tile Engine & Mapmaker) · 재구축 타겟 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse (및",
+            "lineCount": 62,
+            "sizeKb": 7
+          },
+          {
+            "fileName": "REA_2026-10-27_Zep_GatherTown_Collider_And_Layer_Separation.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_2026-10-27_Zep_GatherTown_Collider_And_Layer_Separation.md",
+            "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 레이어 분리(책상·의자",
+            "headings": [
+              "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 레이어 분리(책상·의자·캐릭터) 및 타일",
+              "1. Stage 1 — 문제 진단 및 4분할 증거 추적 (4-Split Evidence Provenance)",
+              "1-1. 기존 프로토타입의 구조적 결함 원인 (Root Cause Analysis)",
+              "1-2. Observations (ZEP & Gather.town 관측 팩트)",
+              "1-3. Derivations (수학적·알고리즘 파생 공식)"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "분석 일시: 2026-10-27T12:43:30+09:00 · 분석 대상: ZEP (zep.us Map Editor / Tile Collider / Layer Occlusion) 및 Gather.town (gather.town Mapmaker / Impassable Tile / · 적용 대상: C:\\BeausCreators\\03.Research\\ZepGatherTownMetaverseReference\\prototype 및 An",
+            "lineCount": 41,
+            "sizeKb": 5
+          },
+          {
+            "fileName": "REA_CleanRoom_Blueprint_game_16_bsc_tycoon_metaverse.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_CleanRoom_Blueprint_game_16_bsc_tycoon_metaverse.md",
+            "title": "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기",
+            "headings": [
+              "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기술 분석 및 BSC",
+              "1. Stage 1 — 물리적 표면 및 기술 스택 분포 (Physical Surface Census)",
+              "2. Stage 2 — 핵심 아키텍처 패턴 및 심볼 역추적 (AST / Structural Deconstruction)",
+              "3. Stage 3 — 법무(엘렌) · 보안(수호) 감사 및 방어 기술 (Defensive Adaptation)",
+              "4. Stage 4 — BSC 클린룸 재구축 및 Google Harness² 연동 지침"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "분석 일시: 2026-10-26T07:01:41.343Z · 분석 대상 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse · 실측 물리 지표: 파일 6개 | 용량 82,194 bytes | 코드/문서 1,906 lines",
+            "lineCount": 42,
+            "sizeKb": 3
+          },
+          {
+            "fileName": "teardown_report.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/teardown_report.md",
+            "title": "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clea",
+            "headings": [
+              "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clean-Room Bui",
+              "1. 구현 체크리스트 (checklist.md 통합)"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "프로젝트 경로: C:\\BeausCreators\\02.BSCBranch\\projects\\01.게임\\2.5D\\game16bsctycoonmetaverse · 본사 REA 블루프린트 정본: C:\\BeausCreators\\01.BSCHQ\\6.KnowledgeIndex\\10.REATechBlueprints\\REA2026-10-26ZepGatherTownTycoonMetaver · Owner: 거누 (CTO), 시안 (CDO), 유나 (",
             "lineCount": 21,
-            "sizeKb": 1
-          },
-          {
-            "fileName": "Props and Models.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Props and Models.md",
-            "title": "Props and Models",
-            "headings": [
-              "Props and Models",
-              "The folders are the render law",
-              "Where to get models"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "The media/ folder is the airlock: the only place the board will ever stage a file from. That's a safety feature: your AI · media/misc/: images. Stage as framed glass cards. · media/fx/: transparent props. Render NAKED (no frame, no chrome),",
-            "lineCount": 17,
-            "sizeKb": 1
-          },
-          {
-            "fileName": "Streaming and Recording.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Streaming and Recording.md",
-            "title": "Streaming and Recording (advanced)",
-            "headings": [
-              "Streaming and Recording (advanced)",
-              "The two-page split",
-              "The knobs (URL parameters on the render page)"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "For everyday use you only need the tracker page: full screen, camera on, done. But barehands was born on camera, and it  · One scene, two views: · The tracker (stage.html) owns your camera and physics. This is YOUR monitor.",
-            "lineCount": 23,
             "sizeKb": 2
-          },
-          {
-            "fileName": "The Gestures.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Getting Started/The Gestures.md",
-            "title": "The Gestures",
-            "headings": [
-              "The Gestures",
-              "The basics",
-              "The theatrical ones",
-              "Keys"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "Every gesture is a movement, not a pose. These were tuned on a real human hand over many, many rounds; trust them. · TAP (a quick pinch, no travel) opens a closed thing, closes an open thing. Cards open into notes. Notes close at their t · ",
-            "lineCount": 24,
-            "sizeKb": 1
           }
         ]
       }
@@ -2051,7 +2076,7 @@
       "path": "C:\\\\BeausCreators\\\\04.Publisher",
       "connectedAt": "2026-10-22T12:41:28.728Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:35.186Z",
+        "analyzedAt": "2026-10-27T09:08:20.909Z",
         "totalFilesScanned": 45,
         "markdownFileCount": 16,
         "otherFileCount": 29,
@@ -2389,7 +2414,7 @@
       "path": "C:\\\\BeautifulWorld",
       "connectedAt": "2026-10-22T12:41:32.168Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:35.350Z",
+        "analyzedAt": "2026-10-27T09:08:21.003Z",
         "totalFilesScanned": 52,
         "markdownFileCount": 46,
         "otherFileCount": 6,
@@ -2883,19 +2908,19 @@
       "path": "C:\\\\BSC_Javis_OS",
       "connectedAt": "2026-10-22T12:41:34.629Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:35.789Z",
-        "totalFilesScanned": 90,
+        "analyzedAt": "2026-10-27T09:08:21.165Z",
+        "totalFilesScanned": 91,
         "markdownFileCount": 26,
-        "otherFileCount": 64,
+        "otherFileCount": 65,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 265,
-          "totalAllFilesOnDisk": 1467,
-          "totalMdFilesOnDisk": 187,
-          "totalCodeFilesOnDisk": 760,
+          "totalDirsOnDisk": 274,
+          "totalAllFilesOnDisk": 1522,
+          "totalMdFilesOnDisk": 194,
+          "totalCodeFilesOnDisk": 772,
           "totalOfficeDocsOnDisk": 41,
-          "totalOtherAssetsOnDisk": 479,
-          "remainingUnextractedFiles": 1377,
-          "remainingUnextractedMdFiles": 161,
+          "totalOtherAssetsOnDisk": 515,
+          "remainingUnextractedFiles": 1431,
+          "remainingUnextractedMdFiles": 168,
           "subDomains": [
             {
               "name": "research",
@@ -2910,19 +2935,19 @@
             {
               "name": "public",
               "path": "C:/BSC_Javis_OS/public",
-              "dirs": 16,
-              "all": 140,
-              "md": 5,
-              "code": 47,
+              "dirs": 24,
+              "all": 184,
+              "md": 9,
+              "code": 54,
               "docs": 14,
-              "other": 74
+              "other": 107
             },
             {
               "name": "vault",
               "path": "C:/BSC_Javis_OS/vault",
-              "dirs": 9,
-              "all": 43,
-              "md": 20,
+              "dirs": 10,
+              "all": 46,
+              "md": 23,
               "code": 6,
               "docs": 12,
               "other": 5
@@ -2931,9 +2956,9 @@
               "name": "scripts",
               "path": "C:/BSC_Javis_OS/scripts",
               "dirs": 1,
-              "all": 18,
+              "all": 23,
               "md": 0,
-              "code": 18,
+              "code": 23,
               "docs": 0,
               "other": 0
             },
@@ -2969,9 +2994,9 @@
             }
           ]
         },
-        "totalHeadingsCount": 162,
-        "totalWikiLinksCount": 79,
-        "totalWordCount": 195077,
+        "totalHeadingsCount": 150,
+        "totalWikiLinksCount": 89,
+        "totalWordCount": 159042,
         "extractedTags": [],
         "topMarkdownDocs": [
           {
@@ -3082,10 +3107,12 @@
               "[2026-10-26] SasariSa (mvcompany8500-web/sasarisa) REA Windows 11 역공학 "
             ],
             "tags": [],
-            "wikiLinks": [],
+            "wikiLinks": [
+              "위키링크"
+            ],
             "summary": "1. Google AI Studio (C:\\Users\\USER\\antigravity\\Jarvis-Open-AI-Assistant) 22개 전체 컴포넌트 & 18대 스튜디오 100% 통합: · 상단 통합 워크스페이스 바(#unified-workspace-bar) 및 부팅 시 AISTUDIOHUB 자동 소환으로 두 시스템이 한 화면에서 즉시 작동하도록 완성. · MAPSREASTUDIO에 WIKI(JarvisKnowledgeWik",
-            "lineCount": 67,
-            "sizeKb": 8
+            "lineCount": 76,
+            "sizeKb": 9
           },
           {
             "fileName": "jarvis_deep_research_report.md",
@@ -3328,40 +3355,35 @@
             "tags": [],
             "wikiLinks": [],
             "summary": "대표님: 거누야, 지금 자비스랑 ADE, IDE가 어떻게 실시간으로 연결되어 있고 반응형 디자인은 어떻게 바뀌었는지 자연스럽게 설명해줘. · 재호: 대표님, 지금 저희 시스템은 ADE(C:\\BeausCreators\\01.BSCHQ)와 Antigravity IDE(c:\\BSCJavisOS)를 통해 실시간으로 연결되어 모든 작업의 맥락을 공유하고 있습니다.  · 유나: 유나도 이 연결을 통해 프론트엔드 구현 단계에서 시각적 변화에",
-            "lineCount": 383,
-            "sizeKb": 39
+            "lineCount": 1031,
+            "sizeKb": 84
           },
           {
             "fileName": "Live_Neuron_Digest.md",
             "filePath": "C:/BSC_Javis_OS/vault/Live_Neuron_Digest.md",
-            "title": "뉴런 홈 실시간 요약",
-            "headings": [
-              "뉴런 홈 실시간 요약",
-              "2026-10-22T07:04:13.693Z",
-              "2026-10-22T07:04:56.702Z",
-              "2026-10-22T07:05:15.861Z",
-              "2026-10-22T07:08:17.243Z"
-            ],
+            "title": "Live_Neuron_Digest.md",
+            "headings": [],
             "tags": [],
             "wikiLinks": [],
-            "summary": "원본 문서는 수정하지 않고, 최근 바뀐 제목만 적는다. · Warehouse: ⚡ 전사 토큰 최적화 및 프롬프트 캐싱 운영 표준 지침서 (SOP) · ⚡ BSC 전사 지식·스킬 초경량 최적화 아키텍처 헌장 (Lean-Knowledge Protocol) · Proceed —  · BeausCreators:",
-            "lineCount": 1445,
-            "sizeKb": 336
+            "summary": "대용량 파일 (1109KB)",
+            "lineCount": 0,
+            "sizeKb": 1109
           },
           {
             "fileName": "REA_SasariSa_Windows_Blueprint.md",
             "filePath": "C:/BSC_Javis_OS/vault/REA_SasariSa_Windows_Blueprint.md",
             "title": "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Window",
             "headings": [
-              "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Windows 11 Nativ",
-              "1. macOS ➔ Windows 11 6대 핵심 모듈 1:1 매핑",
-              "2. 되돌릴 수 없는 작업(Irreversible Actions) 2중 안전장치"
+              "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Windows 11 Voice",
+              "1. 핵심 아키텍처 매핑"
             ],
             "tags": [],
-            "wikiLinks": [],
+            "wikiLinks": [
+              "위키링크"
+            ],
             "summary": "원본 GitHub: https://github.com/mvcompany8500-web/sasarisa · 원본 시연 영상: https://youtube.com/watch?v=muY9-sCxZlg · 역공학 엔진: BSC REA 4-Stage Clean-Room Analyzer (Invoke-ReaAnalyzer.js)",
-            "lineCount": 29,
-            "sizeKb": 3
+            "lineCount": 26,
+            "sizeKb": 2
           },
           {
             "fileName": "covision_1792565287499.md",
@@ -3429,26 +3451,26 @@
       "path": "C:\\\\BeausCreators\\\\01.BSC_HQ",
       "connectedAt": "2026-10-22T12:41:20.984Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:32.137Z",
+        "analyzedAt": "2026-10-27T09:08:18.858Z",
         "totalFilesScanned": 133,
         "markdownFileCount": 102,
         "otherFileCount": 31,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 428,
-          "totalAllFilesOnDisk": 2528,
-          "totalMdFilesOnDisk": 903,
-          "totalCodeFilesOnDisk": 261,
+          "totalDirsOnDisk": 435,
+          "totalAllFilesOnDisk": 2558,
+          "totalMdFilesOnDisk": 934,
+          "totalCodeFilesOnDisk": 260,
           "totalOfficeDocsOnDisk": 91,
           "totalOtherAssetsOnDisk": 1273,
-          "remainingUnextractedFiles": 2395,
-          "remainingUnextractedMdFiles": 801,
+          "remainingUnextractedFiles": 2425,
+          "remainingUnextractedMdFiles": 832,
           "subDomains": [
             {
               "name": "1.Documents",
               "path": "C:/BeausCreators/01.BSC_HQ/1.Documents",
-              "dirs": 98,
-              "all": 461,
-              "md": 333,
+              "dirs": 104,
+              "all": 491,
+              "md": 363,
               "code": 25,
               "docs": 72,
               "other": 31
@@ -3466,9 +3488,9 @@
             {
               "name": "6.Knowledge_Index",
               "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index",
-              "dirs": 104,
-              "all": 192,
-              "md": 146,
+              "dirs": 105,
+              "all": 193,
+              "md": 147,
               "code": 15,
               "docs": 18,
               "other": 13
@@ -3477,9 +3499,9 @@
               "name": "3.CompanyOS",
               "path": "C:/BeausCreators/01.BSC_HQ/3.CompanyOS",
               "dirs": 16,
-              "all": 146,
+              "all": 145,
               "md": 17,
-              "code": 111,
+              "code": 110,
               "docs": 0,
               "other": 18
             },
@@ -3537,7 +3559,7 @@
         },
         "totalHeadingsCount": 455,
         "totalWikiLinksCount": 90,
-        "totalWordCount": 101302,
+        "totalWordCount": 101303,
         "extractedTags": [],
         "topMarkdownDocs": [
           {
@@ -3953,37 +3975,37 @@
       "path": "C:\\\\BeausCreators\\\\02.BSC_Branch",
       "connectedAt": "2026-10-22T12:41:21.758Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:33.044Z",
+        "analyzedAt": "2026-10-27T09:08:19.406Z",
         "totalFilesScanned": 99,
-        "markdownFileCount": 37,
-        "otherFileCount": 62,
+        "markdownFileCount": 36,
+        "otherFileCount": 63,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 766,
-          "totalAllFilesOnDisk": 5696,
-          "totalMdFilesOnDisk": 406,
-          "totalCodeFilesOnDisk": 898,
+          "totalDirsOnDisk": 765,
+          "totalAllFilesOnDisk": 5726,
+          "totalMdFilesOnDisk": 413,
+          "totalCodeFilesOnDisk": 920,
           "totalOfficeDocsOnDisk": 91,
-          "totalOtherAssetsOnDisk": 4301,
-          "remainingUnextractedFiles": 5597,
-          "remainingUnextractedMdFiles": 369,
+          "totalOtherAssetsOnDisk": 4302,
+          "remainingUnextractedFiles": 5627,
+          "remainingUnextractedMdFiles": 377,
           "subDomains": [
             {
               "name": "projects",
               "path": "C:/BeausCreators/02.BSC_Branch/projects",
-              "dirs": 224,
-              "all": 1288,
-              "md": 149,
-              "code": 333,
+              "dirs": 223,
+              "all": 1315,
+              "md": 154,
+              "code": 354,
               "docs": 25,
-              "other": 781
+              "other": 782
             },
             {
               "name": "sandbox",
               "path": "C:/BeausCreators/02.BSC_Branch/sandbox",
               "dirs": 110,
-              "all": 1097,
-              "md": 145,
-              "code": 309,
+              "all": 1100,
+              "md": 147,
+              "code": 310,
               "docs": 23,
               "other": 620
             },
@@ -4059,9 +4081,9 @@
             }
           ]
         },
-        "totalHeadingsCount": 167,
+        "totalHeadingsCount": 165,
         "totalWikiLinksCount": 2,
-        "totalWordCount": 33160,
+        "totalWordCount": 29129,
         "extractedTags": [],
         "topMarkdownDocs": [
           {
@@ -4398,20 +4420,6 @@
             "sizeKb": 1
           },
           {
-            "fileName": "teardown_report.md",
-            "filePath": "C:/BeausCreators/02.BSC_Branch/projects/01.게임/2.5D/game_16_bsc_tycoon_metaverse/docs/teardown_report.md",
-            "title": "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clea",
-            "headings": [
-              "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clean-Room Bui",
-              "1. 구현 체크리스트 (checklist.md 통합)"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "프로젝트 경로: C:\\BeausCreators\\02.BSCBranch\\projects\\01.게임\\2.5D\\game16bsctycoonmetaverse · 본사 REA 블루프린트 정본: C:\\BeausCreators\\01.BSCHQ\\6.KnowledgeIndex\\10.REATechBlueprints\\REA2026-10-26ZepGatherTownTycoonMetaver · Owner: 거누 (CTO), 시안 (CDO), 유나 (",
-            "lineCount": 21,
-            "sizeKb": 2
-          },
-          {
             "fileName": "STATUS.md",
             "filePath": "C:/BeausCreators/02.BSC_Branch/sandbox/01.APP_test/STATUS.md",
             "title": "STATUS — ARCHIVE",
@@ -4451,6 +4459,19 @@
             "summary": "Test third-party API integration and app state synchronization for mobile/web running apps. · Geolocation API telemetry logging. · Offline data storage & sync buffer.",
             "lineCount": 9,
             "sizeKb": 1
+          },
+          {
+            "fileName": "CLAUDE.md",
+            "filePath": "C:/BeausCreators/02.BSC_Branch/sandbox/앱 연동 테스트/Runnow_Test/CLAUDE.md",
+            "title": "📱 Running App Test Codebase Directive",
+            "headings": [
+              "📱 Running App Test Codebase Directive"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "Location: 6.샌드박스/앱 연동 테스트/runningapp · Test sandbox codebase directives for AI Agents.",
+            "lineCount": 5,
+            "sizeKb": 1
           }
         ]
       }
@@ -4465,7 +4486,7 @@
       "path": "C:\\\\Warehouse",
       "connectedAt": "2026-10-22T12:41:23.863Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:34.631Z",
+        "analyzedAt": "2026-10-27T09:08:20.753Z",
         "totalFilesScanned": 96,
         "markdownFileCount": 54,
         "otherFileCount": 42,
@@ -4972,19 +4993,19 @@
       "path": "C:\\\\BeausCreators\\\\03.Research",
       "connectedAt": "2026-10-22T12:41:26.178Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:34.960Z",
+        "analyzedAt": "2026-10-27T09:08:20.840Z",
         "totalFilesScanned": 82,
         "markdownFileCount": 49,
         "otherFileCount": 33,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 44,
-          "totalAllFilesOnDisk": 187,
-          "totalMdFilesOnDisk": 71,
-          "totalCodeFilesOnDisk": 46,
+          "totalDirsOnDisk": 56,
+          "totalAllFilesOnDisk": 281,
+          "totalMdFilesOnDisk": 78,
+          "totalCodeFilesOnDisk": 53,
           "totalOfficeDocsOnDisk": 11,
-          "totalOtherAssetsOnDisk": 59,
-          "remainingUnextractedFiles": 105,
-          "remainingUnextractedMdFiles": 22,
+          "totalOtherAssetsOnDisk": 139,
+          "remainingUnextractedFiles": 199,
+          "remainingUnextractedMdFiles": 29,
           "subDomains": [
             {
               "name": "바이브코딩 연구",
@@ -5005,6 +5026,16 @@
               "code": 20,
               "docs": 1,
               "other": 17
+            },
+            {
+              "name": "Zep_GatherTown_Metaverse_Reference",
+              "path": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference",
+              "dirs": 12,
+              "all": 94,
+              "md": 7,
+              "code": 7,
+              "docs": 0,
+              "other": 80
             },
             {
               "name": "notes",
@@ -5028,9 +5059,9 @@
             }
           ]
         },
-        "totalHeadingsCount": 376,
+        "totalHeadingsCount": 399,
         "totalWikiLinksCount": 26,
-        "totalWordCount": 84010,
+        "totalWordCount": 74865,
         "extractedTags": [
           "FF6B6B"
         ],
@@ -5356,104 +5387,120 @@
             "sizeKb": 1
           },
           {
-            "fileName": "README.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/holo/README.md",
-            "title": "holo/",
+            "fileName": "BSC_Browser_Platform_Chrome_and_Dedicated_Browser_Planning_2026-08-26.md",
+            "filePath": "C:/BeausCreators/03.Research/notes/2026-08-26_기획참고/BSC_Browser_Platform_Chrome_and_Dedicated_Browser_Planning_2026-08-26.md",
+            "title": "BSC Browser Platform",
             "headings": [
-              "holo/"
+              "BSC Browser Platform",
+              "Chrome Agent Extension + Company Dedicated Browser",
+              "1. 핵심 전략",
+              "2. 전체 아키텍처",
+              "3. Chrome Client"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "The same model files render as the blue hologram wireframe here. The folder IS the render law.",
-            "lineCount": 4,
-            "sizeKb": 1
+            "summary": "작성 기준일: 2026-08-26 · 목표: 공통 Agent Core를 기반으로 Chrome용 BSC Agent와 회사 전용 독립 BSC Browser를 동시에 운영하는 Browser Execution OS 구축 · Chrome용 BSC Agent Extension과 회사 전용 BSC Dedicated Browser를 둘 다 만든다.",
+            "lineCount": 191,
+            "sizeKb": 7
           },
           {
-            "fileName": "README.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/misc/README.md",
-            "title": "misc/",
+            "fileName": "REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+            "title": "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기",
             "headings": [
-              "misc/"
+              "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기술 분석 및 BSC",
+              "1. Stage 1 — 물리적 표면 및 기술 스택 분포 (Physical Surface Census)",
+              "2. Stage 2 — 핵심 아키텍처 패턴 및 심볼 역추적 (AST / Structural Deconstruction)",
+              "3. Stage 3 — 법무(엘렌) · 보안(수호) 감사 및 방어 기술 (Defensive Adaptation)",
+              "4. Stage 4 — BSC 클린룸 재구축 및 Google Harness² 연동 지침"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "Images land here. Stage with board.sh as misc/<file>, or tap the ring, then the Props orb.",
-            "lineCount": 4,
-            "sizeKb": 1
+            "summary": "분석 일시: 2026-10-26T07:01:41.343Z · 분석 대상 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse · 실측 물리 지표: 파일 6개 | 용량 82,194 bytes | 코드/문서 1,906 lines",
+            "lineCount": 42,
+            "sizeKb": 3
           },
           {
-            "fileName": "README.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/models/README.md",
-            "title": "models/",
+            "fileName": "BSC_2027_BM_및_프로덕트_수익화_마스터플랜.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/BSC_2027_BM_및_프로덕트_수익화_마스터플랜.md",
+            "title": "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (CEO 승인 정본)",
             "headings": [
-              "models/"
+              "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (CEO 승인 정본)",
+              "1. 다중 에이전트 워룸 라운드테이블 (War Room Roundtable)",
+              "2. 전사 보유 자산 실측 인벤토리 (Implemented vs. Planned Split)",
+              "3. 2027년 중반기 수익화 시뮬레이션 및 가격(Pricing) 설계",
+              "3-1. 프로덕트별 기준 단가안 (초안 — 추후 단계별 조정 가능)"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "3D models (.glb/.gltf) render REAL here: full textures. Parted models can EXPLODE.",
-            "lineCount": 4,
-            "sizeKb": 1
+            "summary": "승인 일자: 2026-10-26 · 승인자: 이건우 대표님 (CEO, BeausCreators) · 수립 및 총괄: 수석비서 소하(soha), 비서실장 태준(taejun), CFO 도현(dohyun), BI 다인(dain), CTO 거누(geonu), 수석디자이너 시안(sian), 유니티코어 제이(jay), 게임개",
+            "lineCount": 157,
+            "sizeKb": 25
           },
           {
-            "fileName": "Make It Yours.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Make It Yours.md",
-            "title": "Make It Yours",
+            "fileName": "REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+            "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 ",
             "headings": [
-              "Make It Yours",
-              "The config (barehands.json)",
-              "Ideas people have asked for"
+              "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 BSC 타이쿤 메타",
+              "1. Stage 1 — 4분할 증거 추적 (4-Split Evidence Provenance)",
+              "1-1. Observations (관측된 물리적·기능적 팩트)",
+              "1-2. Derivations (수학적·구조적 파생 공식)",
+              "1-3. Inferences (BSC 타이쿤 메타버스 확장을 위한 아키텍처 추론)"
             ],
             "tags": [],
             "wikiLinks": [],
-            "summary": "Everything here is a starting point. The whole system is one HTML page, one small Python server, and one config file. No · name: what the ring says. Your assistant's name, in lights. · port: where the server listens (default 8794).",
+            "summary": "분석 일시: 2026-10-26T15:52:00+09:00 · 분석 대상: ZEP (zep.us / ZEP Map Editor & ZEP Script SDK) 및 Gather.town (gather.town / Spatial Tile Engine & Mapmaker) · 재구축 타겟 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse (및",
+            "lineCount": 62,
+            "sizeKb": 7
+          },
+          {
+            "fileName": "REA_2026-10-27_Zep_GatherTown_Collider_And_Layer_Separation.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_2026-10-27_Zep_GatherTown_Collider_And_Layer_Separation.md",
+            "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 레이어 분리(책상·의자",
+            "headings": [
+              "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 레이어 분리(책상·의자·캐릭터) 및 타일",
+              "1. Stage 1 — 문제 진단 및 4분할 증거 추적 (4-Split Evidence Provenance)",
+              "1-1. 기존 프로토타입의 구조적 결함 원인 (Root Cause Analysis)",
+              "1-2. Observations (ZEP & Gather.town 관측 팩트)",
+              "1-3. Derivations (수학적·알고리즘 파생 공식)"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "분석 일시: 2026-10-27T12:43:30+09:00 · 분석 대상: ZEP (zep.us Map Editor / Tile Collider / Layer Occlusion) 및 Gather.town (gather.town Mapmaker / Impassable Tile / · 적용 대상: C:\\BeausCreators\\03.Research\\ZepGatherTownMetaverseReference\\prototype 및 An",
+            "lineCount": 41,
+            "sizeKb": 5
+          },
+          {
+            "fileName": "REA_CleanRoom_Blueprint_game_16_bsc_tycoon_metaverse.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_CleanRoom_Blueprint_game_16_bsc_tycoon_metaverse.md",
+            "title": "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기",
+            "headings": [
+              "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기술 분석 및 BSC",
+              "1. Stage 1 — 물리적 표면 및 기술 스택 분포 (Physical Surface Census)",
+              "2. Stage 2 — 핵심 아키텍처 패턴 및 심볼 역추적 (AST / Structural Deconstruction)",
+              "3. Stage 3 — 법무(엘렌) · 보안(수호) 감사 및 방어 기술 (Defensive Adaptation)",
+              "4. Stage 4 — BSC 클린룸 재구축 및 Google Harness² 연동 지침"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "분석 일시: 2026-10-26T07:01:41.343Z · 분석 대상 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse · 실측 물리 지표: 파일 6개 | 용량 82,194 bytes | 코드/문서 1,906 lines",
+            "lineCount": 42,
+            "sizeKb": 3
+          },
+          {
+            "fileName": "teardown_report.md",
+            "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/teardown_report.md",
+            "title": "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clea",
+            "headings": [
+              "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clean-Room Bui",
+              "1. 구현 체크리스트 (checklist.md 통합)"
+            ],
+            "tags": [],
+            "wikiLinks": [],
+            "summary": "프로젝트 경로: C:\\BeausCreators\\02.BSCBranch\\projects\\01.게임\\2.5D\\game16bsctycoonmetaverse · 본사 REA 블루프린트 정본: C:\\BeausCreators\\01.BSCHQ\\6.KnowledgeIndex\\10.REATechBlueprints\\REA2026-10-26ZepGatherTownTycoonMetaver · Owner: 거누 (CTO), 시안 (CDO), 유나 (",
             "lineCount": 21,
-            "sizeKb": 1
-          },
-          {
-            "fileName": "Props and Models.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Props and Models.md",
-            "title": "Props and Models",
-            "headings": [
-              "Props and Models",
-              "The folders are the render law",
-              "Where to get models"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "The media/ folder is the airlock: the only place the board will ever stage a file from. That's a safety feature: your AI · media/misc/: images. Stage as framed glass cards. · media/fx/: transparent props. Render NAKED (no frame, no chrome),",
-            "lineCount": 17,
-            "sizeKb": 1
-          },
-          {
-            "fileName": "Streaming and Recording.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Streaming and Recording.md",
-            "title": "Streaming and Recording (advanced)",
-            "headings": [
-              "Streaming and Recording (advanced)",
-              "The two-page split",
-              "The knobs (URL parameters on the render page)"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "For everyday use you only need the tracker page: full screen, camera on, done. But barehands was born on camera, and it  · One scene, two views: · The tracker (stage.html) owns your camera and physics. This is YOUR monitor.",
-            "lineCount": 23,
             "sizeKb": 2
-          },
-          {
-            "fileName": "The Gestures.md",
-            "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Getting Started/The Gestures.md",
-            "title": "The Gestures",
-            "headings": [
-              "The Gestures",
-              "The basics",
-              "The theatrical ones",
-              "Keys"
-            ],
-            "tags": [],
-            "wikiLinks": [],
-            "summary": "Every gesture is a movement, not a pose. These were tuned on a real human hand over many, many rounds; trust them. · TAP (a quick pinch, no travel) opens a closed thing, closes an open thing. Cards open into notes. Notes close at their t · ",
-            "lineCount": 24,
-            "sizeKb": 1
           }
         ]
       }
@@ -5468,7 +5515,7 @@
       "path": "C:\\\\BeausCreators\\\\04.Publisher",
       "connectedAt": "2026-10-22T12:41:28.728Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:35.186Z",
+        "analyzedAt": "2026-10-27T09:08:20.909Z",
         "totalFilesScanned": 45,
         "markdownFileCount": 16,
         "otherFileCount": 29,
@@ -5806,7 +5853,7 @@
       "path": "C:\\\\BeautifulWorld",
       "connectedAt": "2026-10-22T12:41:32.168Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:35.350Z",
+        "analyzedAt": "2026-10-27T09:08:21.003Z",
         "totalFilesScanned": 52,
         "markdownFileCount": 46,
         "otherFileCount": 6,
@@ -6300,19 +6347,19 @@
       "path": "C:\\\\BSC_Javis_OS",
       "connectedAt": "2026-10-22T12:41:34.629Z",
       "analysisSummary": {
-        "analyzedAt": "2026-10-26T07:01:35.789Z",
-        "totalFilesScanned": 90,
+        "analyzedAt": "2026-10-27T09:08:21.165Z",
+        "totalFilesScanned": 91,
         "markdownFileCount": 26,
-        "otherFileCount": 64,
+        "otherFileCount": 65,
         "fullDiskCensus": {
-          "totalDirsOnDisk": 265,
-          "totalAllFilesOnDisk": 1467,
-          "totalMdFilesOnDisk": 187,
-          "totalCodeFilesOnDisk": 760,
+          "totalDirsOnDisk": 274,
+          "totalAllFilesOnDisk": 1522,
+          "totalMdFilesOnDisk": 194,
+          "totalCodeFilesOnDisk": 772,
           "totalOfficeDocsOnDisk": 41,
-          "totalOtherAssetsOnDisk": 479,
-          "remainingUnextractedFiles": 1377,
-          "remainingUnextractedMdFiles": 161,
+          "totalOtherAssetsOnDisk": 515,
+          "remainingUnextractedFiles": 1431,
+          "remainingUnextractedMdFiles": 168,
           "subDomains": [
             {
               "name": "research",
@@ -6327,19 +6374,19 @@
             {
               "name": "public",
               "path": "C:/BSC_Javis_OS/public",
-              "dirs": 16,
-              "all": 140,
-              "md": 5,
-              "code": 47,
+              "dirs": 24,
+              "all": 184,
+              "md": 9,
+              "code": 54,
               "docs": 14,
-              "other": 74
+              "other": 107
             },
             {
               "name": "vault",
               "path": "C:/BSC_Javis_OS/vault",
-              "dirs": 9,
-              "all": 43,
-              "md": 20,
+              "dirs": 10,
+              "all": 46,
+              "md": 23,
               "code": 6,
               "docs": 12,
               "other": 5
@@ -6348,9 +6395,9 @@
               "name": "scripts",
               "path": "C:/BSC_Javis_OS/scripts",
               "dirs": 1,
-              "all": 18,
+              "all": 23,
               "md": 0,
-              "code": 18,
+              "code": 23,
               "docs": 0,
               "other": 0
             },
@@ -6386,9 +6433,9 @@
             }
           ]
         },
-        "totalHeadingsCount": 162,
-        "totalWikiLinksCount": 79,
-        "totalWordCount": 195077,
+        "totalHeadingsCount": 150,
+        "totalWikiLinksCount": 89,
+        "totalWordCount": 159042,
         "extractedTags": [],
         "topMarkdownDocs": [
           {
@@ -6499,10 +6546,12 @@
               "[2026-10-26] SasariSa (mvcompany8500-web/sasarisa) REA Windows 11 역공학 "
             ],
             "tags": [],
-            "wikiLinks": [],
+            "wikiLinks": [
+              "위키링크"
+            ],
             "summary": "1. Google AI Studio (C:\\Users\\USER\\antigravity\\Jarvis-Open-AI-Assistant) 22개 전체 컴포넌트 & 18대 스튜디오 100% 통합: · 상단 통합 워크스페이스 바(#unified-workspace-bar) 및 부팅 시 AISTUDIOHUB 자동 소환으로 두 시스템이 한 화면에서 즉시 작동하도록 완성. · MAPSREASTUDIO에 WIKI(JarvisKnowledgeWik",
-            "lineCount": 67,
-            "sizeKb": 8
+            "lineCount": 76,
+            "sizeKb": 9
           },
           {
             "fileName": "jarvis_deep_research_report.md",
@@ -6745,40 +6794,35 @@
             "tags": [],
             "wikiLinks": [],
             "summary": "대표님: 거누야, 지금 자비스랑 ADE, IDE가 어떻게 실시간으로 연결되어 있고 반응형 디자인은 어떻게 바뀌었는지 자연스럽게 설명해줘. · 재호: 대표님, 지금 저희 시스템은 ADE(C:\\BeausCreators\\01.BSCHQ)와 Antigravity IDE(c:\\BSCJavisOS)를 통해 실시간으로 연결되어 모든 작업의 맥락을 공유하고 있습니다.  · 유나: 유나도 이 연결을 통해 프론트엔드 구현 단계에서 시각적 변화에",
-            "lineCount": 383,
-            "sizeKb": 39
+            "lineCount": 1031,
+            "sizeKb": 84
           },
           {
             "fileName": "Live_Neuron_Digest.md",
             "filePath": "C:/BSC_Javis_OS/vault/Live_Neuron_Digest.md",
-            "title": "뉴런 홈 실시간 요약",
-            "headings": [
-              "뉴런 홈 실시간 요약",
-              "2026-10-22T07:04:13.693Z",
-              "2026-10-22T07:04:56.702Z",
-              "2026-10-22T07:05:15.861Z",
-              "2026-10-22T07:08:17.243Z"
-            ],
+            "title": "Live_Neuron_Digest.md",
+            "headings": [],
             "tags": [],
             "wikiLinks": [],
-            "summary": "원본 문서는 수정하지 않고, 최근 바뀐 제목만 적는다. · Warehouse: ⚡ 전사 토큰 최적화 및 프롬프트 캐싱 운영 표준 지침서 (SOP) · ⚡ BSC 전사 지식·스킬 초경량 최적화 아키텍처 헌장 (Lean-Knowledge Protocol) · Proceed —  · BeausCreators:",
-            "lineCount": 1445,
-            "sizeKb": 336
+            "summary": "대용량 파일 (1109KB)",
+            "lineCount": 0,
+            "sizeKb": 1109
           },
           {
             "fileName": "REA_SasariSa_Windows_Blueprint.md",
             "filePath": "C:/BSC_Javis_OS/vault/REA_SasariSa_Windows_Blueprint.md",
             "title": "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Window",
             "headings": [
-              "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Windows 11 Nativ",
-              "1. macOS ➔ Windows 11 6대 핵심 모듈 1:1 매핑",
-              "2. 되돌릴 수 없는 작업(Irreversible Actions) 2중 안전장치"
+              "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Windows 11 Voice",
+              "1. 핵심 아키텍처 매핑"
             ],
             "tags": [],
-            "wikiLinks": [],
+            "wikiLinks": [
+              "위키링크"
+            ],
             "summary": "원본 GitHub: https://github.com/mvcompany8500-web/sasarisa · 원본 시연 영상: https://youtube.com/watch?v=muY9-sCxZlg · 역공학 엔진: BSC REA 4-Stage Clean-Room Analyzer (Invoke-ReaAnalyzer.js)",
-            "lineCount": 29,
-            "sizeKb": 3
+            "lineCount": 26,
+            "sizeKb": 2
           },
           {
             "fileName": "covision_1792565287499.md",

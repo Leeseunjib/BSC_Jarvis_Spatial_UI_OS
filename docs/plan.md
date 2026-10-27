@@ -64,3 +64,12 @@ Harness^2 엔진과 그 표면 파일은 수정하지 않는다. 대화 한 턴�
 3. **사사리사 시그니처 디자인 (`#sasarisa-voice-pill`) & 기존 기술 100% 보존**:
    - 화면 상단 중앙 캡슐형 플로팅 보이스 바(`Alt+Space` 단축키 및 상단바 `🎙️ 사사리사` 버튼)와 `🤖 두뇌·도구` 대시보드 내 4대 멀티 LLM 커넥터 & 사사리사 Windows 컨트롤 센터 통합.
    - 기존 뉴런홈 6대 뷰, 23,595개 파일 전수 파악, 18대 AI Studio, ArtCraft 13종 실시간 제어, HOLO 카메라 제스처, 현수 HD TTS, 에이전트 워룸 100% 무손실 유지.
+
+
+---
+
+## [2026-10-27 10:35] 사사리사(SasariSa) Voice-First 무겹침 HUD · Google Gemini CLI (`gemini-4-argon` OAuth $0) · 3중 음성인식(STT)/100% 음성발화 복구 · 원클릭 옵시디언×노션 뉴런 스튜디오 구축 완료
+- **Google Gemini CLI & `gemini-4-argon` OAuth ($0 추가과금)**: `scripts/multi-llm-provider-hub.js` 및 `/api/jarvis/llm-hub/oauth-login`에 `geminiAuthMode: 'oauth'` 기본 탑재 (`~/.gemini/oauth_creds.json` + `gemini` CLI 브릿지 연동으로 추가 API 과금 $0 보장).
+- **음성 거부 환각 차단 & 100% 음성 발화**: `VOICE_FIRST_IDENTITY_DIRECTIVE` 및 `sanitizeVoiceDenialHallucination()`으로 '텍스트 기반의 논리적 설계' 답변 원천 차단 및 96kbps 현수/선희 HD TTS 자동 재생.
+- **3중 한국어 연속 음성인식(STT) 복구**: `public/js/multimodal-engine.js`에 `continuous: true` + 실시간 자막 + 1.2초 침묵 자동 전송 + WebAudio 24-Bar 마이크 파형 미터 + `/api/jarvis/stt` Windows SAPI 폴백 구현.
+- **뉴런(점) 원클릭 옵시디언×노션 스튜디오**: `public/js/graph-engine.js` 단일 클릭 시 `public/js/neuron-content-studio.js` 및 `scripts/rea-obsidian-notion-engine.js`를 통해 원문 열람, 노션 `/` 블록 편집, 옵시디언 `[[위키링크]]`·백링크·1-Hop 그래프 및 3D 뉴런홈 실시간 반영 완성.

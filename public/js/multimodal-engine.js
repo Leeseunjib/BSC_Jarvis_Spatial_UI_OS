@@ -74,8 +74,29 @@ window.MultimodalEngine = {
       this.refreshCameraDeviceList(false);
     }
 
-    // Keep initial screen clean on the Star-Cluster Knowledge Galaxy (Mockup #1);
-    // Studios open immediately whenever 대표님 clicks any studio button in the ribbon or dock.
+    // Start Always-On Continuous Korean Voice Recognition immediately on load (`Ear.swift` 1:1)
+    setTimeout(() => {
+      if (!this.isListening) {
+        this.alwaysListening = true;
+        this.startMicWaveformVisualizer();
+        try {
+          this.recognition?.start();
+        } catch (_) {}
+      }
+    }, 600);
+
+    // Also auto-resume voice recognition on the first click/keydown if the browser blocked cold-start mic
+    const autoResumeVoiceOnce = () => {
+      this.startMicWaveformVisualizer();
+      if (this.recognition && !this.isListening) {
+        this.alwaysListening = true;
+        try {
+          this.recognition.start();
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('pointerdown', autoResumeVoiceOnce, { once: true, passive: true });
+    window.addEventListener('keydown', autoResumeVoiceOnce, { once: true, passive: true });
   },
 
   initSSE() {
@@ -339,50 +360,357 @@ window.MultimodalEngine = {
     }
   },
 
+  alwaysListening: false,
+  _sttSilenceTimer: null,
+  _sttBufferText: '',
+  _micAudioCtx: null,
+  _micAnalyser: null,
+  _micAnimId: null,
+
+  updateSttBanner(text, stateLabel = '대기중', color = '#38bdf8') {
+    const txtEl = document.getElementById('sasarisa-live-stt-text');
+    const stEl = document.getElementById('sasarisa-live-stt-state');
+    const dotEl = document.getElementById('sasarisa-pill-dot');
+    if (txtEl) {
+      txtEl.textContent = text;
+      txtEl.style.color = color;
+    }
+    if (stEl) {
+      stEl.textContent = stateLabel;
+      stEl.style.color = color;
+    }
+    if (dotEl) {
+      dotEl.style.background = color;
+      dotEl.style.boxShadow = `0 0 12px ${color}`;
+    }
+  },
+
+  async startMicWaveformVisualizer() {
+    if (this._micAnalyser) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this._micAudioCtx = new AudioCtx();
+      const source = this._micAudioCtx.createMediaStreamSource(stream);
+      this._micAnalyser = this._micAudioCtx.createAnalyser();
+      this._micAnalyser.fftSize = 64;
+      source.connect(this._micAnalyser);
+
+      const dataArray = new Uint8Array(this._micAnalyser.frequencyBinCount);
+      let loudTicks = 0;
+      let lastNoTranscriptHintAt = 0;
+      this._lastSpeechResultAt = Date.now();
+
+      const draw = () => {
+        this._micAnimId = requestAnimationFrame(draw);
+        this._micAnalyser.getByteFrequencyData(dataArray);
+
+        // Compute normalized mic level v (0.0 .. 1.0) and scale SasariSa 3-Ring Orb Core (HUD.swift OrbView.level(v))
+        let sum = 0;
+        for (let i = 0; i < 16; i++) sum += dataArray[i] || 0;
+        const avgLevel = (sum / 16) / 255;
+        const orbCore = document.getElementById('sasarisa-orb-core');
+        if (orbCore) {
+          const s = 1 + Math.min(avgLevel * 1.9, 0.58);
+          orbCore.style.transform = `scale(${s.toFixed(3)})`;
+        }
+
+        // Voice Activity Detector (VAD): if user is clearly speaking into the mic (avgLevel > 0.14)
+        // while TTS is NOT speaking, ensure SpeechRecognition is actively running!
+        if (avgLevel > 0.14 && !this.isSpeakingTts) {
+          loudTicks++;
+          if (!this.isListening && this.recognition) {
+            this.alwaysListening = true;
+            try { this.recognition.start(); } catch (_) {}
+          }
+          // If user has been speaking for ~1.6s (~95 frames) and WebSpeech hasn't fired onresult yet,
+          // automatically invoke Windows SAPI Local Korean STT (/api/jarvis/stt) AND restart WebSpeech!
+          if (loudTicks > 95 && Date.now() - (this._lastSpeechResultAt || 0) > 3800 && Date.now() - lastNoTranscriptHintAt > 6500 && !this._sapiFallbackBusy) {
+            lastNoTranscriptHintAt = Date.now();
+            this._sapiFallbackBusy = true;
+            if (window.SasariSaMainOS) {
+              window.SasariSaMainOS.setHudCard(
+                '',
+                '🎙️ 마이크 음성 감지됨 · Windows 로컬 한국어 인식기(SAPI) 동시 가동 중…',
+                '말씀하시는 음성을 인식하고 있습니다…',
+                '브라우저 WebSpeech와 Windows 11 로컬 음성인식 엔진이 함께 음성을 분석합니다.'
+              );
+            }
+            fetch('/api/jarvis/stt', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ durationSec: 4 })
+            })
+              .then(r => r.json())
+              .then(sapiRes => {
+                this._sapiFallbackBusy = false;
+                const heard = String(sapiRes?.transcript || '').trim();
+                if (heard && heard.length >= 2 && Date.now() - (this._lastSpeechResultAt || 0) > 2500) {
+                  this._lastSpeechResultAt = Date.now();
+                  if (window.SasariSaMainOS) {
+                    window.SasariSaMainOS.executeVoiceOrTextCommand(heard);
+                  } else {
+                    this.sendCommandToJarvis(heard);
+                  }
+                }
+              })
+              .catch(() => {
+                this._sapiFallbackBusy = false;
+              });
+            try {
+              this.recognition?.stop();
+              setTimeout(() => {
+                if (!this.isSpeakingTts) {
+                  try { this.recognition?.start(); } catch (_) {}
+                }
+              }, 180);
+            } catch (_) {}
+          }
+        } else {
+          loudTicks = Math.max(0, loudTicks - 2);
+        }
+
+        const canvases = [
+          document.getElementById('sasarisa-mic-waveform'),
+          document.getElementById('sasarisa-orb-level-meter')
+        ].filter(Boolean);
+
+        canvases.forEach(canvas => {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const bars = Math.floor(canvas.width / 4.8);
+          const barW = 3.2;
+          const gap = 1.5;
+          for (let i = 0; i < bars; i++) {
+            const val = dataArray[i] || 2;
+            const h = Math.max(2, (val / 255) * (canvas.height - 2));
+            ctx.fillStyle = val > 95 ? '#73ff99' : '#4dd9ff';
+            ctx.fillRect(2 + i * (barW + gap), canvas.height - h - 1, barW, h);
+          }
+        });
+      };
+      draw();
+    } catch (e) {}
+  },
+
   initVoiceEngine() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) return;
+    if (!SpeechRec) {
+      this.updateSttBanner('🎙️ 브라우저 웹 음성인식 미지원 — 로컬 Windows SAPI 음성 폴백 대기 중', '로컬 STT', '#fbbf24');
+      return;
+    }
 
     this.recognition = new SpeechRec();
     this.recognition.lang = 'ko-KR';
     this.recognition.interimResults = true;
-    this.recognition.continuous = false;
+    this.recognition.continuous = true;
+    this.recognition.maxAlternatives = 1;
 
     this.recognition.onstart = () => {
       this.isListening = true;
       document.getElementById('orb-voice-mic')?.classList.add('listening');
-      window.BSC_WORLDVIEW.showToast('🎙️ LISTENING', '이건우 대표님, 말씀해 주십시오. 자비스가 경청하고 있습니다...');
+      document.getElementById('sasarisa-authentic-hud')?.classList.add('listening');
+      const hudMicBtn = document.getElementById('btn-hud-mic-toggle');
+      if (hudMicBtn) {
+        hudMicBtn.classList.add('active');
+        hudMicBtn.textContent = '🎙️ 연속 듣기 ON';
+      }
+      const micBtn = document.getElementById('btn-sasarisa-pill-mic');
+      if (micBtn) {
+        micBtn.style.background = 'rgba(52,211,153,0.28)';
+        micBtn.style.borderColor = '#34d399';
+      }
+      const alwaysBtn = document.getElementById('btn-sasarisa-always-listen');
+      if (alwaysBtn) {
+        alwaysBtn.textContent = '🟢 음성인식 작동중 (클릭시 정지)';
+      }
+      this.updateSttBanner('🎙️ [경청 중] 이건우 대표님, 편하게 말씀해 주십시오. (말씀 후 1.2초 뒤 자동 실행)', 'LISTENING', '#34d399');
+      this.startMicWaveformVisualizer();
     };
 
     this.recognition.onresult = (event) => {
-      let transcript = '';
-      let isFinal = false;
+      // Half-Duplex Echo Guard: Ignore microphone events while TTS is actively speaking
+      if (this.isSpeakingTts) return;
+
+      let interimTranscript = '';
+      let latestFinalPiece = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-        if (event.results[i].isFinal) isFinal = true;
+        const piece = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          latestFinalPiece += piece;
+        } else {
+          interimTranscript += piece;
+        }
       }
-      const inputEl = document.getElementById('jarvis-prompt-input');
-      if (inputEl) inputEl.value = transcript;
-      if (isFinal && transcript.trim()) {
-        this.sendCommandToJarvis(transcript.trim());
+
+      if (latestFinalPiece.trim()) {
+        this._sttAccumulatedFinal = `${this._sttAccumulatedFinal || ''} ${latestFinalPiece.trim()}`.trim();
+      }
+
+      const combined = `${this._sttAccumulatedFinal || ''} ${interimTranscript.trim()}`.trim();
+      if (!combined) return;
+      this._lastSpeechResultAt = Date.now();
+
+      const hudInput = document.getElementById('sasarisa-hud-input');
+      if (hudInput) hudInput.value = combined;
+      const pillInput = document.getElementById('sasarisa-pill-input');
+      if (pillInput) pillInput.value = combined;
+      const bottomInput = document.getElementById('jarvis-prompt-input');
+      if (bottomInput) bottomInput.value = combined;
+
+      // Update the main SasariSa Authentic HUD Card in real time with large visible heard transcript
+      if (window.SasariSaMainOS) {
+        window.SasariSaMainOS.setHudCard(
+          '',
+          latestFinalPiece ? '● 음성 인식 완료 · 실행 대기 중…' : '● 실시간 음성 받아쓰기 중…',
+          `🎙️ 인식된 말씀: "${combined}"`,
+          combined,
+          false
+        );
+      }
+
+      this.updateSttBanner(`🗣️ 인식 중: "${combined}"`, latestFinalPiece ? '확정됨' : '인식중...', '#00f0ff');
+
+      if (this._sttSilenceTimer) clearTimeout(this._sttSilenceTimer);
+      this._sttBufferText = combined;
+
+      // Determine natural pause window:
+      // - If the user only said the wake word so far ("자비스", "BSC 자비스", "사사리사"), wait 1200ms so they can finish the sentence!
+      // - If a final clause arrived, wait 750ms in case a second clause follows; otherwise 1250ms for interim speech.
+      const isWakeOnlySoFar = /^(?:헤이\s*|어이\s*|야\s*)?(?:BSC[\s_]*자비스|비에스씨[\s_]*자비스|자비스|자비쓰|사사리사)[야아님]?[,，.!\s]*$/i.test(combined);
+      const waitMs = isWakeOnlySoFar ? 1200 : (latestFinalPiece ? 750 : 1250);
+
+      this._sttSilenceTimer = setTimeout(() => {
+        const toSend = String(this._sttBufferText || '').trim();
+        this._sttBufferText = '';
+        this._sttAccumulatedFinal = '';
+        if (toSend.length >= 2) {
+          // Anti-Echo Guard: Ignore if the transcript matches what Jarvis just spoke aloud
+          if (this.lastSpokenKey && Date.now() - (this.lastSpokenAt || 0) < 7500) {
+            const normHeard = toSend.replace(/\s+/g, '');
+            const normSpoken = String(this.lastSpokenKey).replace(/\s+/g, '');
+            if (normSpoken.includes(normHeard) && normHeard.length > 3) {
+              return;
+            }
+          }
+          if (hudInput) hudInput.value = '';
+          if (pillInput) pillInput.value = '';
+          this.updateSttBanner(`🚀 음성 명령 실행: "${toSend}"`, '실행중', '#fbbf24');
+          if (window.SasariSaMainOS) {
+            window.SasariSaMainOS.executeVoiceOrTextCommand(toSend);
+          } else if (typeof this.runSasarisaPillCommand === 'function') {
+            this.runSasarisaPillCommand(toSend);
+          } else {
+            this.sendCommandToJarvis(toSend);
+          }
+        }
+      }, waitMs);
+    };
+
+    this.recognition.onerror = async (event) => {
+      const errCode = event?.error || '';
+      if (errCode === 'no-speech' || errCode === 'aborted') {
+        // Normal silence during continuous listening; keep waiting quietly
+        return;
+      }
+      if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
+        this.alwaysListening = false;
+        this.updateSttBanner('⚠️ 브라우저 마이크 권한 확인 필요 (주소창 좌측 아이콘)', '마이크 권한', '#f87171');
+        return;
+      }
+      if (errCode === 'audio-capture') {
+        this.updateSttBanner('🎙️ OS 백그라운드 음성 데몬 활성 중 (입력칸·Win+H·카메라 시선/손동작 동시 작동)', 'OS 데몬 활성', '#38bdf8');
+        return;
+      }
+      if (errCode === 'network') {
+        this.updateSttBanner('🔄 음성인식 엔진 자동 재연결 중...', '재연결', '#fbbf24');
       }
     };
 
     this.recognition.onend = () => {
       this.isListening = false;
       document.getElementById('orb-voice-mic')?.classList.remove('listening');
+      if (this.isSpeakingTts) {
+        // Half-Duplex: Stay paused while TTS is speaking; _resumeMicAfterTts() will restart it
+        return;
+      }
+      if (this.alwaysListening !== false) {
+        setTimeout(() => {
+          try {
+            if (!this.isListening && !this.isSpeakingTts) {
+              this.recognition.start();
+            }
+          } catch (_) {}
+        }, 220);
+      } else {
+        const micBtn = document.getElementById('btn-sasarisa-pill-mic');
+        if (micBtn) {
+          micBtn.style.background = 'rgba(0,240,255,0.16)';
+          micBtn.style.borderColor = '#00f0ff';
+        }
+        const alwaysBtn = document.getElementById('btn-sasarisa-always-listen');
+        if (alwaysBtn) {
+          alwaysBtn.textContent = '🎙️ 연속 음성인식 시작';
+        }
+        this.updateSttBanner('🎙️ [음성 대기] 마이크 버튼을 누르거나 말씀해 주십시오.', '대기중', '#38bdf8');
+      }
     };
   },
 
-  toggleVoiceListening() {
+  isSpeakingTts: false,
+  alwaysUseOsSpeaker: true,
+
+  _pauseMicForTts() {
+    this.isSpeakingTts = true;
+    this._sttBufferText = '';
+    this._sttAccumulatedFinal = '';
+    if (this._sttSilenceTimer) {
+      clearTimeout(this._sttSilenceTimer);
+      this._sttSilenceTimer = null;
+    }
+    if (this.recognition && this.isListening) {
+      try {
+        this.recognition.stop();
+      } catch (_) {}
+    }
+  },
+
+  _resumeMicAfterTts() {
+    this.isSpeakingTts = false;
+    this.lastSpokenAt = Date.now();
+    if (this.alwaysListening !== false && this.recognition) {
+      setTimeout(() => {
+        if (!this.isListening && !this.isSpeakingTts) {
+          try {
+            this.recognition.start();
+          } catch (_) {}
+        }
+      }, 220);
+    }
+  },
+
+  toggleVoiceListening(forceContinuous) {
     if (!this.recognition) {
-      window.BSC_WORLDVIEW.showToast('J.A.R.V.I.S.', '현재 브라우저에서 음성 인식을 지원하지 않아 하단 텍스트 입력창을 사용해 주십시오.');
+      fetch('/api/jarvis/stt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ durationSec: 4 })
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res && res.transcript) {
+            this.runSasarisaPillCommand?.(res.transcript);
+          }
+        })
+        .catch(() => {});
       return;
     }
     this.stopAllSpeech();
     if (this.isListening) {
-      this.recognition.stop();
+      this.alwaysListening = false;
+      try { this.recognition.stop(); } catch (e) {}
     } else {
+      this.alwaysListening = typeof forceContinuous === 'boolean' ? forceContinuous : true;
       try {
         this.recognition.start();
       } catch (e) {}
@@ -452,7 +780,8 @@ window.MultimodalEngine = {
       if (this._iosAudioUnlocked) return;
       this._iosAudioUnlocked = true;
       try {
-        if (window.speechSynthesis && typeof window.SpeechSynthesisUtterance !== 'undefined') {
+        const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent || '');
+        if (isIos && window.speechSynthesis && typeof window.SpeechSynthesisUtterance !== 'undefined') {
           window.speechSynthesis.resume();
           const silentUtter = new SpeechSynthesisUtterance(' ');
           silentUtter.volume = 0.01;
@@ -514,13 +843,17 @@ window.MultimodalEngine = {
         utter.pitch = 1.0;
 
         const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
-        const koVoice =
-          voices.find(v => /ko[-_]KR/i.test(v.lang) && /Siri|Yuna|Minsu|Hyunsu|InJoon|Google|Natural|Enhanced|Premium/i.test(v.name)) ||
-          voices.find(v => /ko[-_]KR/i.test(v.lang)) ||
-          voices.find(v => /^ko/i.test(v.lang));
-        if (koVoice) {
-          utter.voice = koVoice;
+        // STRICT ANTI-HEAMI GUARD: Never allow legacy Windows SAPI robotic female voice (Microsoft Heami Desktop)
+        const naturalKoVoice = voices.find(v =>
+          /ko[-_]KR|^ko/i.test(v.lang) &&
+          !/Heami|혜미|Desktop/i.test(v.name) &&
+          /Natural|Online|Hyunsu|InJoon|BongJin|GookMin|Siri|Minsu|Yuna|Google/i.test(v.name)
+        );
+        if (!naturalKoVoice) {
+          // Do NOT speak with robotic female Heami voice; let Neural MP3 / OS Direct Neural Speaker handle it
+          return resolve(false);
         }
+        utter.voice = naturalKoVoice;
 
         if (this.speechPulseInterval) clearInterval(this.speechPulseInterval);
         this.speechPulseInterval = setInterval(() => {
@@ -574,6 +907,28 @@ window.MultimodalEngine = {
     if (window.speechSynthesis) {
       try { window.speechSynthesis.cancel(); } catch (_) {}
     }
+    fetch('/api/jarvis/tts/stop-os', { method: 'POST' }).catch(() => {});
+    this._resumeMicAfterTts();
+  },
+
+  async playOnWindowsOsSpeakerFallback(text, activeVoiceId, preSynthesized, myToken) {
+    try {
+      const osRes = await fetch('/api/jarvis/tts/speak-os', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          voiceId: activeVoiceId,
+          preSynthesized: preSynthesized && preSynthesized.ok ? preSynthesized : null
+        })
+      }).then(r => r.json()).catch(() => null);
+      if (osRes && osRes.ok) {
+        const waitMs = Math.min(24000, Math.max(1800, Number(osRes.estimatedDurationMs) || 3200));
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        return true;
+      }
+    } catch (_) {}
+    return false;
   },
 
   async playSingleNeuralTurn(turn, myToken) {
@@ -596,8 +951,9 @@ window.MultimodalEngine = {
     if (cfg.autoSpeakResponses === false && !turn.voiceId) return;
 
     this.haltPlayback();
+    // Half-Duplex Echo Guard: Pause STT microphone while Jarvis speaks aloud
+    this._pauseMicForTts();
 
-    // Always try 96kbps HD Neural MP3 first (on both Local PC and iPad/Cloud via pre-cached 96kbps Neural MP3!)
     try {
       const res = await fetch('/api/jarvis/tts', {
         method: 'POST',
@@ -610,23 +966,37 @@ window.MultimodalEngine = {
           pitchHz: '+0Hz'
         })
       });
-      if (myToken !== this.speechQueueToken) return;
+      if (myToken !== this.speechQueueToken) {
+        this._resumeMicAfterTts();
+        return;
+      }
       const data = await res.json();
-      if (data && data.ok && (data.audioBase64 || data.audioUrl)) {
+
+      // Check if browser autoplay is blocked (e.g., new --app window before user click)
+      const userHasActivatedBrowser = navigator.userActivation ? Boolean(navigator.userActivation.hasBeenActive) : true;
+
+      if (data && data.ok && (data.audioBase64 || data.audioUrl) && userHasActivatedBrowser) {
         const audio = this.sharedAudioEl || new Audio();
         audio.playsInline = true;
+        audio.volume = 1.0;
         audio.src = data.audioBase64
           ? `data:${data.mimeType || 'audio/mp3'};base64,${data.audioBase64}`
           : data.audioUrl;
         this.currentAudio = audio;
         const started = await audio.play().then(() => true).catch(() => false);
-        if (!started) {
+        if (!started || audio.paused) {
           this.haltPlayback();
-          await this.speakViaBrowserSpeechSync(text, myToken);
+          // Browser blocked audio.play() -> Immediately play through Windows 11 OS Direct Speaker!
+          const osPlayed = await this.playOnWindowsOsSpeakerFallback(text, activeVoiceId, data, myToken);
+          if (!osPlayed) {
+            await this.speakViaBrowserSpeechSync(text, myToken);
+          }
+          this._resumeMicAfterTts();
           return;
         }
         if (myToken !== this.speechQueueToken) {
           this.haltPlayback();
+          this._resumeMicAfterTts();
           return;
         }
         this.speechPulseInterval = setInterval(() => {
@@ -640,11 +1010,20 @@ window.MultimodalEngine = {
         });
         this.haltPlayback();
       } else {
-        await this.speakViaBrowserSpeechSync(text, myToken);
+        // Either browser hasn't been clicked yet (Autoplay Blocked) or audio stream missing -> Use Windows 11 OS Speaker directly!
+        const osPlayed = await this.playOnWindowsOsSpeakerFallback(text, activeVoiceId, data, myToken);
+        if (!osPlayed) {
+          await this.speakViaBrowserSpeechSync(text, myToken);
+        }
       }
     } catch (e) {
       this.haltPlayback();
-      await this.speakViaBrowserSpeechSync(text, myToken);
+      const osPlayed = await this.playOnWindowsOsSpeakerFallback(text, activeVoiceId, null, myToken);
+      if (!osPlayed) {
+        await this.speakViaBrowserSpeechSync(text, myToken);
+      }
+    } finally {
+      this._resumeMicAfterTts();
     }
   },
 
@@ -1660,8 +2039,9 @@ window.MultimodalEngine = {
         if (res && res.ok && res.state) {
           const prov = res.state.activeProvider || 'ollama';
           const mod = res.state.activeModel || 'gemma4:e4b';
+          const isOAuth = prov === 'gemini' && (res.state.geminiAuthMode || 'oauth') === 'oauth';
           const badge = document.getElementById('sasarisa-pill-llm-badge');
-          if (badge) badge.textContent = `${prov.toUpperCase()} · ${mod}`;
+          if (badge) badge.textContent = `${prov.toUpperCase()} · ${mod}${isOAuth ? ' (OAuth $0)' : ''}`;
           const sel = document.getElementById('sasarisa-pill-provider-select');
           if (sel) sel.value = prov;
         }
@@ -1675,11 +2055,73 @@ window.MultimodalEngine = {
       this.toggleSasarisaVoicePill(false);
     });
     document.getElementById('btn-sasarisa-open-hub')?.addEventListener('click', () => {
-      this.toggleSasarisaVoicePill(false);
       window.JarvisDesignViews?.openWorkspace?.('AI_BRAIN_DASHBOARD');
     });
     document.getElementById('btn-sasarisa-pill-mic')?.addEventListener('click', () => {
-      this.toggleVoiceListening();
+      this.toggleVoiceListening(true);
+    });
+    document.getElementById('btn-sasarisa-always-listen')?.addEventListener('click', () => {
+      this.toggleVoiceListening(true);
+    });
+
+    // 🔐 Google AI Ultra OAuth Login Button ($0 Extra Fee · Gemini 4 Argon)
+    document.getElementById('btn-sasarisa-oauth-login')?.addEventListener('click', async () => {
+      const statusBox = document.getElementById('sasarisa-pill-status-box');
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = `<span style="color:#38bdf8;">🔐 Google AI Ultra OAuth($0) 및 Google CLI 연결 상태를 확인하는 중입니다...</span>`;
+      }
+      const res = await fetch('/api/jarvis/llm-hub/oauth-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'gemini-4-argon', launchBrowserLogin: false })
+      }).then(r => r.json()).catch(() => null);
+      if (res && res.ok) {
+        const badge = document.getElementById('sasarisa-pill-llm-badge');
+        if (badge) badge.textContent = `GEMINI · gemini-4-argon (OAuth $0)`;
+        const sel = document.getElementById('sasarisa-pill-provider-select');
+        if (sel) sel.value = 'gemini';
+        this.updateSttBanner(res.message, 'OAuth $0', '#34d399');
+        if (statusBox) {
+          const acc = res.oauthStatus?.activeAccount || 'Google AI Ultra 계정';
+          statusBox.style.display = 'block';
+          statusBox.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div>
+                <div style="color:#34d399;font-weight:800;margin-bottom:2px;">✅ Google Gemini CLI × OAuth 로그인 모드 활성 (추가 API 과금 $0)</div>
+                <div style="font-size:11px;color:#cbd5e1;">계정: <b>${this.escapeHtml(acc)}</b> · 모델: <b>gemini-4-argon</b> · 인증 파일: <code>~/.gemini/oauth_creds.json</code></div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button type="button" id="btn-launch-google-oauth-win" class="win-ctrl-btn" style="border-color:#38bdf8;color:#38bdf8;font-weight:800;">🌐 Google OAuth 재로그인 창 열기</button>
+                <button type="button" id="btn-test-argon-now" class="win-ctrl-btn" style="border-color:#34d399;color:#34d399;font-weight:800;">🧪 Argon 응답 테스트</button>
+              </div>
+            </div>
+          `;
+          statusBox.querySelector('#btn-launch-google-oauth-win')?.addEventListener('click', async () => {
+            await fetch('/api/jarvis/llm-hub/oauth-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: 'gemini-4-argon', launchBrowserLogin: true })
+            });
+          });
+          statusBox.querySelector('#btn-test-argon-now')?.addEventListener('click', () => {
+            const inp = document.getElementById('sasarisa-pill-input');
+            if (inp) inp.value = '구글 CLI OAuth 로그인 모드로 Gemini 4 Argon 연결 상태 확인해줘';
+            document.getElementById('sasarisa-pill-form')?.dispatchEvent(new Event('submit'));
+          });
+        }
+        this.speakStewardReply(res.message, 'jarvis');
+      }
+    });
+
+    // 👁️ Zero-UI Minimal Voice Mode Toggle (한국 유튜버 사사리사 스타일 음성 중심 미니멀 뷰)
+    document.getElementById('btn-sasarisa-zero-ui')?.addEventListener('click', (e) => {
+      const isMinimal = document.body.classList.toggle('zero-ui-voice-mode');
+      e.currentTarget.textContent = isMinimal ? '👁️ 기본 UI 복원' : '👁️ 미니멀 UI';
+      const msg = isMinimal
+        ? '이건우 대표님, 주변 UI를 모두 숨기고 BSC_자비스 음성 중심 미니멀 모드로 전환했습니다.'
+        : '이건우 대표님, 상단 및 좌측 실무 대시보드 메뉴를 다시 표시했습니다.';
+      this.speakStewardReply(msg, 'jarvis');
     });
 
     // Global Hotkey: Alt+Space or Ctrl+Shift+S to summon SasariSa Floating Voice Pill
@@ -1696,21 +2138,21 @@ window.MultimodalEngine = {
       const defaultModels = {
         ollama: 'gemma4:e4b',
         lmstudio: 'local-model',
-        gemini: 'gemini-2.5-flash',
+        gemini: 'gemini-4-argon',
         openai: 'gpt-4o'
       };
       const model = defaultModels[provider] || 'gemma4:e4b';
       const res = await fetch('/api/jarvis/llm-hub/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ activeProvider: provider, activeModel: model })
+        body: JSON.stringify({ activeProvider: provider, activeModel: model, geminiAuthMode: 'oauth' })
       }).then(r => r.json()).catch(() => null);
       if (res && res.ok) {
         const badge = document.getElementById('sasarisa-pill-llm-badge');
-        if (badge) badge.textContent = `${provider.toUpperCase()} · ${res.state?.activeModel || model}`;
+        if (badge) badge.textContent = `${provider.toUpperCase()} · ${res.state?.activeModel || model}${provider === 'gemini' ? ' (OAuth $0)' : ''}`;
         const mainPill = document.getElementById('active-model-pill');
         if (mainPill) mainPill.textContent = `${provider.toUpperCase()}:${res.state?.activeModel || model}`;
-        window.BSC_WORLDVIEW?.showToast('🌐 사사리사 × 멀티 LLM 브릿지', res.message);
+        this.speakStewardReply(res.message, 'jarvis');
       }
     });
 
@@ -1719,7 +2161,7 @@ window.MultimodalEngine = {
       const selProv = document.getElementById('sasarisa-pill-provider-select')?.value || '';
       if (statusBox) {
         statusBox.style.display = 'block';
-        statusBox.innerHTML = `<span style="color:#38bdf8;">⏳ 사사리사 Windows 11 엔진 실행 중: "${this.escapeHtml(cmdText)}"...</span>`;
+        statusBox.innerHTML = `<span style="color:#38bdf8;">⏳ BSC_자비스 음성 엔진 실행 중: "${this.escapeHtml(cmdText)}"...</span>`;
       }
       const res = await fetch('/api/jarvis/sasarisa/command', {
         method: 'POST',
@@ -1736,11 +2178,19 @@ window.MultimodalEngine = {
         this.speakStewardReply(res.reply, 'jarvis');
       }
 
+      // Trigger UI actions if the voice skill requested opening a Neuron Studio or BSC Dashboard!
+      const rec = res.actionRecord || {};
+      if (rec.uiAction === 'OPEN_NEURON_STUDIO' && window.NeuronContentStudio) {
+        window.NeuronContentStudio.openNeuronModal(rec.neuronKeyword || 'J.A.R.V.I.S. 코어');
+      } else if (rec.uiAction === 'OPEN_DASHBOARD' && window.JarvisDesignViews && rec.targetDashboard) {
+        window.JarvisDesignViews.openWorkspace(rec.targetDashboard);
+      }
+
       if (res.requiresConfirmation && res.confirmItem && statusBox) {
         const ci = res.confirmItem;
         statusBox.innerHTML = `
           <div style="border-left:3px solid #fbbf24;padding-left:8px;">
-            <div style="font-weight:800;color:#fbbf24;margin-bottom:3px;">🛡️ [사사리사 2중 안전장치] ${this.escapeHtml(ci.intent?.skillTitleKo || '')}</div>
+            <div style="font-weight:800;color:#fbbf24;margin-bottom:3px;">🛡️ [BSC_자비스 2중 안전장치] ${this.escapeHtml(ci.intent?.skillTitleKo || '')}</div>
             <div style="font-size:10.5px;color:#fde68a;margin-bottom:4px;">${this.escapeHtml(ci.intent?.riskReasonKo || '')}</div>
             <div style="background:#050b16;padding:6px 8px;border-radius:6px;margin-bottom:6px;color:#f8fafc;">${this.escapeHtml(ci.draftContent || '')}</div>
             <div style="display:flex;gap:6px;">
@@ -1757,13 +2207,12 @@ window.MultimodalEngine = {
               body: JSON.stringify({ confirmId: b.dataset.id, decision: b.dataset.dec })
             }).then(r => r.json()).catch(() => null);
             if (cRes && statusBox) {
-              statusBox.innerHTML = `<span style="color:#34d399;font-weight:700;">✅ ${this.escapeHtml(cRes.reply || '처리 완료')}</span>`;
-              if (cRes.reply) this.speakStewardReply(cRes.reply, 'jarvis');
+              statusBox.innerHTML = `<span style="color:#34d399;font-weight:700;">✅ ${this.escapeHtml(cRes.message || cRes.reply || '처리 완료')}</span>`;
+              if (cRes.message || cRes.reply) this.speakStewardReply(cRes.message || cRes.reply, 'jarvis');
             }
           });
         });
       } else if (statusBox) {
-        const rec = res.actionRecord || {};
         statusBox.innerHTML = `
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
@@ -1771,11 +2220,14 @@ window.MultimodalEngine = {
               <span style="font-size:10px;color:#38bdf8;">${this.escapeHtml(rec.llmUsed || '')} (${res.elapsedMs || 0}ms)</span>
             </div>
             <div style="color:#e2e8f0;">${this.escapeHtml(res.reply || '')}</div>
+            ${rec.cliOutput ? `<pre style="margin:5px 0 0 0;padding:6px;background:#020617;border:1px solid rgba(56,189,248,0.25);border-radius:6px;font-size:11px;color:#38bdf8;white-space:pre-wrap;">${this.escapeHtml(rec.cliOutput)}</pre>` : ''}
             ${rec.targetUrl ? `<div style="margin-top:4px;"><a href="${this.escapeHtml(rec.targetUrl)}" target="_blank" style="color:#00f0ff;font-size:11px;font-weight:700;">🔗 생성된 링크 바로 열기 (${this.escapeHtml(rec.targetUrl.slice(0, 55))}...)</a></div>` : ''}
           </div>
         `;
       }
     };
+
+    this.runSasarisaPillCommand = runPillCommand;
 
     document.getElementById('sasarisa-pill-form')?.addEventListener('submit', e => {
       e.preventDefault();

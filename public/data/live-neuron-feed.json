@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-26T10:22:03.102Z",
+  "generatedAt": "2026-10-27T08:57:22.447Z",
   "cursor": 1,
   "sources": {
     "Warehouse": [
@@ -46,91 +46,91 @@
     ],
     "BeausCreators": [
       {
+        "path": "C:/BeausCreators/02.BSC_Branch/sandbox/Runnow_APP_V/context-notes.md",
+        "mtime": 1793088919084.6882,
+        "title": "RUNNOW 컨텍스트 노트 (의사결정 기록)"
+      },
+      {
         "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/context-notes.md",
-        "mtime": 1793000181437.9038,
+        "mtime": 1793081244932.7725,
         "title": "APEX QUANT 맥락 메모"
       },
       {
         "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/checklist.md",
-        "mtime": 1793000181436.9043,
+        "mtime": 1793081244931.1902,
         "title": "APEX QUANT 점검표"
       },
       {
         "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/plan.md",
-        "mtime": 1793000181435.9336,
+        "mtime": 1793081244929.685,
         "title": "APEX QUANT 분석 및 개편 계획"
       },
       {
-        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/generator-research-v2.0.2-20261026.md",
-        "mtime": 1793000181387.2725,
-        "title": "번호 생성기 v2.0.2: 반복 당첨 방식과 적중 검증"
+        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/generator-research-v6.0.0-20261027.md",
+        "mtime": 1793081244925.1736,
+        "title": "일곱 번호 전이 전략과 고등수 재시험 v6.0.0"
       },
       {
-        "path": "C:/BeausCreators/02.BSC_Branch/projects/앱/4.게임_엔터테인먼트/lotto/generator-research-v2.0.1-20261026.md",
-        "mtime": 1792998930841.3577,
-        "title": "번호 생성기 v2.0.1: 반복 당첨 방식과 적중 검증"
+        "path": "C:/BeausCreators/02.BSC_Branch/sandbox/Runnow_APP_V/checklist.md",
+        "mtime": 1793075460531.732,
+        "title": "앱이 현재 RUNNOW를 그대로 표시 (2026-09-16)"
       },
       {
-        "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/10.REA_Tech_Blueprints/REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
-        "mtime": 1792998101425.8955,
-        "title": "🔬 [REA Clean-Room Blueprint] game_16_bsc_tycoon_metaverse 역공학 기"
+        "path": "C:/BeausCreators/02.BSC_Branch/sandbox/BSC_NEXUS/docs/VENDOR_RESEARCH_2026-10-27.md",
+        "mtime": 1793074285183.9304,
+        "title": "국내 게임 마케팅 거래처 조사 · 실전 검수"
       },
       {
-        "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/10.REA_Tech_Blueprints/REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
-        "mtime": 1792997540960.9468,
-        "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 BSC "
-      },
-      {
-        "path": "C:/BeausCreators/01.BSC_HQ/6.Knowledge_Index/10.REA_Tech_Blueprints/REA_2026-10-26_BSC_OS.md",
-        "mtime": 1792995084273.3262,
-        "title": "🔬 [REA Clean-Room Blueprint] BSC_OS 역공학 기술 분석 및 BSC 내재화 설계서"
+        "path": "C:/BeausCreators/02.BSC_Branch/sandbox/BSC_NEXUS/error-log.md",
+        "mtime": 1793074206739.7383,
+        "title": "NEXUS 구현 오류 및 예방 기록"
       }
     ],
     "Antigravity": [
       {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/e5cd1456-d747-4e7a-bde6-1a9bee259f96/implementation_plan.md",
-        "mtime": 1792995799610.7937,
-        "title": "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (Implementation Plan)"
+        "path": "C:/Users/USER/.gemini/antigravity/brain/tempmediaStorage",
+        "mtime": 1793090616702.4194,
+        "title": "안티그래비티 세션 tempmedi"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/1f0837c6-109b-48c6-bda0-2abe0d5e31ac",
+        "mtime": 1793090109192.7134,
+        "title": "안티그래비티 세션 1f0837c6"
+      },
+      {
+        "path": "C:/Users/USER/.gemini/antigravity/brain/f8a896e1-0b07-4acd-a4ef-fba215e18d21",
+        "mtime": 1793088853612.4307,
+        "title": "안티그래비티 세션 f8a896e1"
       },
       {
         "path": "C:/Users/USER/.gemini/antigravity/brain/c081ba36-cdd4-4adb-80d3-7b975632f6cb/implementation_plan.md",
-        "mtime": 1792995343859.1978,
-        "title": "🛡️ [Master Implementation Plan] SasariSa (사사리사) REA Windows 11 "
+        "mtime": 1793087666027.9553,
+        "title": "📋 [Master Plan] 『BSC_자비스』 전 시스템 통합 개선 및 아키텍처 재설계 기획안"
       },
       {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/97a39350-f2da-454e-8f0e-5e4a7da658f1/implementation_plan.md",
-        "mtime": 1792756859275.3074,
-        "title": "마태복음 2장 성경 구속사 동화책 — 6살 따님 맞춤형 스토리텔링 & 재생/일시정지 플레이어 개편 계획서"
+        "path": "C:/Users/USER/.gemini/antigravity/brain/c6ab28ed-a204-4826-afc9-74344ac968e7",
+        "mtime": 1793087600166.9285,
+        "title": "안티그래비티 세션 c6ab28ed"
       },
       {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/fb1ad07a-0853-49d1-a0b9-f9f7bb3f0fe4",
-        "mtime": 1792756782141.4712,
-        "title": "안티그래비티 세션 fb1ad07a"
+        "path": "C:/Users/USER/.gemini/antigravity/brain/d66ddba7-271c-45c7-986c-d1fb11c792a8",
+        "mtime": 1793083152408.7922,
+        "title": "안티그래비티 세션 d66ddba7"
       },
       {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/98b06c16-13db-49bf-888b-450f973b83bf",
-        "mtime": 1792747582670.0222,
-        "title": "안티그래비티 세션 98b06c16"
+        "path": "C:/Users/USER/.gemini/antigravity/brain/504fe9f0-4dfc-452a-81c2-c9dc2697ca84",
+        "mtime": 1793075589376.716,
+        "title": "안티그래비티 세션 504fe9f0"
       },
       {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/e52cc23d-38bc-49a0-a132-335b67926574",
-        "mtime": 1792744301497.5652,
-        "title": "안티그래비티 세션 e52cc23d"
-      },
-      {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/b827b049-03df-49a1-8bb4-af9b414b07f3",
-        "mtime": 1792744299625.7832,
-        "title": "안티그래비티 세션 b827b049"
-      },
-      {
-        "path": "C:/Users/USER/.gemini/antigravity/brain/7c26bd17-dac9-4f38-b441-ab8f0a5bbf8c/implementation_plan.md",
-        "mtime": 1792739121948.4597,
-        "title": "🧠 BSC J.A.R.V.I.S. OS — Google Gemma 2 삼총사 (`Gemma 2` + `Embedd"
+        "path": "C:/Users/USER/.gemini/antigravity/brain/e5cd1456-d747-4e7a-bde6-1a9bee259f96/implementation_plan.md",
+        "mtime": 1793074836725.957,
+        "title": "🎨 BSC 타이쿤 메타버스 상용화 — 확정 시안(00~05) 기반 이미지 생성 및 `Sprite-Gen` 파이프라"
       }
     ]
   },
   "cursors": {
-    "Warehouse": 272,
-    "BeausCreators": 272
+    "Warehouse": 721,
+    "BeausCreators": 721
   }
 }

@@ -684,7 +684,8 @@
           body: JSON.stringify({
             command: cmdText,
             provider: prov,
-            openExternalWindow: true
+            openExternalWindow: true,
+            fromMobileMic: true
           })
         });
         const data = await res.json();

@@ -77,7 +77,12 @@ window.BSC_WORLDVIEW = {
     const vbEl = document.getElementById('toast-voice-badge');
     const cleanDisplay = String(text || '').replace(/\*\*/g, '').trim();
     if (!cleanDisplay) return;
-    if (toastEl) toastEl.style.display = 'flex';
+    if (toastEl) {
+      toastEl.style.display = 'flex';
+      toastEl.style.top = 'auto';
+      toastEl.style.height = 'auto';
+      toastEl.style.maxHeight = '84px';
+    }
     if (!/대표님\s*\(CEO\)/i.test(speaker || '')) {
       this.lastSpokenText = cleanDisplay;
     }
@@ -90,9 +95,73 @@ window.BSC_WORLDVIEW = {
     if (vbEl && voiceBadge) {
       vbEl.textContent = voiceBadge;
     }
+    if (this._toastHideTimer) clearTimeout(this._toastHideTimer);
+    this._toastHideTimer = setTimeout(() => {
+      if (toastEl) toastEl.style.display = 'none';
+    }, 5500);
+  },
+
+  hideToast() {
+    if (this._toastHideTimer) clearTimeout(this._toastHideTimer);
+    const toastEl = document.getElementById('live-dialogue-toast');
+    if (toastEl) toastEl.style.display = 'none';
   }
+};
+
+window.BSC_CloseAllFloatingUI = function (options = {}) {
+  const keepCameraWidget = options.keepCameraWidget !== false;
+  // 1. Hide subtitle toast
+  window.BSC_WORLDVIEW?.hideToast?.();
+  // 2. Hide all floating modal & sub-windows
+  const floatingLayer = document.getElementById('floating-windows-layer');
+  if (floatingLayer) floatingLayer.innerHTML = '';
+  document.querySelectorAll('.hud-window, .sasarisa-modal-backdrop, .approval-modal').forEach(el => {
+    el.style.display = 'none';
+  });
+  // 3. Close single-stage design workspace, chat drawer, council, neuron studio, tech drawer, guide cards
+  [
+    'design-workspace-stage',
+    'sasarisa-bsc-tech-drawer',
+    'sasarisa-mini-guide-card',
+    'sasarisa-handsfree-cowork-dock',
+    'holo-gesture-hud-panel',
+    'neuron-content-studio-modal',
+    'pc-approval-modal'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const nodeCard = document.getElementById('node-preview-card');
+  if (nodeCard) {
+    nodeCard.classList.remove('explicit-open');
+    nodeCard.style.display = 'none';
+  }
+  const chatDrawer = document.getElementById('agent-chat-drawer');
+  if (chatDrawer) chatDrawer.classList.remove('open');
+  if (!keepCameraWidget) {
+    const camBar = document.getElementById('jarvis-spatial-gesture-bar');
+    if (camBar) camBar.style.display = 'none';
+  }
+  if (options.stopSpeech && window.MultimodalEngine?.stopAllSpeech) {
+    window.MultimodalEngine.stopAllSpeech();
+  }
+  try {
+    const arFrame = document.getElementById('barehands-ar-main-stage');
+    arFrame?.contentWindow?.BSC_BarehandsCloseAllCards?.();
+  } catch (_) {}
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   window.BSC_WORLDVIEW.init();
+  document.getElementById('btn-toast-close')?.addEventListener('click', () => {
+    window.BSC_WORLDVIEW.hideToast();
+  });
+  document.getElementById('btn-toast-stop-voice')?.addEventListener('click', () => {
+    window.BSC_WORLDVIEW.hideToast();
+  });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      window.BSC_CloseAllFloatingUI({ keepCameraWidget: true });
+    }
+  });
 });

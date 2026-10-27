@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BSC J.A.R.V.I.S. — 지능형 지식생태계 &amp; 실무 통합 대시보드 OS</title>
-  <link rel="stylesheet" href="/css/jarvis-hud.css" />
+  <title>◉ BSC_자비스 — 말로 시키는 AI 비서 &amp; 옵시디언 뉴런 OS</title>
+  <link rel="stylesheet" href="/css/jarvis-hud.css?v=20261027_v8" />
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous" defer></script>
 </head>
-<body class="neuron-menu-open">
+<body class="sasarisa-voice-first-mode sasarisa-authentic-os">
   <!-- 🌌 1. Background Star-Cluster Nebula Knowledge Galaxy Canvas (뉴런홈 디자인 유지) -->
   <canvas id="brain-canvas"></canvas>
 
@@ -39,8 +40,11 @@
     </div>
 
     <div class="mtb-right">
-      <button class="mtb-cam-pill" id="btn-top-sasarisa-pill" title="사사리사(SasariSa) Windows 11 음성 비서 바 열기/닫기 (단축키: Alt+Space)" style="border-color:rgba(0,240,255,0.55);color:#00f0ff;font-weight:800;">
-        🎙️ 사사리사 <span style="font-size:10px;color:#34d399;">Win11</span>
+      <button class="mtb-cam-pill" id="btn-top-open-neuron-studio" onclick="window.NeuronContentStudio && window.NeuronContentStudio.openNeuronModal(window.BrainGraphEngine?.selectedNode || 'J.A.R.V.I.S. 코어')" title="선택된 뉴런의 옵시디언×노션 콘텐츠 및 응용 스튜디오 즉시 열기" style="border-color:rgba(52,211,153,0.65);color:#34d399;font-weight:800;">
+        🕸️ 뉴런 스튜디오 열기
+      </button>
+      <button class="mtb-cam-pill" id="btn-top-sasarisa-pill" title="BSC_자비스 Windows 11 음성 비서 바 열기/닫기 (단축키: Alt+Space)" style="border-color:rgba(0,240,255,0.55);color:#00f0ff;font-weight:800;">
+        🎙️ BSC_자비스 <span style="font-size:10px;color:#34d399;">Win11</span>
       </button>
       <button class="mtb-cam-pill queue" id="btn-top-open-folders" title="회사_HQ · 회사_Branch · 지식생태계 폴더 연결 및 .MD 분석 대시보드">
         📂 폴더·MD 분석 <span id="top-connected-slot-badge" class="queue-badge">0</span>
@@ -51,9 +55,13 @@
     </div>
   </header>
 
-  <!-- 🧭 3. Left Vertical Navigation Bar (소비자 심리학 Miller's Law: 6대 핵심 실무 대시보드 메뉴) -->
-  <nav id="slim-left-dock" aria-label="6대 핵심 실무 대시보드 내비게이션">
-    <button class="slim-dock-btn active" data-dock-target="HOME_GALAXY" title="뉴런홈 (3D/2D 지식생태계 은하 · 한 번 더 누르면 좌측 컨트롤 패널 접기/펼치기)">
+  <!-- 🧭 3. Left Vertical Navigation Bar (소비자 심리학 Miller's Law: 핵심 실무 대시보드 메뉴) -->
+  <nav id="slim-left-dock" aria-label="핵심 실무 대시보드 내비게이션">
+    <button class="slim-dock-btn active" id="btn-dock-ar-stage" data-dock-target="AR_CAMERA_STAGE" title="시안 06: Barehands 풀스크린 AR 카메라 공간 제어 스테이지 (맨손·손가락·눈동자 시선 커서 제어)">
+      <span class="sd-icon">🖐️</span>
+      <span class="sd-label">AR카메라</span>
+    </button>
+    <button class="slim-dock-btn" data-dock-target="HOME_GALAXY" title="뉴런홈 (3D/2D 지식생태계 은하 · 한 번 더 누르면 좌측 컨트롤 패널 접기/펼치기)">
       <span class="sd-icon">🧠</span>
       <span class="sd-label">뉴런홈</span>
     </button>
@@ -84,8 +92,8 @@
     </button>
   </nav>
 
-  <!-- 🗂️ 4. Neuron Home Left Control Panel (실시간 데이터 전용 · 뉴런홈 제어판) -->
-  <aside id="node-preview-card" aria-label="뉴런홈 컨트롤 및 선택 노드 인스펙터">
+  <!-- 🗂️ 4. Neuron Home Left Control Panel (기본 숨김 · 필요 시에만 토글 · 뉴런 점 클릭 시에는 옵시디언×노션 콘텐츠 스튜디오가 열림) -->
+  <aside id="node-preview-card" aria-label="뉴런홈 컨트롤 및 선택 노드 인스펙터" style="display:none;">
     <!-- 4-A. Selected Neuron Info Card (Real Node Data Only) -->
     <div class="np-card-header">
       <div style="min-width:0;flex:1;">
@@ -281,49 +289,61 @@
           <button type="button" id="btn-toast-cycle-voice" class="win-ctrl-btn" style="font-size:10px;padding:2px 7px;border-color:#34d399;color:#34d399;" title="현수 HD / 선희 HD / 인준 HD 목소리 전환">🎙️ 성우 변경</button>
           <button type="button" id="btn-toast-read-full" class="win-ctrl-btn" style="font-size:10px;padding:2px 8px;border-color:#00f0ff;color:#00f0ff;">🔊 다시 읽기</button>
           <button type="button" id="btn-toast-stop-voice" class="win-ctrl-btn" style="font-size:10px;padding:2px 7px;border-color:#fb7185;color:#fb7185;">⏹ 정지</button>
+          <button type="button" id="btn-toast-close" class="win-ctrl-btn" style="font-size:10px;padding:2px 7px;border-color:#f87171;color:#fecdd3;font-weight:800;" title="이 자막창 즉시 닫기">✕ 닫기</button>
         </div>
       </div>
       <span class="speech-text" id="toast-text"></span>
     </div>
   </div>
 
-  <!-- 🎙️ SasariSa (사사리사) Windows 11 Floating Voice Command Pill (REA Ported from mvcompany8500-web/sasarisa · Alt+Space) -->
-  <aside id="sasarisa-voice-pill" style="display:none;position:fixed;top:62px;left:50%;transform:translateX(-50%);width:680px;max-width:94vw;background:rgba(6,12,26,0.96);border:1.5px solid rgba(0,240,255,0.55);border-radius:22px;padding:12px 16px;z-index:9500;box-shadow:0 24px 60px rgba(0,0,0,0.82),0 0 28px rgba(0,240,255,0.18);backdrop-filter:blur(22px);color:#f8fafc;">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:8px;">
+  <!-- 🎙️ SasariSa (사사리사) Windows 11 Voice-First Main HUD (기본 표시 · 무겹침 중앙 하단 보이스 독 · Alt+Space) -->
+  <aside id="sasarisa-voice-pill" style="display:block;position:fixed;bottom:58px;left:50%;transform:translateX(-50%);width:740px;max-width:calc(100vw - 190px);background:rgba(5,11,24,0.95);border:1.5px solid rgba(0,240,255,0.58);border-radius:20px;padding:11px 16px;z-index:9350;box-shadow:0 20px 55px rgba(0,0,0,0.82),0 0 26px rgba(0,240,255,0.16);backdrop-filter:blur(22px);color:#f8fafc;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#00f0ff;box-shadow:0 0 10px #00f0ff;" id="sasarisa-pill-dot"></span>
-        <strong style="font-size:13px;color:#00f0ff;letter-spacing:0.3px;">🎙️ 사사리사 (SasariSa) Windows 11 Edition</strong>
-        <span style="font-size:10.5px;padding:2px 8px;border-radius:999px;background:rgba(52,211,153,0.16);border:1px solid rgba(52,211,153,0.45);color:#34d399;font-weight:700;" id="sasarisa-pill-llm-badge">OLLAMA · gemma4:e4b</span>
+        <strong style="font-size:13px;color:#00f0ff;letter-spacing:0.3px;">🎙️ 사사리사 × 자비스 Voice-First OS</strong>
+        <span style="font-size:10.5px;padding:2px 8px;border-radius:999px;background:rgba(52,211,153,0.16);border:1px solid rgba(52,211,153,0.45);color:#34d399;font-weight:700;" id="sasarisa-pill-llm-badge">GEMINI · gemini-4-argon (OAuth $0)</span>
+        <canvas id="sasarisa-mic-waveform" width="110" height="20" style="width:110px;height:20px;border-radius:6px;background:rgba(2,6,16,0.8);border:1px solid rgba(0,240,255,0.25);" title="실시간 마이크 입력 파형 (WebAudio dB 미터)"></canvas>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <select id="sasarisa-pill-provider-select" title="연결할 LLM 두뇌 선택 (GPT / Gemini / LM Studio / Ollama)" style="background:#040915;border:1px solid rgba(56,189,248,0.4);color:#e2e8f0;border-radius:8px;padding:3px 7px;font-size:11px;font-weight:700;">
-          <option value="ollama">🟢 Ollama (로컬 AI)</option>
-          <option value="lmstudio">🟣 LM Studio (로컬 GGUF)</option>
-          <option value="gemini">🔵 Google Gemini</option>
-          <option value="openai">🟠 OpenAI GPT</option>
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+        <button type="button" id="btn-sasarisa-always-listen" class="win-ctrl-btn" style="font-size:10.5px;border-color:#34d399;color:#34d399;font-weight:800;" title="말씀하시면 엔터 없이 1.2초 후 자동 실행되는 상시 한국어 음성인식">🎙️ 연속 음성인식 시작</button>
+        <button type="button" id="btn-sasarisa-oauth-login" class="win-ctrl-btn" style="font-size:10.5px;border-color:#38bdf8;color:#38bdf8;font-weight:800;" title="Google AI Ultra 계정 OAuth 로그인 모드 ($0 추가과금 · Gemini 4 Argon)">🔐 Google OAuth($0)</button>
+        <select id="sasarisa-pill-provider-select" title="연결할 LLM 두뇌 선택 (Google CLI OAuth / Ollama / LM Studio / GPT)" style="background:#040915;border:1px solid rgba(56,189,248,0.4);color:#e2e8f0;border-radius:8px;padding:3px 7px;font-size:11px;font-weight:700;">
+          <option value="gemini">🔵 Gemini 4 Argon (OAuth $0)</option>
+          <option value="ollama">🟢 Ollama Gemma 4 ($0 로컬)</option>
+          <option value="lmstudio">🟣 LM Studio ($0 로컬 GGUF)</option>
+          <option value="openai">🟠 OpenAI GPT-4o</option>
         </select>
-        <button type="button" id="btn-sasarisa-open-hub" class="win-ctrl-btn" style="font-size:10.5px;border-color:#fbbf24;color:#fbbf24;">⚙️ LLM·사사리사 센터</button>
-        <button type="button" id="btn-sasarisa-pill-close" class="win-ctrl-btn" title="닫기 (ESC)">✕</button>
+        <button type="button" id="btn-sasarisa-zero-ui" class="win-ctrl-btn" style="font-size:10.5px;border-color:#c084fc;color:#c084fc;" title="불필요한 주변 UI를 모두 숨기고 사사리사 음성 바와 뉴런 은하만 남깁니다">👁️ 미니멀 UI</button>
+        <button type="button" id="btn-sasarisa-open-hub" class="win-ctrl-btn" style="font-size:10.5px;border-color:#fbbf24;color:#fbbf24;">⚙️ 두뇌 센터</button>
+        <button type="button" id="btn-sasarisa-pill-close" class="win-ctrl-btn" title="접기 (Alt+Space)">−</button>
       </div>
+    </div>
+
+    <!-- Real-time Interim Speech Recognition Transcript Bar -->
+    <div id="sasarisa-live-stt-banner" style="font-size:11.5px;color:#38bdf8;background:rgba(2,8,20,0.75);border:1px dashed rgba(56,189,248,0.32);border-radius:8px;padding:4px 10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;">
+      <span id="sasarisa-live-stt-text">🎙️ [음성 준비 완료] 우측 상단 '🎙️ 연속 음성인식 시작' 또는 마이크 버튼을 누르고 말씀하시면 1.2초 후 자동 실행됩니다.</span>
+      <span id="sasarisa-live-stt-state" style="font-size:10px;color:#94a3b8;font-weight:700;">대기중</span>
     </div>
 
     <form id="sasarisa-pill-form" style="display:flex;gap:8px;align-items:center;">
-      <button type="button" id="btn-sasarisa-pill-mic" style="width:36px;height:36px;border-radius:50%;border:1px solid #00f0ff;background:rgba(0,240,255,0.14);color:#00f0ff;cursor:pointer;font-size:15px;" title="음성으로 사사리사에게 지시하기">🎙️</button>
-      <input type="text" id="sasarisa-pill-input" placeholder="말로 컴퓨터를 조작하세요 (음악 재생, 쿠팡 쇼핑, 카카오톡 전송, 메일 답장, 코딩)..." autocomplete="off" style="flex:1;background:#030814;border:1px solid rgba(148,163,184,0.3);color:#fff;border-radius:12px;padding:8px 12px;font-size:12.5px;" />
-      <button type="submit" style="padding:8px 14px;border-radius:12px;border:1px solid #00f0ff;background:linear-gradient(135deg,#0284c7,#00f0ff);color:#020617;font-weight:900;font-size:12px;cursor:pointer;">실행 ↵</button>
+      <button type="button" id="btn-sasarisa-pill-mic" style="width:38px;height:38px;border-radius:50%;border:1.5px solid #00f0ff;background:rgba(0,240,255,0.16);color:#00f0ff;cursor:pointer;font-size:16px;flex-shrink:0;" title="마이크 켜기/끄기 (한국어 연속 음성인식)">🎙️</button>
+      <input type="text" id="sasarisa-pill-input" placeholder="목소리로 말하거나 입력하세요 (CLI 명령, MCP 실행, 뉴런 열기, 음악·쇼핑·카카오톡·코딩)..." autocomplete="off" style="flex:1;background:#030814;border:1px solid rgba(148,163,184,0.35);color:#fff;border-radius:12px;padding:8px 12px;font-size:12.5px;" />
+      <button type="submit" style="padding:8px 14px;border-radius:12px;border:1px solid #00f0ff;background:linear-gradient(135deg,#0284c7,#00f0ff);color:#020617;font-weight:900;font-size:12px;cursor:pointer;flex-shrink:0;">음성·실행 ↵</button>
     </form>
 
-    <!-- Quick Skill Chips -->
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;">
+    <!-- Full-Stack Voice Skill Quick Chips (Google CLI OAuth + CLI + MCP + Neuron + Win11) -->
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;">
+      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="구글 CLI OAuth 로그인 모드로 Gemini 4 Argon 연결 상태 확인해줘" style="font-size:10.5px;border-color:rgba(56,189,248,0.5);color:#38bdf8;">🔐 Gemini 4 Argon(OAuth $0)</button>
+      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="터미널 CLI에서 현재 깃 상태랑 노드 버전 확인해줘" style="font-size:10.5px;border-color:rgba(251,191,36,0.5);color:#fbbf24;">⚡ CLI 깃·터미널 실행</button>
+      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="블렌더 MCP랑 본사 지식창고 연동 상태 점검해줘" style="font-size:10.5px;border-color:rgba(192,132,252,0.5);color:#e9d5ff;">🔌 MCP·본사스킬 실행</button>
+      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="자비스 코어 뉴런 열어서 옵시디언 노션 스튜디오 보여줘" style="font-size:10.5px;border-color:rgba(52,211,153,0.5);color:#34d399;">🕸️ 뉴런 스튜디오 열기</button>
       <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="잔잔한 집중 재즈 음악 틀어줘" style="font-size:10.5px;">🎵 음악 재생</button>
-      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="쿠팡에서 무선 키보드 가성비 좋은 거 검색해줘" style="font-size:10.5px;">🛒 쿠팡 쇼핑</button>
-      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="카카오톡으로 박 대리에게 자료 검토 완료했다고 메시지 보내줘" style="font-size:10.5px;">💬 카카오톡 전송(2중안전)</button>
-      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="오늘 온 제안서 메일 답장 초안 작성해줘" style="font-size:10.5px;">✉️ 메일 회신</button>
-      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="파이썬으로 CSV 데이터 정리하는 코딩 스크립트 짜줘" style="font-size:10.5px;">💻 말로 코딩</button>
+      <button type="button" class="win-ctrl-btn btn-sasarisa-pill-chip" data-cmd="카카오톡으로 박 대리에게 자료 검토 완료했다고 메시지 보내줘" style="font-size:10.5px;">💬 카톡 전송(2중안전)</button>
     </div>
 
     <!-- Step Output & 2-Step Safety Confirmation Card inside Pill -->
-    <div id="sasarisa-pill-status-box" style="display:none;margin-top:8px;padding:8px 10px;background:#030712;border:1px solid rgba(56,189,248,0.3);border-radius:10px;font-size:11.5px;color:#e2e8f0;"></div>
+    <div id="sasarisa-pill-status-box" style="display:none;margin-top:8px;padding:8px 10px;background:#030712;border:1px solid rgba(56,189,248,0.3);border-radius:10px;font-size:11.5px;color:#e2e8f0;max-height:150px;overflow-y:auto;"></div>
   </aside>
 
   <!-- ✋ Compact Camera & Gesture Panel (우측 상단 📷 버튼 클릭 시에만 깔끔하게 열림) -->
@@ -388,18 +408,20 @@
     <div id="bsc-council-window"><div id="bsc-council-feed"></div></div>
   </div>
 
-  <!-- Core Scripts -->
-  <script src="/js/jarvis-cloud-shim.js"></script>
-  <script src="/js/jarvis-sdk.js"></script>
-  <script src="/js/worldview-together.js"></script>
-  <script src="/js/aistudio-catalog-and-domains.js"></script>
-  <script src="/js/window-spawner.js"></script>
-  <script src="/js/aistudio-windows.js"></script>
-  <script src="/js/graph-engine.js"></script>
-  <script src="/js/jarvis-core-3d.js"></script>
-  <script src="/js/multimodal-engine.js"></script>
-  <script src="/js/jarvis-design-views.js"></script>
-  <script src="/js/jarvis-ide-workbench.js"></script>
-  <script src="/js/jarvis-camera-gesture-os.js"></script>
+  <!-- Core Scripts (Cache-Busted v20261027_v7) -->
+  <script src="/js/jarvis-cloud-shim.js?v=20261027_v8"></script>
+  <script src="/js/jarvis-sdk.js?v=20261027_v8"></script>
+  <script src="/js/worldview-together.js?v=20261027_v8"></script>
+  <script src="/js/aistudio-catalog-and-domains.js?v=20261027_v8"></script>
+  <script src="/js/window-spawner.js?v=20261027_v8"></script>
+  <script src="/js/aistudio-windows.js?v=20261027_v8"></script>
+  <script src="/js/graph-engine.js?v=20261027_v8"></script>
+  <script src="/js/jarvis-core-3d.js?v=20261027_v8"></script>
+  <script src="/js/multimodal-engine.js?v=20261027_v8"></script>
+  <script src="/js/jarvis-design-views.js?v=20261027_v8"></script>
+  <script src="/js/jarvis-ide-workbench.js?v=20261027_v8"></script>
+  <script src="/js/neuron-content-studio.js?v=20261027_v8"></script>
+  <script src="/js/sasarisa-main-os-ui.js?v=20261027_v8"></script>
+  <script src="/js/jarvis-camera-gesture-os.js?v=20261027_v8"></script>
 </body>
 </html>

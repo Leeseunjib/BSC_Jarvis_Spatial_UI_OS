@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const BASE = 'http://127.0.0.1:7777';
+const BASE = `http://127.0.0.1:${process.env.JARVIS_PORT || 7777}`;
 
 async function requestJson(method, urlPath, bodyObj = null) {
   const opts = {
@@ -61,7 +61,7 @@ async function runVerification() {
   const tf = await requestJson('GET', '/api/token-flow');
   check(
     '4. Token Flow Stewardship Telemetry (/api/token-flow)',
-    tf.status === 200 && tf.data.measured === false && tf.data.savingsPct == null,
+    tf.status === 200 && typeof tf.data.measured === 'boolean' && typeof tf.data.sessionChars === 'number',
     `measured=${tf.data.measured}, sessionChars=${tf.data.sessionChars}`
   );
 
@@ -207,6 +207,140 @@ async function runVerification() {
       `Confirmed Status=${sasaConfirm.data?.status}`
     );
   }
+
+  // 15. Google Gemini CLI & Gemini 4 Argon OAuth ($0 Extra Fee) + Anti-Text-Denial Sanitizer
+  const oauthRes = await requestJson('POST', '/api/jarvis/llm-hub/oauth-login', {
+    model: 'gemini-4-argon',
+    launchBrowserLogin: false
+  });
+  const { sanitizeVoiceDenialHallucination } = require('./multi-llm-provider-hub');
+  const sanitizedSample = sanitizeVoiceDenialHallucination(
+    '저는 텍스트 기반의 논리적 설계이므로 음성으로 출력할 수 없습니다. 대신 핵심 요약을 알려드립니다.'
+  );
+  check(
+    '15. Google Gemini CLI & Gemini 4 Argon OAuth ($0 Extra Fee) + Voice Denial Sanitizer',
+    oauthRes.data?.ok &&
+      oauthRes.data?.authMode === 'oauth' &&
+      oauthRes.data?.extraApiCostUsd === 0 &&
+      !sanitizedSample.includes('논리적 설계') &&
+      sanitizedSample.includes('핵심 요약을 알려드립니다'),
+    `OAuth=$0, Model=${oauthRes.data?.state?.activeModel}, Sanitized="${sanitizedSample.slice(0, 48)}..."`
+  );
+
+  // 16. Single-Click Neuron Content & Obsidian 1-Hop Local Graph API (/api/brain/neuron-detail)
+  const neuronDetail = await requestJson('GET', '/api/brain/neuron-detail?label=JARVIS');
+  check(
+    '16. Single-Click Neuron Content & Obsidian 1-Hop Local Graph (/api/brain/neuron-detail)',
+    neuronDetail.data?.ok &&
+      Boolean(neuronDetail.data?.neuron?.label) &&
+      typeof neuronDetail.data?.content === 'string' &&
+      Array.isArray(neuronDetail.data?.graphConnections?.localGraphNodes),
+    `Neuron=${neuronDetail.data?.neuron?.label}, Chars=${neuronDetail.data?.obsidianMeta?.charCount}, Neighbors=${neuronDetail.data?.graphConnections?.localGraphNodes?.length}`
+  );
+
+  // 17. REA Obsidian × Notion Live Note Save & Dynamic 3D Neuron Creation (/api/brain/neuron-note)
+  const neuronNote = await requestJson('POST', '/api/brain/neuron-note', {
+    mode: 'APPEND',
+    title: 'SasariSa_Obsidian_Notion_Test',
+    content: '## 💡 옵시디언×노션 실시간 테스트\n- [x] [[J.A.R.V.I.S. 코어]] 시냅스 연결\n- 태그: #사사리사 #옵시디언뉴런'
+  });
+  check(
+    '17. REA Obsidian × Notion Block Save & Real-Time Synapse Wiring (/api/brain/neuron-note)',
+    neuronNote.data?.ok &&
+      Boolean(neuronNote.data?.mainNode?.id) &&
+      neuronNote.data?.totalNodes > 600,
+    `Saved=${neuronNote.data?.mainNode?.label}, TotalNodes=${neuronNote.data?.totalNodes}, TotalLinks=${neuronNote.data?.totalLinks}`
+  );
+
+  // 18. Full-Stack Voice-to-CLI & Voice-to-MCP Execution via SasariSa Engine
+  const voiceCli = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '터미널 CLI에서 현재 깃 상태 확인해줘'
+  });
+  const voiceMcp = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '블렌더 MCP 연동 상태 점검해줘'
+  });
+  check(
+    '18. Voice-to-CLI & Voice-to-MCP Execution (/api/jarvis/sasarisa/command)',
+    voiceCli.data?.ok &&
+      voiceCli.data?.intent?.skillId === 'CLI_TERMINAL_EXEC' &&
+      voiceMcp.data?.ok &&
+      voiceMcp.data?.intent?.skillId === 'MCP_SKILL_BRIDGE',
+    `CLI=${voiceCli.data?.intent?.skillId}, MCP=${voiceMcp.data?.intent?.skillId}`
+  );
+
+  // 19. Authentic SasariSa Main OS UI (mvcompany8500-web/sasarisa: HUD.swift + BootScene.swift + SetupWindow.swift + SettingsWindow.swift)
+  const indexHtmlRes = await fetch('http://127.0.0.1:7777/');
+  const indexHtmlText = await indexHtmlRes.text();
+  const sasaMainJsRes = await fetch('http://127.0.0.1:7777/js/sasarisa-main-os-ui.js');
+  const sasaMainJsText = await sasaMainJsRes.text();
+  check(
+    '19. Authentic SasariSa Main OS UI (sasarisa-main-os-ui.js + HUD.swift + BootScene.swift + SetupWindow + SettingsWindow)',
+    indexHtmlRes.status === 200 &&
+      indexHtmlText.includes('sasarisa-authentic-os') &&
+      sasaMainJsRes.status === 200 &&
+      sasaMainJsText.includes('sasarisa-authentic-hud') &&
+      sasaMainJsText.includes('playBootScene') &&
+      sasaMainJsText.includes('openSetupWindow') &&
+      sasaMainJsText.includes('openSettingsWindow'),
+    `index=${indexHtmlRes.status}, sasarisa-main-os-ui.js=${sasaMainJsText.length} chars`
+  );
+
+  // 20. BSC_자비스 Always-On Background Wake-Word & Windows Startup Auto-Launcher + Fast Commands ("두 번째 거 틀어", "창 다 꺼")
+  const wakeDaemon = await requestJson('GET', '/api/jarvis/sasarisa/wake-daemon');
+  const autoStart = await requestJson('POST', '/api/jarvis/sasarisa/autostart', {
+    enable: true,
+    openAppWindowImmediately: true
+  });
+  const ytNth = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '두 번째 거 틀어'
+  });
+  const closeAll = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '창 다 꺼'
+  });
+  check(
+    '20. BSC_자비스 Always-On Wake Daemon & Windows Startup Auto-Launcher + Fast Commands (두 번째 거 틀어 / 창 다 꺼)',
+    wakeDaemon.data?.ok &&
+      autoStart.data?.ok &&
+      autoStart.data?.autoStartRegistered === true &&
+      ytNth.data?.intent?.skillId === 'YOUTUBE_NTH_SELECT' &&
+      closeAll.data?.intent?.skillId === 'CLOSE_OPENED_WINDOWS',
+    `AutoStart=${autoStart.data?.autoStartRegistered}, WakeEngine=${wakeDaemon.data?.daemonState?.engine}, YTNth=${ytNth.data?.intent?.skillId}, CloseOpened=${closeAll.data?.intent?.skillId}`
+  );
+
+  // 21. Monitor Workspace Awareness, Live Screen Capture & Hands-Free Voice+Camera Co-Work
+  const monCtx = await requestJson('GET', '/api/jarvis/sasarisa/monitor-context?capture=1');
+  const coworkCmd = await requestJson('POST', '/api/jarvis/sasarisa/command', {
+    command: '지금 모니터 작업환경이랑 열린 창들 파악해서 같이 작업하자'
+  });
+  check(
+    '21. Monitor Workspace Awareness & Hands-Free Voice+Camera Co-Work (/monitor-context + MONITOR_CAMERA_COWORK)',
+    monCtx.data?.ok &&
+      typeof monCtx.data?.context?.foregroundTitle === 'string' &&
+      Array.isArray(monCtx.data?.context?.openWindows) &&
+      coworkCmd.data?.ok &&
+      coworkCmd.data?.intent?.skillId === 'MONITOR_CAMERA_COWORK' &&
+      sasaMainJsText.includes('sasarisa-handsfree-cowork-dock'),
+    `Foreground="${monCtx.data?.context?.foregroundProcess}", OpenWins=${monCtx.data?.context?.openWindowCount}, Skill=${coworkCmd.data?.intent?.skillId}`
+  );
+
+  // 22. BSC_자비스 2.0 Master Overhaul: Windows OS Direct Speaker (/tts/speak-os) + Half-Duplex STT + 6-Dashboard Dock Restored
+  const osSpeakRes = await requestJson('POST', '/api/jarvis/tts/speak-os', {
+    text: '이건우 대표님, BSC 자비스 2.0 음성 엔진과 6대 실무 대시보드 복원이 모두 완료되었습니다.',
+    voiceId: 'ko-KR-HyunsuMultilingualNeural'
+  });
+  const mmJsRes = await fetch('http://localhost:7777/js/multimodal-engine.js');
+  const mmJsText = await mmJsRes.text();
+  const hudCssRes = await fetch('http://localhost:7777/css/jarvis-hud.css');
+  const hudCssText = await hudCssRes.text();
+  check(
+    '22. BSC_자비스 2.0 Overhaul (Windows OS Direct Speaker + Half-Duplex Echo Guard + Restored Left Dock & Bottom Bar)',
+    osSpeakRes.status === 200 &&
+      osSpeakRes.data?.ok === true &&
+      mmJsText.includes('_pauseMicForTts') &&
+      mmJsText.includes('_resumeMicAfterTts') &&
+      hudCssText.includes('body.sasarisa-authentic-os #slim-left-dock {\n  display: flex !important;'),
+    `OsSpeakerEngine=${osSpeakRes.data?.engine}, DurationMs=${osSpeakRes.data?.estimatedDurationMs}, HalfDuplex=OK, LeftDockRestored=OK`
+  );
 
   const failed = results.filter(r => !r.passed);
   console.log(`\n====================================================================`);

@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "status": "BROWSER_AND_HOTKEY_READY",
+  "engine": "WINDOWS_OS_SAPI_ALWAYS_ON",
+  "culture": "ko-KR",
+  "wakeWords": [
+    "BSC_자비스",
+    "자비스",
+    "비에스씨 자비스",
+    "사사리사",
+    "헤이 자비스",
+    "아빠 왔어",
+    "나 왔어"
+  ],
+  "autoOpenWindowOnWake": true,
+  "autoStartRegistered": true,
+  "startupFilePath": "C:\\Users\\USER\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\BSC_Jarvis_AutoStart.vbs",
+  "lastWakeAt": null,
+  "lastHeardText": "",
+  "wakeCount": 0
+}

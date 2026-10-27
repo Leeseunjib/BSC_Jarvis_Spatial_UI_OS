@@ -4478,3 +4478,1387 @@ body.theme-minimal-slate {
   padding: 13px 18px !important;
   color: #111827 !important;
 }
+
+/* ==========================================================================
+   🎙️ SASARISA VOICE-FIRST ZERO-OVERLAP LAYOUT (2026-10-27 LOCK)
+   ========================================================================== */
+body.sasarisa-voice-first-mode #node-preview-card {
+  display: none;
+}
+
+/* Eliminate duplicate bottom text bar & right-bottom orb collision when SasariSa Voice HUD is active */
+body.sasarisa-voice-first-mode #clean-bottom-bar #jarvis-chat-form {
+  display: none !important;
+}
+
+body.sasarisa-voice-first-mode #jarvis-floating-orb-zone {
+  right: 14px !important;
+  bottom: 58px !important;
+  width: 96px !important;
+  z-index: 65 !important;
+}
+
+body.sasarisa-voice-first-mode #jarvis-floating-orb-zone .jarvis-speech-callout,
+body.sasarisa-voice-first-mode #jarvis-floating-orb-zone .core-shape-tabs {
+  display: none !important;
+}
+
+body.sasarisa-voice-first-mode #jarvis-floating-orb-zone .jarvis-orb-canvas-wrap {
+  width: 84px !important;
+  height: 84px !important;
+}
+
+body.sasarisa-voice-first-mode #live-dialogue-toast {
+  top: 60px !important;
+  right: 20px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: 420px !important;
+  max-width: calc(100vw - 110px) !important;
+  z-index: 9480 !important;
+}
+
+/* Zero-UI Voice-Only Minimal Mode (한국 유튜버 사사리사 스타일 음성 전용 미니멀 화면) */
+body.zero-ui-voice-mode #minimal-top-bar,
+body.zero-ui-voice-mode #slim-left-dock,
+body.zero-ui-voice-mode #clean-bottom-bar,
+body.zero-ui-voice-mode #jarvis-floating-orb-zone,
+body.zero-ui-voice-mode #node-preview-card {
+  display: none !important;
+}
+
+body.zero-ui-voice-mode #sasarisa-voice-pill {
+  bottom: 24px !important;
+}
+
+/* ==========================================================================
+   ◉ AUTHENTIC SASARISA (mvcompany8500-web/sasarisa) MAIN OS INTERFACE
+   - Ported 1:1 from `docs/tutorial.css`, `HUD.swift`, `BootScene.swift`,
+     `SetupWindow.swift`, and `SettingsWindow.swift`
+   - Replaces legacy BSC Jarvis outer chrome so SasariSa is the MAIN UI
+   ========================================================================== */
+
+body.sasarisa-authentic-os #minimal-top-bar,
+body.sasarisa-authentic-os #jarvis-floating-orb-zone,
+body.sasarisa-authentic-os #sasarisa-voice-pill {
+  display: none !important;
+}
+
+/* Zero-Overlap Hybrid Layout: Restore 100% of BSC Jarvis Left Dock, Bottom Controls, Inspector & Voice Toast */
+body.sasarisa-authentic-os #slim-left-dock {
+  display: flex !important;
+  top: 62px !important;
+  left: 10px !important;
+  bottom: 62px !important;
+  width: 78px !important;
+  z-index: 9150 !important;
+}
+
+body.sasarisa-authentic-os #node-preview-card {
+  display: none;
+  top: 62px !important;
+  left: 98px !important;
+  z-index: 9160 !important;
+}
+body.sasarisa-authentic-os #node-preview-card.explicit-open {
+  display: flex !important;
+}
+
+body.sasarisa-authentic-os #clean-bottom-bar {
+  display: flex !important;
+  left: 98px !important;
+  right: 14px !important;
+  bottom: 10px !important;
+  height: 40px !important;
+  z-index: 9150 !important;
+  justify-content: space-between !important;
+}
+
+body.sasarisa-authentic-os #clean-bottom-bar .cbb-prompt-form {
+  display: none !important;
+}
+
+body.sasarisa-authentic-os #clean-bottom-bar .cbb-system-orbs {
+  pointer-events: auto !important;
+  display: flex !important;
+  gap: 6px !important;
+}
+
+body.sasarisa-authentic-os #live-dialogue-toast,
+body.sasarisa-voice-first-mode.sasarisa-authentic-os #live-dialogue-toast {
+  top: auto !important;
+  bottom: 148px !important;
+  left: 50% !important;
+  right: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 84px !important;
+  overflow: hidden !important;
+  padding: 8px 14px !important;
+  transform: translateX(-50%) !important;
+  width: min(620px, calc(100vw - 240px)) !important;
+  z-index: 9450 !important;
+}
+
+/* Optional SasariSa Official Sky-Light Backdrop (from sasarisa.com hero) */
+body.sasarisa-authentic-os.sasarisa-sky-mode {
+  background: linear-gradient(180deg, #a6e6ff 0%, #cdeffd 38%, #e9f8ff 70%, #f6fcff 100%) !important;
+}
+body.sasarisa-authentic-os.sasarisa-sky-mode #brain-canvas {
+  background: radial-gradient(900px 420px at 50% 0%, rgba(255,255,255,0.88), transparent 70%),
+              linear-gradient(180deg, #a6e6ff 0%, #cdeffd 38%, #e9f8ff 70%, #f6fcff 100%) !important;
+}
+
+/* 1. Authentic SasariSa Top Menu Bar (sasarisa.com + macOS ◉ MenuBarExtra) */
+#sasarisa-top-menubar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(6, 11, 22, 0.86);
+  border-bottom: 1px solid rgba(77, 217, 255, 0.22);
+  backdrop-filter: blur(20px);
+  z-index: 9200;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+}
+
+body.sasarisa-sky-mode #sasarisa-top-menubar {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(12, 34, 51, 0.12);
+}
+
+.stm-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.stm-logo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #f8fafc;
+}
+body.sasarisa-sky-mode .stm-logo-btn {
+  color: #0c2233;
+}
+.stm-logo-btn:hover {
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.stm-brand-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.stm-version-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+}
+
+.stm-status-strip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.stm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.stm-pill.green {
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+}
+body.sasarisa-sky-mode .stm-pill.green {
+  background: #e6f9f0;
+  color: #0b6b45;
+}
+.stm-pill.blue {
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(77, 217, 255, 0.4);
+  color: #7dd3fc;
+}
+body.sasarisa-sky-mode .stm-pill.blue {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.stm-pill kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stm-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  display: inline-block;
+}
+
+.stm-center {
+  flex: 1;
+  max-width: 380px;
+}
+
+.stm-search-box {
+  width: 100%;
+  height: 34px;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+body.sasarisa-sky-mode .stm-search-box {
+  background: #ffffff;
+  border-color: rgba(12, 34, 51, 0.18);
+}
+#stm-neuron-search {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f8fafc;
+  font-size: 12px;
+}
+body.sasarisa-sky-mode #stm-neuron-search {
+  color: #0c2233;
+}
+
+.stm-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stm-action-btn {
+  padding: 6px 11px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(30, 41, 59, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #f1f5f9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+body.sasarisa-sky-mode .stm-action-btn {
+  background: #ffffff;
+  color: #0c2233;
+  border-color: rgba(12, 34, 51, 0.16);
+}
+.stm-action-btn:hover {
+  transform: translateY(-1px);
+  border-color: #4dd9ff;
+}
+.stm-action-btn.emerald {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #6ee7b7;
+}
+body.sasarisa-sky-mode .stm-action-btn.emerald {
+  background: #10b981;
+  color: #ffffff;
+}
+.stm-action-btn.cyan {
+  background: rgba(14, 165, 233, 0.2);
+  border-color: rgba(77, 217, 255, 0.55);
+  color: #7dd3fc;
+}
+body.sasarisa-sky-mode .stm-action-btn.cyan {
+  background: #0284c7;
+  color: #ffffff;
+}
+.stm-action-btn.gold {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fde68a;
+}
+body.sasarisa-sky-mode .stm-action-btn.gold {
+  background: #0c2233;
+  color: #ffffff;
+}
+
+/* 2. SasariSa Left Mini Quick-Guide Card (Shifted right of #slim-left-dock for Zero-Overlap) */
+#sasarisa-mini-guide-card {
+  position: fixed;
+  top: 62px;
+  left: 98px;
+  width: 296px;
+  background: rgba(8, 14, 26, 0.84);
+  border: 1px solid rgba(77, 217, 255, 0.28);
+  border-radius: 16px;
+  padding: 11px 13px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.48);
+  z-index: 8800;
+  color: #e6f6ff;
+  font-size: 12px;
+}
+body.sasarisa-sky-mode #sasarisa-mini-guide-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(12, 34, 51, 0.14);
+  color: #0c2233;
+  box-shadow: 0 16px 38px rgba(12, 34, 51, 0.12);
+}
+.smg-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+}
+.smg-head button {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.smg-tip-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.smg-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.smg-badge.green { background: #dcfce7; color: #065f46; }
+.smg-badge.purple { background: #ede9fe; color: #5b21b6; }
+.smg-badge.cyan { background: #e0f2fe; color: #075985; }
+
+.smg-Quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 8px;
+}
+.smg-scene-btn {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(77, 217, 255, 0.28);
+  background: rgba(15, 23, 42, 0.65);
+  color: #bae6fd;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.14s;
+}
+body.sasarisa-sky-mode .smg-scene-btn {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+.smg-scene-btn:hover {
+  border-color: #4dd9ff;
+  background: rgba(77, 217, 255, 0.2);
+  color: #ffffff;
+}
+body.sasarisa-sky-mode .smg-scene-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* 3. Authentic HUD.swift + docs/tutorial.css SasariSa On-Screen Card & 3-Ring Spinning Orb */
+.sasarisa-hud {
+  --c: #4dd9ff;
+  position: fixed;
+  z-index: 9100;
+  width: min(740px, 94vw);
+  padding: 16px 20px 14px;
+  border-radius: 22px;
+  background: rgba(5, 10, 20, 0.95);
+  border: 2px solid var(--c);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55), 0 0 38px rgba(77, 217, 255, 0.28);
+  color: #e6f6ff;
+  backdrop-filter: blur(22px);
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+/* 5 HUD Positions from HUD.swift lines 102-117 (Zero-Overlap above #clean-bottom-bar) */
+.sasarisa-hud.pos-bottomCenter {
+  left: 50%;
+  bottom: 58px;
+  transform: translateX(-50%);
+  width: min(690px, calc(100vw - 220px));
+}
+.sasarisa-hud.pos-center {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.sasarisa-hud.pos-bottomRight {
+  right: 24px;
+  bottom: 22px;
+}
+.sasarisa-hud.pos-bottomLeft {
+  left: 24px;
+  bottom: 22px;
+}
+.sasarisa-hud.pos-top {
+  left: 50%;
+  top: 68px;
+  transform: translateX(-50%);
+}
+
+/* Tone states from tutorial.css lines 60-62 */
+.sasarisa-hud.amber {
+  --c: #ffb840;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55), 0 0 42px rgba(255, 184, 64, 0.34);
+}
+.sasarisa-hud.lime {
+  --c: #73ff99;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55), 0 0 42px rgba(115, 255, 153, 0.34);
+}
+.sasarisa-hud.pop.pos-bottomCenter {
+  transform: translateX(-50%) scale(1.018);
+}
+
+.sasarisa-hud-main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.sasarisa-hud .htxt {
+  flex: 1;
+  min-width: 0;
+}
+
+.sasarisa-hud .hs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.sasarisa-hud .hs {
+  font: 800 12px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.08em;
+  color: var(--c);
+}
+
+.hs-sub-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-inline-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.hud-inline-pill.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #34d399;
+  color: #6ee7b7;
+}
+.hud-inline-pill.cyan {
+  background: rgba(77, 217, 255, 0.15);
+  border-color: rgba(77, 217, 255, 0.45);
+  color: #4dd9ff;
+}
+.hud-inline-pill kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+}
+
+.sasarisa-hud .hh {
+  font-size: 13px;
+  color: #a8d4ec;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sasarisa-hud .hh:not(:empty)::before {
+  content: "🗣 ";
+}
+
+.sasarisa-hud .hb {
+  font-size: 18.5px;
+  font-weight: 800;
+  line-height: 1.34;
+  color: #ffffff;
+  word-break: keep-all;
+}
+
+/* Blinking Caret from tutorial.css line 75 */
+.sasarisa-hud .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--c);
+  vertical-align: -2px;
+  margin-left: 3px;
+  animation: sasarisaBlink 0.9s steps(2) infinite;
+}
+@keyframes sasarisaBlink {
+  50% { opacity: 0; }
+}
+
+/* 3-Ring Spinning Dashed Orb from tutorial.css lines 65-70 & HUD.swift OrbView */
+.sasarisa-orb-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sasarisa-hud .orb {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  flex: 0 0 78px;
+}
+.sasarisa-hud .orb i,
+.sasarisa-hud .orb b {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.sasarisa-hud .orb i:nth-child(1) {
+  border: 2px dashed var(--c);
+  opacity: 0.78;
+  animation: sasarisaSpin 9s linear infinite;
+}
+.sasarisa-hud .orb i:nth-child(2) {
+  inset: 9px;
+  border: 1.6px dashed var(--c);
+  opacity: 0.56;
+  animation: sasarisaSpin 6s linear infinite reverse;
+}
+.sasarisa-hud .orb i:nth-child(3) {
+  inset: 19px;
+  border: 2px solid var(--c);
+  opacity: 0.88;
+}
+.sasarisa-hud .orb b {
+  inset: 25px;
+  background: radial-gradient(circle at 35% 32%, #ffffff, var(--c) 65%, transparent 72%);
+  box-shadow: 0 0 20px var(--c);
+  animation: sasarisaBreath 1.8s ease-in-out infinite;
+  transition: transform 0.08s ease-out;
+}
+@keyframes sasarisaSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes sasarisaBreath {
+  50% { transform: scale(1.13); }
+}
+
+/* Safety Confirmation Pill (tutorial.css lines 87-94 .pillui) */
+.sasarisa-pillui {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 13px;
+  background: rgba(255, 184, 64, 0.14);
+  border: 1px solid rgba(255, 184, 64, 0.55);
+}
+.pillui-inner b {
+  display: block;
+  font-size: 12px;
+  color: #ffd479;
+  margin-bottom: 4px;
+}
+.pillui-draft {
+  font-size: 13px;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.pillui-actions {
+  display: flex;
+  gap: 8px;
+}
+.pillui-yes,
+.pillui-no {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+}
+.pillui-yes {
+  background: #10b981;
+  color: #ffffff;
+}
+.pillui-no {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* Direct Input Row inside SasariSa HUD Card */
+.sasarisa-hud-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+#sasarisa-hud-input {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(77, 217, 255, 0.32);
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+}
+#sasarisa-hud-input:focus {
+  border-color: var(--c);
+  box-shadow: 0 0 0 2px rgba(77, 217, 255, 0.2);
+}
+.sasarisa-hud-send-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--c);
+  color: #041019;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 4. Preserved BSC J.A.R.V.I.S. All-Tech Drawer */
+#sasarisa-bsc-tech-drawer {
+  position: fixed;
+  top: 60px;
+  right: 18px;
+  width: min(680px, 94vw);
+  background: rgba(7, 13, 25, 0.96);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(22px);
+  z-index: 9300;
+  color: #f8fafc;
+}
+.sbtd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.sbtd-header strong {
+  font-size: 14.5px;
+  color: #fde68a;
+}
+.sbtd-header p {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 3px 0 0 0;
+}
+.sbtd-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.sbtd-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.sbtd-card:hover {
+  border-color: #4dd9ff;
+  background: rgba(14, 165, 233, 0.16);
+  transform: translateY(-2px);
+}
+.sbtd-ic {
+  font-size: 20px;
+}
+.sbtd-card b {
+  font-size: 13px;
+  color: #ffffff;
+}
+.sbtd-card small {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.38;
+}
+
+/* 5. Authentic SetupWindow.swift & SettingsWindow.swift Modals */
+.sasarisa-mac-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 18, 0.55);
+  backdrop-filter: blur(8px);
+  z-index: 9600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sasarisa-mac-window {
+  background: #ffffff;
+  color: #111827;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+.smw-titlebar {
+  height: 42px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.smw-traffic {
+  display: flex;
+  gap: 7px;
+}
+.smw-traffic .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+}
+.smw-traffic .dot.red { background: #ff5f57; }
+.smw-traffic .dot.yellow { background: #febc2e; }
+.smw-traffic .dot.green { background: #28c840; }
+
+.smw-win-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+}
+.smw-close-btn {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.smw-body {
+  padding: 20px 22px;
+}
+
+.smw-section-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #374151;
+  margin: 12px 0 6px 0;
+}
+.smw-section-label:first-child {
+  margin-top: 0;
+}
+
+.smw-groupbox {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.smw-gb-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.smw-form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.smw-form-row:last-child {
+  margin-bottom: 0;
+}
+.smw-form-row label {
+  width: 120px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #374151;
+  flex-shrink: 0;
+}
+.smw-form-row input[type="text"],
+.smw-form-row select {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  font-size: 12.5px;
+}
+
+.smw-train-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.smw-check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.smw-check-row:last-child {
+  border-bottom: none;
+}
+.chk-ic {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.chk-ic.ok {
+  background: #10b981;
+  color: #ffffff;
+}
+.chk-ic.warn {
+  background: #ef4444;
+  color: #ffffff;
+}
+.chk-txt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.chk-txt b {
+  font-size: 13px;
+  color: #111827;
+}
+.chk-txt span {
+  font-size: 11.5px;
+  color: #6b7280;
+}
+
+.smw-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.smw-btn.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+/* 6. Authentic BootScene.swift Overlay ("아빠 왔어 / 대표님 오셨습니다") */
+#sasarisa-boot-scene-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9800;
+  background: rgba(2, 6, 16, 0.86);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.boot-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(77, 217, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(77, 217, 255, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.boot-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #4dd9ff, transparent);
+  box-shadow: 0 0 18px #4dd9ff;
+  animation: bootScanMove 2.6s ease-in-out infinite;
+}
+@keyframes bootScanMove {
+  0% { top: 6%; }
+  100% { top: 94%; }
+}
+
+.boot-left-log {
+  position: absolute;
+  top: 56px;
+  left: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  text-shadow: 0 0 10px rgba(77, 217, 255, 0.55);
+}
+
+.boot-right-clock {
+  position: absolute;
+  top: 48px;
+  right: 56px;
+  text-align: right;
+}
+.boot-clock-hm {
+  font-size: 92px;
+  font-weight: 200;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 28px #4dd9ff;
+}
+.boot-clock-ymd {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #4dd9ff;
+  margin-top: 6px;
+}
+.boot-clock-nominal {
+  font-size: 12px;
+  font-weight: 700;
+  color: #73ff99;
+  margin-top: 4px;
+}
+
+.boot-center-stage {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boot-arc-reactor {
+  position: relative;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boot-radar-sweep {
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(77, 217, 255, 0.35) 50deg, transparent 60deg);
+  animation: sasarisaSpin 2.5s linear infinite;
+}
+
+.boot-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+.boot-ring.r1 {
+  width: 390px;
+  height: 390px;
+  border: 2px dashed rgba(77, 217, 255, 0.78);
+  animation: sasarisaSpin 14s linear infinite;
+}
+.boot-ring.r2 {
+  width: 310px;
+  height: 310px;
+  border: 3px dashed rgba(255, 184, 64, 0.82);
+  animation: sasarisaSpin 9s linear infinite reverse;
+}
+.boot-ring.r3 {
+  width: 240px;
+  height: 240px;
+  border: 2px dashed rgba(77, 217, 255, 0.92);
+  animation: sasarisaSpin 6s linear infinite;
+}
+.boot-ring.r4 {
+  width: 175px;
+  height: 175px;
+  border: 2.5px solid #4dd9ff;
+  box-shadow: 0 0 24px #4dd9ff;
+}
+
+.boot-core {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #a8f0ff 42%, #4dd9ff 72%, transparent 100%);
+  box-shadow: 0 0 42px #4dd9ff, 0 0 80px #4dd9ff;
+  animation: sasarisaBreath 1.4s ease-in-out infinite;
+}
+
+.boot-bottom-titles {
+  position: absolute;
+  bottom: 62px;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+.boot-main-title {
+  font-size: 46px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 26px #4dd9ff;
+}
+.boot-sub-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffb840;
+  letter-spacing: 0.24em;
+  margin-top: 6px;
+}
+.boot-hello-line {
+  font-size: 24px;
+  font-weight: 600;
+  color: #e6f6ff;
+  margin-top: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+}
+
+@media (max-width: 960px) {
+  #sasarisa-mini-guide-card {
+    display: none;
+  }
+  .stm-center {
+    display: none;
+  }
+}
+
+/* 7. Hands-Free Monitor Workspace + Camera Co-Work HUD Dock (#sasarisa-handsfree-cowork-dock) */
+#sasarisa-handsfree-cowork-dock {
+  position: fixed;
+  top: 58px;
+  right: 14px;
+  width: 315px;
+  z-index: 9410;
+  background: rgba(6, 12, 24, 0.88);
+  border: 1px solid rgba(52, 211, 153, 0.42);
+  border-radius: 16px;
+  padding: 12px 14px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
+  color: #f8fafc;
+}
+
+body.sasarisa-sky-mode #sasarisa-handsfree-cowork-dock {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #0f172a;
+}
+
+.shcd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  font-size: 12px;
+}
+
+.shcd-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  margin-right: 4px;
+}
+
+.shcd-mini-btn {
+  background: rgba(30, 41, 59, 0.85);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shcd-section {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.shcd-sec-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #6ee7b7;
+}
+
+body.sasarisa-sky-mode .shcd-sec-title {
+  color: #047857;
+}
+
+.shcd-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+}
+
+.shcd-active-win-box {
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(77, 217, 255, 0.28);
+  border-radius: 10px;
+  padding: 7px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+body.sasarisa-sky-mode .shcd-active-win-box {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.shcd-aw-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+#shcd-fg-title {
+  font-size: 12px;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.sasarisa-sky-mode #shcd-fg-title {
+  color: #0f172a;
+}
+
+#shcd-fg-proc {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.shcd-screen-preview-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: #020617;
+  min-height: 92px;
+}
+
+#shcd-screen-img {
+  width: 100%;
+  height: 108px;
+  object-fit: cover;
+  display: block;
+}
+
+.shcd-screen-overlay-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: rgba(2, 6, 23, 0.86);
+  font-size: 10.5px;
+  color: #cbd5e1;
+}
+
+.shcd-pill-btn {
+  background: rgba(16, 185, 129, 0.22);
+  border: 1px solid rgba(52, 211, 153, 0.55);
+  color: #a7f3d0;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shcd-pill-btn.cyan {
+  background: rgba(14, 165, 233, 0.22);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #bae6fd;
+}
+
+.shcd-win-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 54px;
+  overflow-y: auto;
+}
+
+.shcd-win-chip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+}
+
+.shcd-win-chip b {
+  color: #38bdf8;
+}
+
+.shcd-cam-box {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.32);
+  background: rgba(9, 14, 26, 0.9);
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#sasarisa-cowork-cam-video {
+  width: 100%;
+  height: 118px;
+  object-fit: cover;
+  transform: scaleX(-1);
+  display: none;
+}
+
+.shcd-cam-placeholder {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.shcd-cam-placeholder span {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.shcd-cam-placeholder small {
+  font-size: 10.5px;
+  line-height: 1.38;
+  color: #94a3b8;
+}
+
+.shcd-action-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.shcd-full-btn {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(14, 165, 233, 0.16);
+  color: #e0f2fe;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shcd-full-btn.emerald {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(16, 185, 129, 0.16);
+  color: #d1fae5;
+}
+
+.shcd-full-btn:hover {
+  filter: brightness(1.18);
+}

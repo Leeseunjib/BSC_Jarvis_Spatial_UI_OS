@@ -104,22 +104,87 @@ window.JarvisCameraGestureOS = {
     { id: 59, cat: '국내 유튜버/개발자 (8)', name: '주연 (Jooyeon) 홈킷 스튜디오', org: 'YouTube Creator', desc: 'Apple HomeKit 기반 스마트 블라인드·조명·조도 센서 연동 스튜디오', url: 'https://www.youtube.com/@jooyeon' }
   ],
 
+  // Eye-Gaze + Hand-Finger Dual Spatial State
+  gazeEnabled: true,
+  dwellClickEnabled: true,
+  gazeX: window.innerWidth / 2,
+  gazeY: window.innerHeight / 2,
+  rawGazeX: 0.5,
+  rawGazeY: 0.5,
+  neutralGazeX: 0.5,
+  neutralGazeY: 0.5,
+  gazeGainX: 3.4,
+  gazeGainY: 3.0,
+  gazeTargetEl: null,
+  dwellStartTime: 0,
+  dwellTargetEl: null,
+  blinkStartTime: 0,
+  faceMeshInstance: null,
+  latestFaceLandmarks: null,
+  latestHandLandmarks: null,
+  currentHandPose: 'NONE',
+  lastActionTime: 0,
+  widgetMinimized: false,
+
   init() {
     this.injectGestureOverlayDOM();
+    // Global keyboard shortcut: 'C' (when not typing in an input) calibrates eye gaze center!
+    window.addEventListener('keydown', (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
+      if (e.key === 'c' || e.key === 'C') {
+        if (this.gestureEnabled) {
+          this.calibrateEyeGazeCenter();
+        }
+      }
+    });
   },
 
   injectGestureOverlayDOM() {
     if (document.getElementById('jarvis-spatial-gesture-bar')) return;
 
-    // 1. Spatial Cursor (Bright Minimal Monotone with Clear Status Tag)
+    // 1. Cursor #1: 👁️ Eye-Gaze Reticle Cursor (눈동자 방향 추적 마우스 커서 + 응시 게이지)
+    const gazeCursor = document.createElement('div');
+    gazeCursor.id = 'jarvis-eye-gaze-cursor';
+    gazeCursor.style.cssText = `
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 44px;
+      height: 44px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 99998;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: width 0.1s, height 0.1s;
+    `;
+    gazeCursor.innerHTML = `
+      <svg width="44" height="44" viewBox="0 0 44 44" style="position:absolute;inset:0;transform:rotate(-90deg);">
+        <circle cx="22" cy="22" r="18" fill="rgba(0, 240, 255, 0.08)" stroke="rgba(0, 240, 255, 0.75)" stroke-width="2" stroke-dasharray="4 3" />
+        <circle id="jarvis-gaze-dwell-ring" cx="22" cy="22" r="18" fill="none" stroke="#34d399" stroke-width="3.2" stroke-dasharray="113.1" stroke-dashoffset="113.1" stroke-linecap="round" />
+      </svg>
+      <div style="width:8px;height:8px;border-radius:50%;background:#00f0ff;box-shadow:0 0 10px #00f0ff;"></div>
+      <div id="jarvis-eye-gaze-label" style="
+        position:absolute;top:46px;left:50%;transform:translateX(-50%);
+        background:rgba(4, 12, 26, 0.92);border:1px solid rgba(0, 240, 255, 0.55);
+        color:#67e8f9;font-size:10.5px;font-weight:800;
+        padding:2px 8px;border-radius:999px;white-space:nowrap;
+        box-shadow:0 4px 12px rgba(0,0,0,0.45);
+      ">👁️ 눈동자 시선 커서</div>
+    `;
+    document.body.appendChild(gazeCursor);
+
+    // 2. Cursor #2: ☝️ Finger & Hand Gesture Cursor (손가락·손동작 커서)
     const cursor = document.createElement('div');
     cursor.id = 'jarvis-spatial-cursor';
     cursor.style.cssText = `
       position: fixed;
-      width: 38px;
-      height: 38px;
-      border: 2px solid #18181b;
-      background: rgba(255, 255, 255, 0.78);
+      width: 36px;
+      height: 36px;
+      border: 2.5px solid #fbbf24;
+      background: rgba(251, 191, 36, 0.16);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
@@ -127,80 +192,146 @@ window.JarvisCameraGestureOS = {
       display: none;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
-      transition: width 0.12s, height 0.12s, background 0.12s, border-color 0.12s;
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+      transition: width 0.1s, height 0.1s, background 0.1s, border-color 0.1s;
     `;
     cursor.innerHTML = `
-      <div style="width:7px;height:7px;background:#18181b;border-radius:50%;"></div>
+      <div style="width:7px;height:7px;background:#fbbf24;border-radius:50%;"></div>
       <div id="jarvis-spatial-cursor-label" style="
-        position:absolute;top:42px;left:50%;transform:translateX(-50%);
-        background:#18181b;color:#ffffff;font-size:10.5px;font-weight:700;
-        padding:3px 9px;border-radius:6px;white-space:nowrap;
-        box-shadow:0 2px 8px rgba(0,0,0,0.15);
-      ">1. 인식 [HOVER]</div>
+        position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+        background:rgba(15, 23, 42, 0.94);border:1px solid #fbbf24;color:#fde68a;font-size:10.5px;font-weight:800;
+        padding:2px 8px;border-radius:999px;white-space:nowrap;
+        box-shadow:0 2px 8px rgba(0,0,0,0.4);
+      ">☝️ 손가락 커서</div>
     `;
     document.body.appendChild(cursor);
 
-    // 2. Floating Camera Gesture PIP & 4-Step Gesture Pill Bar (Bright Minimal Monotone)
+    // 3. Compact Dark-Glass Camera Eye + Hand HUD Widget (Bottom-Right, Collapsible & Closable)
     const pip = document.createElement('div');
     pip.id = 'jarvis-spatial-gesture-bar';
     pip.style.cssText = `
       position: fixed;
-      bottom: 72px;
-      right: 24px;
-      width: 320px;
-      background: #ffffff;
-      border: 1px solid #d1d5db;
+      bottom: 58px;
+      right: 16px;
+      width: 286px;
+      background: rgba(6, 12, 24, 0.94);
+      border: 1.5px solid rgba(0, 240, 255, 0.45);
       border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
-      z-index: 9500;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+      z-index: 9600;
       display: none;
       overflow: hidden;
+      backdrop-filter: blur(18px);
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #18181b;
+      color: #f8fafc;
     `;
     pip.innerHTML = `
-      <div style="padding:10px 14px;background:#f4f5f7;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-size:12px;font-weight:800;color:#111827;display:flex;align-items:center;gap:6px;">
-          <span>🖐️ 카메라 비전 제스처 OS</span>
-          <span id="jcam-status-chip" style="font-size:10px;padding:2px 7px;border-radius:999px;background:#18181b;color:#fff;font-weight:700;">READY</span>
+      <div style="padding:8px 12px;background:rgba(15,23,42,0.9);border-bottom:1px solid rgba(56,189,248,0.22);display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:11.5px;font-weight:800;color:#38bdf8;display:flex;align-items:center;gap:6px;">
+          <span>👁️☝️ 눈동자·손가락 공간 커서</span>
+          <span id="jcam-status-chip" style="font-size:9.5px;padding:1px 6px;border-radius:999px;background:rgba(16,185,129,0.2);border:1px solid #34d399;color:#6ee7b7;font-weight:800;">LIVE</span>
         </div>
-        <button type="button" id="jcam-close-btn" style="background:none;border:none;font-size:14px;color:#6b7280;cursor:pointer;font-weight:700;">✕</button>
+        <div style="display:flex;gap:4px;">
+          <button type="button" id="jcam-min-btn" title="카메라 창 작게 접기/펼치기" style="background:rgba(30,41,59,0.8);border:1px solid rgba(148,163,184,0.3);border-radius:6px;width:22px;height:22px;color:#e2e8f0;cursor:pointer;font-size:12px;font-weight:800;">−</button>
+          <button type="button" id="jcam-close-btn" title="카메라·시선 커서 끄기" style="background:rgba(127,29,29,0.45);border:1px solid rgba(248,113,113,0.5);border-radius:6px;width:22px;height:22px;color:#fecdd3;cursor:pointer;font-size:12px;font-weight:800;">✕</button>
+        </div>
       </div>
-      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:11px;font-weight:600;">
-          <div id="jpill-recognize" style="padding:5px 8px;border-radius:8px;border:1px solid #18181b;background:#18181b;color:#fff;">1. 인식 (검지 #8)</div>
-          <div id="jpill-click" style="padding:5px 8px;border-radius:8px;border:1px solid #e5e7eb;background:#f9fafb;color:#4b5563;">2. 클릭 (핀치 #4+#8)</div>
-          <div id="jpill-drag" style="padding:5px 8px;border-radius:8px;border:1px solid #e5e7eb;background:#f9fafb;color:#4b5563;">3. 이동 (핀치 드래그)</div>
-          <div id="jpill-rotate" style="padding:5px 8px;border-radius:8px;border:1px solid #e5e7eb;background:#f9fafb;color:#4b5563;">4. 회전 (손바닥 3D)</div>
+
+      <div id="jcam-body-wrap" style="padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+        <!-- Live Camera Canvas with Eye Iris Rings + 21-Joint Hand Skeleton -->
+        <div style="position:relative;width:100%;height:142px;background:#020617;border:1px solid rgba(56,189,248,0.28);border-radius:10px;overflow:hidden;">
+          <video id="jcam-video" playsinline muted autoplay style="display:none;"></video>
+          <canvas id="jcam-canvas" width="264" height="142" style="width:100%;height:142px;display:block;"></canvas>
+          <div id="jcam-live-overlay-badge" style="position:absolute;left:6px;bottom:6px;right:6px;background:rgba(2,6,23,0.82);border:1px solid rgba(0,240,255,0.3);border-radius:6px;padding:3px 7px;font-size:10px;color:#e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+            <span id="jcam-pose-readout">👁️ 시선 추적 중 · 🤏 핀치=클릭</span>
+            <span style="color:#34d399;font-weight:800;">✊주먹=창닫기</span>
+          </div>
         </div>
-        <video id="jcam-video" playsinline style="display:none;"></video>
-        <canvas id="jcam-canvas" width="294" height="164" style="width:100%;height:164px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;display:block;"></canvas>
-        <div style="display:flex;gap:6px;">
-          <button type="button" id="jcam-btn-webcam" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid #18181b;background:#18181b;color:#ffffff;font-size:11.5px;font-weight:700;cursor:pointer;">🎥 실시간 웹캠 ON</button>
-          <button type="button" id="jcam-btn-sim" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid #d1d5db;background:#ffffff;color:#111827;font-size:11.5px;font-weight:600;cursor:pointer;">🖐️ 가상 핸드 데모</button>
+
+        <!-- 4 Status Pills -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;font-weight:700;">
+          <div id="jpill-recognize" style="padding:4px 6px;border-radius:6px;border:1px solid #00f0ff;background:rgba(0,240,255,0.16);color:#67e8f9;">👁️ 1. 눈동자 시선조준</div>
+          <div id="jpill-click" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.22);background:rgba(15,23,42,0.6);color:#94a3b8;">🤏 2. 핀치/응시 클릭</div>
+          <div id="jpill-drag" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.22);background:rgba(15,23,42,0.6);color:#94a3b8;">✊ 3. 주먹/눈감기=창닫기</div>
+          <div id="jpill-rotate" style="padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.22);background:rgba(15,23,42,0.6);color:#94a3b8;">✋ 4. 손바닥 3D회전</div>
+        </div>
+
+        <!-- Quick Controls: Calibrate Gaze Center / Dwell Toggle / Clean All Windows -->
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button type="button" id="jcam-btn-calibrate" title="화면 정중앙을 보면서 누르면 내 눈동자 위치가 정중앙으로 영점 조절됩니다 (단축키: C)" style="flex:1;padding:5px 6px;border-radius:7px;border:1px solid #00f0ff;background:rgba(0,240,255,0.15);color:#67e8f9;font-size:10.5px;font-weight:800;cursor:pointer;">🎯 시선 영점(C)</button>
+          <button type="button" id="jcam-btn-dwell" title="눈동자로 버튼을 1.3초 바라보면 손 안 쓰고 자동 클릭" style="flex:1;padding:5px 6px;border-radius:7px;border:1px solid #34d399;background:rgba(16,185,129,0.18);color:#6ee7b7;font-size:10.5px;font-weight:800;cursor:pointer;">👁️ 응시클릭 ON</button>
+          <button type="button" id="jcam-btn-clean-ui" title="열려 있는 모든 창 즉시 닫기" style="padding:5px 8px;border-radius:7px;border:1px solid #f87171;background:rgba(127,29,29,0.35);color:#fecdd3;font-size:10.5px;font-weight:800;cursor:pointer;">🧹 창닫기</button>
+        </div>
+
+        <div style="display:flex;gap:4px;">
+          <button type="button" id="jcam-btn-webcam" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid #38bdf8;background:#0284c7;color:#ffffff;font-size:10.5px;font-weight:800;cursor:pointer;">🎥 실시간 웹캠 재연결</button>
+          <button type="button" id="jcam-btn-sim" style="padding:5px 8px;border-radius:7px;border:1px solid rgba(148,163,184,0.3);background:rgba(30,41,59,0.7);color:#cbd5e1;font-size:10.5px;font-weight:700;cursor:pointer;">시뮬레이션</button>
         </div>
       </div>
     `;
     document.body.appendChild(pip);
 
     document.getElementById('jcam-close-btn')?.addEventListener('click', () => this.toggleGestureWidget(false));
-    document.getElementById('jcam-btn-webcam')?.addEventListener('click', () => this.toggleRealWebcam());
+    document.getElementById('jcam-min-btn')?.addEventListener('click', (e) => {
+      const body = document.getElementById('jcam-body-wrap');
+      if (!body) return;
+      this.widgetMinimized = !this.widgetMinimized;
+      body.style.display = this.widgetMinimized ? 'none' : 'flex';
+      e.currentTarget.textContent = this.widgetMinimized ? '+' : '−';
+    });
+    document.getElementById('jcam-btn-calibrate')?.addEventListener('click', () => this.calibrateEyeGazeCenter());
+    document.getElementById('jcam-btn-dwell')?.addEventListener('click', (e) => {
+      this.dwellClickEnabled = !this.dwellClickEnabled;
+      e.currentTarget.textContent = this.dwellClickEnabled ? '👁️ 응시클릭 ON' : '👁️ 응시클릭 OFF';
+      e.currentTarget.style.borderColor = this.dwellClickEnabled ? '#34d399' : '#64748b';
+      e.currentTarget.style.color = this.dwellClickEnabled ? '#6ee7b7' : '#94a3b8';
+    });
+    document.getElementById('jcam-btn-clean-ui')?.addEventListener('click', () => {
+      window.BSC_CloseAllFloatingUI?.({ keepCameraWidget: true, stopSpeech: true });
+    });
+    document.getElementById('jcam-btn-webcam')?.addEventListener('click', () => this.toggleRealWebcam(true));
     document.getElementById('jcam-btn-sim')?.addEventListener('click', () => this.toggleSimulatedHand());
+  },
+
+  calibrateEyeGazeCenter() {
+    this.neutralGazeX = this.rawGazeX || 0.5;
+    this.neutralGazeY = this.rawGazeY || 0.5;
+    this.gazeX = window.innerWidth / 2;
+    this.gazeY = window.innerHeight / 2;
+    const readout = document.getElementById('jcam-pose-readout');
+    if (readout) {
+      readout.textContent = '🎯 눈동자 시선 정중앙 영점 완료!';
+    }
+    if (window.SasariSaMainOS) {
+      window.SasariSaMainOS.setHudCard(
+        'lime',
+        '🎯 눈동자 시선 커서 영점(Calibration) 완료',
+        '시선 마우스 커서 영점 맞춤',
+        '현재 대표님이 바라보시는 정면 위치를 화면 정중앙(0, 0) 기준으로 맞췄습니다. 눈으로 버튼을 보면서 손가락 핀치(🤏)나 1.3초 응시로 클릭하세요.'
+      );
+    }
   },
 
   toggleGestureWidget(forceState) {
     this.injectGestureOverlayDOM();
     const pip = document.getElementById('jarvis-spatial-gesture-bar');
     const cursor = document.getElementById('jarvis-spatial-cursor');
+    const gazeCursor = document.getElementById('jarvis-eye-gaze-cursor');
     if (!pip) return;
     this.gestureEnabled = typeof forceState === 'boolean' ? forceState : pip.style.display === 'none';
     pip.style.display = this.gestureEnabled ? 'block' : 'none';
     if (cursor) cursor.style.display = this.gestureEnabled ? 'flex' : 'none';
+    if (gazeCursor) gazeCursor.style.display = this.gestureEnabled ? 'flex' : 'none';
 
-    if (this.gestureEnabled && !this.webcamActive && !this.simHandActive) {
-      this.toggleSimulatedHand(true);
-    } else if (!this.gestureEnabled) {
+    // Hide duplicate legacy webcam overlays so only one clean camera widget is shown
+    const legacyHoloPanel = document.getElementById('holo-gesture-hud-panel');
+    if (legacyHoloPanel) legacyHoloPanel.style.display = 'none';
+    const rawWebcam = document.getElementById('webcam-video');
+    if (rawWebcam) rawWebcam.style.display = 'none';
+
+    if (this.gestureEnabled) {
+      this.toggleRealWebcam(true);
+    } else {
       this.stopAllTracking();
     }
   },
@@ -211,12 +342,26 @@ window.JarvisCameraGestureOS = {
     if (this.mpCamera && this.mpCamera.stop) {
       try { this.mpCamera.stop(); } catch (_) {}
     }
+    if (this.webcamStream) {
+      const stageCam = document.getElementById('cam');
+      if (!stageCam || stageCam.srcObject !== this.webcamStream) {
+        try { this.webcamStream.getTracks().forEach(t => t.stop()); } catch (_) {}
+      }
+      this.webcamStream = null;
+    }
     if (this.simTimer) {
       clearInterval(this.simTimer);
       this.simTimer = null;
     }
     const cursor = document.getElementById('jarvis-spatial-cursor');
+    const gazeCursor = document.getElementById('jarvis-eye-gaze-cursor');
     if (cursor) cursor.style.display = 'none';
+    if (gazeCursor) gazeCursor.style.display = 'none';
+    if (this.lastHoveredEl) {
+      this.lastHoveredEl.style.outline = '';
+      this.lastHoveredEl.style.boxShadow = '';
+      this.lastHoveredEl = null;
+    }
   },
 
   setActivePill(pillId) {
@@ -224,97 +369,242 @@ window.JarvisCameraGestureOS = {
       const el = document.getElementById(id);
       if (!el) return;
       if (id === pillId) {
-        el.style.background = '#18181b';
-        el.style.color = '#ffffff';
-        el.style.borderColor = '#18181b';
+        el.style.background = 'rgba(0, 240, 255, 0.22)';
+        el.style.color = '#67e8f9';
+        el.style.borderColor = '#00f0ff';
       } else {
-        el.style.background = '#f9fafb';
-        el.style.color = '#4b5563';
-        el.style.borderColor = '#e5e7eb';
+        el.style.background = 'rgba(15, 23, 42, 0.6)';
+        el.style.color = '#94a3b8';
+        el.style.borderColor = 'rgba(148, 163, 184, 0.22)';
       }
     });
   },
 
-  updateSpatialPoint(x, y, pinching, rotating) {
-    this.pointerX = x;
-    this.pointerY = y;
+  /**
+   * Find the nearest interactive UI button within `snapRadius` (Magnetic Snap for Eye Gaze!)
+   */
+  fireSpatialTap(targetEl) {
+    if (!targetEl) return;
+    const r = targetEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    try {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: cx, clientY: cy, bubbles: true }));
+      window.dispatchEvent(new PointerEvent('pointerdown', { clientX: cx, clientY: cy, button: 0, bubbles: true }));
+      setTimeout(() => {
+        window.dispatchEvent(new PointerEvent('pointerup', { clientX: cx, clientY: cy, button: 0, bubbles: true }));
+      }, 55);
+    } catch (_) {}
+    try { targetEl.click(); } catch (_) {}
+  },
+
+  findNearestInteractiveElement(x, y, snapRadius = 54) {
+    const direct = document.elementFromPoint(x, y);
+    const selector = 'button, a, .card.orb, .card, .panel .bar, .brow, .slim-dock-btn, .win-ctrl-btn, .stm-action-btn, .hud-inline-pill, .cbb-orb-pill, .smg-scene-btn, .view-pill';
+    if (direct) {
+      const hit = direct.closest(selector);
+      if (hit && hit.offsetParent !== null) return hit;
+    }
+    // Check magnetic snap radius around gaze point so eye jitter never misses a button
+    const candidates = document.querySelectorAll(selector);
+    let bestEl = null;
+    let bestDist = snapRadius;
+    for (const el of candidates) {
+      if (el.offsetParent === null) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const d = Math.hypot(cx - x, cy - y);
+      if (d < bestDist) {
+        bestDist = d;
+        bestEl = el;
+      }
+    }
+    return bestEl;
+  },
+
+  /**
+   * Update 👁️ Eye-Gaze Cursor position, Magnetic Snap, and 1.3s Dwell Auto-Click
+   */
+  updateEyeGazePoint(targetX, targetY, eyesClosed = false) {
+    const gazeCursor = document.getElementById('jarvis-eye-gaze-cursor');
+    const gazeLabel = document.getElementById('jarvis-eye-gaze-label');
+    const dwellRing = document.getElementById('jarvis-gaze-dwell-ring');
+    if (!gazeCursor || !this.gestureEnabled) return;
+
+    // Smooth eye movement (exponential low-pass filter to remove saccade jitter)
+    this.gazeX += (targetX - this.gazeX) * 0.22;
+    this.gazeY += (targetY - this.gazeY) * 0.22;
+    this.gazeX = Math.max(16, Math.min(window.innerWidth - 16, this.gazeX));
+    this.gazeY = Math.max(16, Math.min(window.innerHeight - 16, this.gazeY));
+
+    // Check Long-Blink (0.65s both eyes closed) -> Clean/Close all floating UI windows!
+    const now = Date.now();
+    if (eyesClosed) {
+      if (!this.blinkStartTime) {
+        this.blinkStartTime = now;
+      } else if (now - this.blinkStartTime > 650 && now - this.lastActionTime > 1800) {
+        this.lastActionTime = now;
+        this.blinkStartTime = 0;
+        window.BSC_CloseAllFloatingUI?.({ keepCameraWidget: true, stopSpeech: true });
+        if (gazeLabel) gazeLabel.textContent = '😌 눈감기 인식 -> 모든 창 닫기!';
+        return;
+      }
+    } else {
+      this.blinkStartTime = 0;
+    }
+
+    // Magnetic Snap to nearby button
+    const snappedBtn = this.findNearestInteractiveElement(this.gazeX, this.gazeY, 52);
+    let drawX = this.gazeX;
+    let drawY = this.gazeY;
+
+    if (this.lastHoveredEl && this.lastHoveredEl !== snappedBtn) {
+      this.lastHoveredEl.style.outline = '';
+      this.lastHoveredEl.style.boxShadow = '';
+    }
+
+    if (snappedBtn) {
+      const rect = snappedBtn.getBoundingClientRect();
+      drawX = this.gazeX * 0.35 + (rect.left + rect.width / 2) * 0.65;
+      drawY = this.gazeY * 0.35 + (rect.top + rect.height / 2) * 0.65;
+      snappedBtn.style.outline = '2px solid #00f0ff';
+      snappedBtn.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.55)';
+      this.lastHoveredEl = snappedBtn;
+      this.gazeTargetEl = snappedBtn;
+
+      const btnTitle = (snappedBtn.textContent || snappedBtn.title || '버튼').trim().slice(0, 14);
+      if (gazeLabel) gazeLabel.textContent = `👁️ 시선조준 [${btnTitle}] (🤏핀치/응시)`;
+
+      // Dwell Auto-Click (1.3s continuous gaze on the same button)
+      if (this.dwellClickEnabled) {
+        if (this.dwellTargetEl !== snappedBtn) {
+          this.dwellTargetEl = snappedBtn;
+          this.dwellStartTime = now;
+        } else {
+          const elapsed = now - this.dwellStartTime;
+          const progress = Math.min(1, elapsed / 1300);
+          if (dwellRing) {
+            dwellRing.style.strokeDashoffset = String(113.1 * (1 - progress));
+          }
+          if (elapsed >= 1300 && now - this.lastActionTime > 1400) {
+            this.lastActionTime = now;
+            this.dwellStartTime = now + 800;
+            if (dwellRing) dwellRing.style.strokeDashoffset = '113.1';
+            this.setActivePill('jpill-click');
+            if (gazeLabel) gazeLabel.textContent = `✓ 시선 응시 클릭! [${btnTitle}]`;
+            snappedBtn.click();
+          }
+        }
+      }
+    } else {
+      this.gazeTargetEl = null;
+      this.dwellTargetEl = null;
+      if (dwellRing) dwellRing.style.strokeDashoffset = '113.1';
+      if (gazeLabel) gazeLabel.textContent = '👁️ 눈동자 시선 커서';
+      // Also hover 3D Neuron node under eye gaze
+      if (window.BrainGraphEngine && typeof window.BrainGraphEngine.findNodeAt === 'function') {
+        const hitNode = window.BrainGraphEngine.findNodeAt(drawX, drawY);
+        if (hitNode && gazeLabel) {
+          gazeLabel.textContent = `👁️ 뉴런 [${String(hitNode.label || hitNode.id).slice(0, 14)}] (🤏핀치=열기)`;
+          this.gazeTargetNode = hitNode;
+        } else {
+          this.gazeTargetNode = null;
+        }
+      }
+    }
+
+    gazeCursor.style.display = 'flex';
+    gazeCursor.style.left = `${drawX}px`;
+    gazeCursor.style.top = `${drawY}px`;
+  },
+
+  /**
+   * Update ☝️ Hand/Finger Cursor + Execute Combined Eye-Gaze + Finger Actions!
+   */
+  updateSpatialPoint(x, y, pinching, rotating, handPose = 'POINT') {
+    this.pointerX += (x - this.pointerX) * 0.35;
+    this.pointerY += (y - this.pointerY) * 0.35;
+    const fx = this.pointerX;
+    const fy = this.pointerY;
+
     const cursor = document.getElementById('jarvis-spatial-cursor');
     const label = document.getElementById('jarvis-spatial-cursor-label');
-    if (cursor) {
+    const readout = document.getElementById('jcam-pose-readout');
+
+    if (cursor && this.gestureEnabled) {
       cursor.style.display = 'flex';
-      cursor.style.left = `${x}px`;
-      cursor.style.top = `${y}px`;
-      cursor.style.width = pinching ? '26px' : '38px';
-      cursor.style.height = pinching ? '26px' : '38px';
-      cursor.style.borderColor = rotating ? '#d97706' : (pinching ? '#059669' : '#18181b');
+      cursor.style.left = `${fx}px`;
+      cursor.style.top = `${fy}px`;
+      cursor.style.width = pinching ? '24px' : '36px';
+      cursor.style.height = pinching ? '24px' : '36px';
+      cursor.style.borderColor = handPose === 'FIST' ? '#f87171' : (pinching ? '#34d399' : '#fbbf24');
     }
 
-    // 4. 3D Rotate Mode
+    const now = Date.now();
+
+    // 1. ✊ FIST Gesture -> Close ALL Open Windows & Popups Immediately!
+    if (handPose === 'FIST') {
+      this.setActivePill('jpill-drag');
+      if (label) label.textContent = '✊ 주먹 [모든 창 닫기]';
+      if (readout) readout.textContent = '✊ 주먹 감지 -> 열린 창 모두 닫기!';
+      if (now - this.lastActionTime > 1400) {
+        this.lastActionTime = now;
+        window.BSC_CloseAllFloatingUI?.({ keepCameraWidget: true, stopSpeech: true });
+        if (window.SasariSaMainOS) {
+          window.SasariSaMainOS.setHudCard('lime', '🧹 손동작(✊ 주먹)으로 모든 창 닫기 완료', '주먹 제스처 인식', '화면을 가리던 팝업과 서브 창을 모두 닫았습니다.');
+        }
+      }
+      return;
+    }
+
+    // 2. 👍 THUMBS UP -> Approve Confirmation ([응]) Immediately!
+    if (handPose === 'THUMBS_UP' && now - this.lastActionTime > 2000) {
+      this.lastActionTime = now;
+      if (label) label.textContent = '👍 엄지척 [즉시 승인]';
+      const yesBtn = document.querySelector('.pillui-yes, #btn-approve-pc');
+      if (yesBtn) yesBtn.click();
+      return;
+    }
+
+    // 3. ✋ PALM 3D Rotate Mode
     if (rotating) {
       this.setActivePill('jpill-rotate');
-      if (label) label.textContent = '4. 회전 [3D ROTATE]';
-      const normX = (x / window.innerWidth - 0.5) * 2;
-      const normY = (y / window.innerHeight - 0.5) * 2;
-      const stage = document.getElementById('jarvis-unified-stage');
-      if (stage && stage.style.display !== 'none') {
-        stage.style.transform = `perspective(1400px) rotateY(${normX * 6}deg) rotateX(${-normY * 4}deg)`;
-      } else if (window.BrainGraph && window.BrainGraph.controls) {
-        window.BrainGraph.controls.azimuthAngle = normX * Math.PI * 0.5;
+      if (label) label.textContent = '✋ 손바닥 [3D 은하 회전]';
+      if (readout) readout.textContent = '✋ 손바닥 이동 -> 3D 뉴런 은하 회전';
+      if (window.BrainGraphEngine) {
+        window.BrainGraphEngine.rotY += ((fx / window.innerWidth) - 0.5) * 0.04;
       }
       return;
-    } else {
-      const stage = document.getElementById('jarvis-unified-stage');
-      if (stage) stage.style.transform = '';
     }
 
-    // 3. Drag Move Mode
-    if (pinching && this.activeDragEl) {
-      this.setActivePill('jpill-drag');
-      if (label) label.textContent = '3. 이동 [PINCH DRAG]';
-      this.activeDragEl.style.position = 'fixed';
-      this.activeDragEl.style.left = `${x - this.dragOffsetX}px`;
-      this.activeDragEl.style.top = `${y - this.dragOffsetY}px`;
-      this.activeDragEl.style.zIndex = '9200';
-      return;
-    }
+    // 4. 🤏 PINCH CLICK (Vision Pro Style: Clicks Eye-Gaze Target first, or Finger Target!)
+    const fingerTarget = this.findNearestInteractiveElement(fx, fy, 42);
+    const activeTarget = this.gazeTargetEl || fingerTarget;
 
-    const elem = document.elementFromPoint(x, y);
-    if (this.lastHoveredEl && this.lastHoveredEl !== elem) {
-      this.lastHoveredEl.style.outline = '';
-    }
+    if (pinching && !this.wasPinching && now - this.lastActionTime > 450) {
+      this.lastActionTime = now;
+      this.setActivePill('jpill-click');
+      if (label) label.textContent = '🤏 핀치 클릭!';
+      if (readout) readout.textContent = '🤏 핀치 클릭 실행!';
 
-    if (elem) {
-      const clickable = elem.closest('button, .ud-btn, .ud-slot-card, .dock-btn, a');
-      const draggableWin = elem.closest('.hud-window');
-      if (clickable) {
-        clickable.style.outline = '2px solid #18181b';
-        this.lastHoveredEl = clickable;
+      if (activeTarget) {
+        this.fireSpatialTap(activeTarget);
+      } else if (this.gazeTargetNode && window.BrainGraphEngine) {
+        window.BrainGraphEngine.selectNode(this.gazeTargetNode, true);
+      } else if (window.BrainGraphEngine && typeof window.BrainGraphEngine.findNodeAt === 'function') {
+        const nodeAtFinger = window.BrainGraphEngine.findNodeAt(fx, fy);
+        if (nodeAtFinger) window.BrainGraphEngine.selectNode(nodeAtFinger, true);
       }
-
-      if (pinching && !this.wasPinching) {
-        this.setActivePill('jpill-click');
-        if (label) label.textContent = '2. 클릭 [PINCH CLICK]';
-        if (clickable) {
-          clickable.click();
-        } else if (draggableWin) {
-          this.activeDragEl = draggableWin;
-          const rect = draggableWin.getBoundingClientRect();
-          this.dragOffsetX = x - rect.left;
-          this.dragOffsetY = y - rect.top;
-        }
-      } else if (!pinching) {
-        this.setActivePill('jpill-recognize');
-        if (label) {
-          label.textContent = clickable
-            ? `1. 인식 [${clickable.textContent.trim().slice(0, 14)}]`
-            : '1. 인식 [HOVER]';
-        }
+    } else if (!pinching) {
+      this.setActivePill('jpill-recognize');
+      if (label) {
+        const tName = activeTarget ? (activeTarget.textContent || activeTarget.title || '').trim().slice(0, 12) : '';
+        label.textContent = tName ? `☝️ [${tName}] (🤏핀치)` : '☝️ 손가락 커서 (🤏핀치=클릭 / ✊주먹=닫기)';
       }
     }
 
-    if (!pinching && this.activeDragEl) {
-      this.activeDragEl = null;
-    }
     this.wasPinching = pinching;
   },
 
@@ -324,8 +614,7 @@ window.JarvisCameraGestureOS = {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle grid on light background
-    ctx.strokeStyle = '#e5e7eb';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
     ctx.lineWidth = 1;
     for (let gx = 0; gx < canvas.width; gx += 32) {
       ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, canvas.height); ctx.stroke();
@@ -334,43 +623,46 @@ window.JarvisCameraGestureOS = {
       ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(canvas.width, gy); ctx.stroke();
     }
 
-    const hx = normX * 200 + 45;
-    const hy = normY * 95 + 42;
-    ctx.strokeStyle = rotate ? '#d97706' : (pinch ? '#059669' : '#18181b');
+    // Simulated Eye Gaze Reticle in top half
+    const ex = normX * (canvas.width - 60) + 30;
+    const ey = normY * (canvas.height - 50) + 25;
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 10, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Simulated Hand in bottom half
+    const hx = normX * 180 + 40;
+    const hy = normY * 70 + 45;
+    ctx.strokeStyle = rotate ? '#fbbf24' : (pinch ? '#34d399' : '#38bdf8');
     ctx.lineWidth = 2.2;
 
     const fingers = [
-      [hx - 22, hy - 8],
-      [hx - 9, pinch ? hy - 10 : hy - 36],
-      [hx + 4, hy - 40],
-      [hx + 16, hy - 34],
-      [hx + 26, rotate ? hy + 4 : hy - 22]
+      [hx - 20, hy - 8],
+      [hx - 8, pinch ? hy - 10 : hy - 32],
+      [hx + 4, hy - 36],
+      [hx + 15, hy - 30],
+      [hx + 24, rotate ? hy + 4 : hy - 20]
     ];
 
     fingers.forEach((f, idx) => {
       ctx.beginPath();
-      ctx.moveTo(hx, hy + 24);
+      ctx.moveTo(hx, hy + 20);
       ctx.lineTo(f[0], f[1]);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(f[0], f[1], idx <= 1 ? 4.5 : 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = idx <= 1 ? '#18181b' : '#6b7280';
+      ctx.arc(f[0], f[1], idx <= 1 ? 4 : 3, 0, Math.PI * 2);
+      ctx.fillStyle = idx <= 1 ? '#fbbf24' : '#38bdf8';
       ctx.fill();
     });
-
-    ctx.fillStyle = '#111827';
-    ctx.font = '700 10.5px sans-serif';
-    ctx.fillText(
-      rotate ? 'MODE 4: 3D ROTATE (손바닥 회전)' : (pinch ? 'MODE 2/3: PINCH CLICK & DRAG' : 'MODE 1: INDEX #8 POINTING'),
-      10, 152
-    );
   },
 
   toggleSimulatedHand(forceOn) {
     this.simHandActive = typeof forceOn === 'boolean' ? forceOn : !this.simHandActive;
     const chip = document.getElementById('jcam-status-chip');
-    if (chip) chip.textContent = this.simHandActive ? 'VIRTUAL HAND' : 'STANDBY';
+    if (chip) chip.textContent = this.simHandActive ? 'SIM MODE' : 'STANDBY';
 
     if (this.simTimer) {
       clearInterval(this.simTimer);
@@ -391,103 +683,277 @@ window.JarvisCameraGestureOS = {
         const rot = phase >= 9 && phase <= 10;
 
         this.drawHandSkeletonOnCanvas(nx, ny, pinch, rot);
-        this.updateSpatialPoint(sx, sy, pinch, rot);
+        this.updateEyeGazePoint(sx, sy, false);
+        this.updateSpatialPoint(sx, sy, pinch, rot, 'POINT');
       }, 40);
     }
   },
 
-  async ensureMediaPipeLoaded() {
-    if (window.Hands && window.Camera) return true;
-    const scripts = [
-      'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
-      'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
-      'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js'
-    ];
-    for (const src of scripts) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = src;
-        s.crossOrigin = 'anonymous';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-    return Boolean(window.Hands && window.Camera);
-  },
-
-  async toggleRealWebcam() {
-    if (this.webcamActive) {
-      this.webcamActive = false;
-      if (this.mpCamera) try { this.mpCamera.stop(); } catch (_) {}
+  /**
+   * Real Webcam Dual Tracker:
+   *  1) Eye-Gaze Iris + Head Pose Tracker (MediaPipe FaceMesh 478 Landmarks + Optical Eye ROI Fallback)
+   *  2) Hand 21-Joint Finger & Gesture Tracker (MediaPipe Hands)
+   */
+  async toggleRealWebcam(forceStart = false) {
+    if (this.webcamActive && !forceStart) {
+      this.stopAllTracking();
       const chip = document.getElementById('jcam-status-chip');
-      if (chip) chip.textContent = 'STANDBY';
+      if (chip) chip.textContent = 'OFF';
       return;
     }
 
+    const chip = document.getElementById('jcam-status-chip');
+    const readout = document.getElementById('jcam-pose-readout');
+    const videoEl = document.getElementById('jcam-video');
+    const canvas = document.getElementById('jcam-canvas');
+    if (!videoEl || !canvas) return;
+    const ctx = canvas.getContext('2d');
+
     try {
-      const chip = document.getElementById('jcam-status-chip');
-      if (chip) chip.textContent = 'LOADING CAM...';
-      await this.ensureMediaPipeLoaded();
+      if (chip) chip.textContent = 'CAM INIT...';
 
-      const videoEl = document.getElementById('jcam-video');
-      const canvas = document.getElementById('jcam-canvas');
-      const ctx = canvas.getContext('2d');
+      // Reuse existing stream from #webcam-video if already open, or request getUserMedia
+      const existingVid = document.getElementById('cam') || document.getElementById('webcam-video');
+      if (existingVid && existingVid.srcObject && existingVid.srcObject.active) {
+        this.webcamStream = existingVid.srcObject;
+        existingVid.style.display = 'none'; // Hide duplicate raw video element
+      } else if (!this.webcamStream || !this.webcamStream.active) {
+        this.webcamStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+          audio: false
+        });
+      }
 
-      const hands = new window.Hands({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-      });
-      hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.65,
-        minTrackingConfidence: 0.65
-      });
-
-      hands.onResults((results) => {
-        ctx.save();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-          const lm = results.multiHandLandmarks[0];
-          if (window.drawConnectors && window.HAND_CONNECTIONS) {
-            window.drawConnectors(ctx, lm, window.HAND_CONNECTIONS, { color: '#18181b', lineWidth: 2 });
-            window.drawLandmarks(ctx, lm, { color: '#059669', lineWidth: 1, radius: 2.5 });
-          }
-
-          const indexTip = lm[8];
-          const thumbTip = lm[4];
-          const pinkyTip = lm[20];
-          const wrist = lm[0];
-
-          const screenX = (1 - indexTip.x) * window.innerWidth;
-          const screenY = indexTip.y * window.innerHeight;
-          const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
-          const pinching = pinchDist < 0.055;
-          const pinkyDist = Math.hypot(pinkyTip.x - wrist.x, pinkyTip.y - wrist.y);
-          const rotating = pinkyDist < 0.18 && !pinching;
-
-          this.updateSpatialPoint(screenX, screenY, pinching, rotating);
-        }
-        ctx.restore();
-      });
-
-      this.mpCamera = new window.Camera(videoEl, {
-        onFrame: async () => {
-          if (this.webcamActive) await hands.send({ image: videoEl });
-        },
-        width: 640,
-        height: 480
-      });
-
-      await this.mpCamera.start();
+      videoEl.srcObject = this.webcamStream;
+      await videoEl.play().catch(() => {});
+      this.webcamActive = true;
       this.simHandActive = false;
       if (this.simTimer) clearInterval(this.simTimer);
-      this.webcamActive = true;
-      if (chip) chip.textContent = 'WEBCAM 21-PT LIVE';
+      if (chip) chip.textContent = '👁️+☝️ LIVE';
+
+      // 1. Initialize MediaPipe Hands (21 Joints)
+      if (!this.handsInstance && typeof window.Hands === 'function') {
+        const hands = new window.Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        hands.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.6,
+          minTrackingConfidence: 0.6
+        });
+        hands.onResults((results) => {
+          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            this.latestHandLandmarks = results.multiHandLandmarks[0];
+          } else {
+            this.latestHandLandmarks = null;
+          }
+        });
+        this.handsInstance = hands;
+      }
+
+      // 2. Initialize MediaPipe FaceMesh with Refined Iris Landmarks (#468..#477)
+      if (!this.faceMeshInstance && typeof window.FaceMesh === 'function') {
+        try {
+          const fm = new window.FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+          });
+          fm.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true, // Enables 10 Iris landmarks (468-477)
+            minDetectionConfidence: 0.55,
+            minTrackingConfidence: 0.55
+          });
+          fm.onResults((results) => {
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+              this.latestFaceLandmarks = results.multiFaceLandmarks[0];
+            } else {
+              this.latestFaceLandmarks = null;
+            }
+          });
+          this.faceMeshInstance = fm;
+        } catch (_) {}
+      }
+
+      // 3. Offscreen optical canvas for instant zero-lag pupil/head fallback tracking
+      const optCvs = document.createElement('canvas');
+      optCvs.width = 64;
+      optCvs.height = 48;
+      const optCtx = optCvs.getContext('2d', { willReadFrequently: true });
+      let frameToggle = 0;
+      let busySending = false;
+
+      const processLoop = async () => {
+        if (!this.webcamActive || !this.gestureEnabled) return;
+
+        if (videoEl.readyState >= 2) {
+          // Draw mirrored camera feed into mini HUD canvas
+          ctx.save();
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          // Alternate sending frames to FaceMesh and Hands so both run smoothly at high FPS
+          if (!busySending) {
+            busySending = true;
+            frameToggle = (frameToggle + 1) % 2;
+            try {
+              if (frameToggle === 0 && this.faceMeshInstance) {
+                await this.faceMeshInstance.send({ image: videoEl });
+              } else if (this.handsInstance) {
+                await this.handsInstance.send({ image: videoEl });
+              }
+            } catch (_) {}
+            busySending = false;
+          }
+
+          // --- A. Process 👁️ Eye-Gaze Iris Landmarks (or Optical Pupil/Face ROI Fallback) ---
+          if (this.latestFaceLandmarks && this.latestFaceLandmarks.length >= 468) {
+            const flm = this.latestFaceLandmarks;
+            // Left Iris center = 468 (or average of 468..472), Right Iris center = 473
+            const leftIris = flm[468] || flm[159];
+            const rightIris = flm[473] || flm[386];
+            const noseTip = flm[1];
+
+            // Eye corners for relative iris position inside eye socket
+            const lInner = flm[133], lOuter = flm[33];
+            const rInner = flm[362], rOuter = flm[263];
+
+            const lRatioX = (lInner && lOuter && Math.abs(lInner.x - lOuter.x) > 0.005)
+              ? (leftIris.x - lOuter.x) / (lInner.x - lOuter.x)
+              : 0.5;
+            const rRatioX = (rInner && rOuter && Math.abs(rOuter.x - rInner.x) > 0.005)
+              ? (rightIris.x - rInner.x) / (rOuter.x - rInner.x)
+              : 0.5;
+            const irisRelX = (lRatioX + rRatioX) * 0.5; // ~0.5 when looking straight
+
+            // Combine head pose (nose & eye midpoint) + iris socket ratio for natural full-screen gaze!
+            const headMirroredX = 1 - ((leftIris.x + rightIris.x) * 0.5 * 0.6 + noseTip.x * 0.4);
+            const headY = ((leftIris.y + rightIris.y) * 0.5 * 0.7 + noseTip.y * 0.3);
+
+            const combinedGazeX = headMirroredX + (0.5 - irisRelX) * 0.35;
+            const combinedGazeY = headY;
+
+            this.rawGazeX = combinedGazeX;
+            this.rawGazeY = combinedGazeY;
+
+            const screenGX = (0.5 + (combinedGazeX - this.neutralGazeX) * this.gazeGainX) * window.innerWidth;
+            const screenGY = (0.5 + (combinedGazeY - this.neutralGazeY) * this.gazeGainY) * window.innerHeight;
+
+            // Blink detection via Eye Aspect Ratio (upper vs lower eyelid distance)
+            const lEyeOpen = Math.hypot(flm[159].x - flm[145].x, flm[159].y - flm[145].y);
+            const rEyeOpen = Math.hypot(flm[386].x - flm[374].x, flm[386].y - flm[374].y);
+            const eyesClosed = (lEyeOpen + rEyeOpen) * 0.5 < 0.011;
+
+            this.updateEyeGazePoint(screenGX, screenGY, eyesClosed);
+
+            // Draw glowing cyan Iris tracking rings on the mini camera canvas
+            [leftIris, rightIris].forEach(pt => {
+              const cx = (1 - pt.x) * canvas.width;
+              const cy = pt.y * canvas.height;
+              ctx.strokeStyle = '#00f0ff';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.fillStyle = '#34d399';
+              ctx.beginPath();
+              ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          } else {
+            // Instant Optical Dark-Pupil / Face Center-of-Mass Fallback when FaceMesh is still loading
+            optCtx.drawImage(videoEl, 0, 0, optCvs.width, optCvs.height);
+            const img = optCtx.getImageData(0, 0, optCvs.width, optCvs.height).data;
+            let sumX = 0, sumY = 0, weightSum = 0;
+            // Scan upper-middle region where face/eyes are located
+            for (let y = 6; y < 38; y++) {
+              for (let x = 12; x < 52; x++) {
+                const idx = (y * optCvs.width + x) * 4;
+                const luma = img[idx] * 0.299 + img[idx + 1] * 0.587 + img[idx + 2] * 0.114;
+                // Weight dark pupil/eyebrow features inside bright face region
+                if (luma > 15 && luma < 95) {
+                  const w = (100 - luma);
+                  sumX += (optCvs.width - 1 - x) * w;
+                  sumY += y * w;
+                  weightSum += w;
+                }
+              }
+            }
+            if (weightSum > 0) {
+              const normX = (sumX / weightSum) / optCvs.width;
+              const normY = (sumY / weightSum) / optCvs.height;
+              this.rawGazeX = normX;
+              this.rawGazeY = normY;
+              const screenGX = (0.5 + (normX - this.neutralGazeX) * 2.8) * window.innerWidth;
+              const screenGY = (0.5 + (normY - this.neutralGazeY) * 2.5) * window.innerHeight;
+              this.updateEyeGazePoint(screenGX, screenGY, false);
+            }
+          }
+
+          // --- B. Process ☝️ Hand 21-Joint Landmarks ---
+          if (this.latestHandLandmarks && this.latestHandLandmarks.length === 21) {
+            const lm = this.latestHandLandmarks;
+            // Draw 21-joint hand skeleton on mini canvas
+            const bones = [
+              [0,1],[1,2],[2,3],[3,4],
+              [0,5],[5,6],[6,7],[7,8],
+              [0,9],[9,10],[10,11],[11,12],
+              [0,13],[13,14],[14,15],[15,16],
+              [0,17],[17,18],[18,19],[19,20]
+            ];
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1.8;
+            for (const [a, b] of bones) {
+              ctx.beginPath();
+              ctx.moveTo((1 - lm[a].x) * canvas.width, lm[a].y * canvas.height);
+              ctx.lineTo((1 - lm[b].x) * canvas.width, lm[b].y * canvas.height);
+              ctx.stroke();
+            }
+            for (let i = 0; i < 21; i++) {
+              ctx.fillStyle = (i === 4 || i === 8) ? '#34d399' : '#fde68a';
+              ctx.beginPath();
+              ctx.arc((1 - lm[i].x) * canvas.width, lm[i].y * canvas.height, (i === 4 || i === 8) ? 4 : 2.2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            const indexTip = lm[8];
+            const thumbTip = lm[4];
+            const screenX = (1 - indexTip.x) * window.innerWidth;
+            const screenY = indexTip.y * window.innerHeight;
+            const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+            const pinching = pinchDist < 0.058;
+
+            const indexUp  = lm[8].y < lm[6].y;
+            const middleUp = lm[12].y < lm[10].y;
+            const ringUp   = lm[16].y < lm[14].y;
+            const pinkyUp  = lm[20].y < lm[18].y;
+            const thumbUp  = lm[4].y < lm[3].y && lm[3].y < lm[2].y && lm[4].y < lm[6].y;
+
+            let handPose = 'POINT';
+            let rotating = false;
+            if (!indexUp && !middleUp && !ringUp && !pinkyUp && !pinching) {
+              handPose = 'FIST';
+            } else if (thumbUp && !indexUp && !middleUp && !ringUp && !pinkyUp) {
+              handPose = 'THUMBS_UP';
+            } else if (indexUp && middleUp && ringUp && pinkyUp && !pinching) {
+              handPose = 'PALM';
+              rotating = true;
+            }
+
+            this.updateSpatialPoint(screenX, screenY, pinching, rotating, handPose);
+          } else {
+            if (readout) {
+              readout.textContent = '👁️ 눈동자 시선 커서 활성 · 🤏손핀치/응시=클릭';
+            }
+          }
+        }
+
+        requestAnimationFrame(processLoop);
+      };
+      requestAnimationFrame(processLoop);
     } catch (e) {
       this.toggleSimulatedHand(true);
     }

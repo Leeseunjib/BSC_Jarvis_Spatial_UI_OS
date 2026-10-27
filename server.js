@@ -14,7 +14,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execSync, spawn } = require('child_process');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const {
   DEFAULT_COMMERCIAL_SLOTS,
@@ -60,6 +60,8 @@ const { runFullSystemAuditAndVerification } = require('./scripts/jarvis-system-v
 const {
   getMultiLlmStatus,
   configureMultiLlmHub,
+  triggerGoogleOAuthLogin,
+  sanitizeVoiceDenialHallucination,
   chatWithUnifiedLlm
 } = require('./scripts/multi-llm-provider-hub');
 const {
@@ -67,6 +69,24 @@ const {
   parseAndExecuteSasarisaVoiceCommand,
   confirmOrCancelSasarisaAction
 } = require('./scripts/rea-sasarisa-windows-engine');
+const {
+  getNeuronFullDetail,
+  saveOrAppendNeuronNote
+} = require('./scripts/rea-obsidian-notion-engine');
+const {
+  startWindowsAlwaysOnWakeDaemon,
+  setWindowsLoginAutoStart,
+  triggerOsWakeEvent,
+  getWakeDaemonStatus,
+  launchOrFocusBscJarvisAppWindow
+} = require('./scripts/windows-wake-daemon');
+const {
+  ensureDesktopAppLaunchers,
+  launchFramelessMonitorAppWindow,
+  captureMonitorWorkspaceContext,
+  saveCameraFrameBase64,
+  analyzeMonitorAndCameraForCoWork
+} = require('./scripts/monitor-vision-context-engine');
 
 let harness2Engine = null;
 try {
@@ -234,33 +254,137 @@ async function ensureEdgeTtsClockSync() {
   }
 }
 
-function buildLocalFallbackAudioBuffer(cleanText = '') {
-  // Valid 24kHz 16-bit mono WAV container with soft harmonic chime + speech cadence envelope (> 8KB)
-  const sampleRate = 24000;
-  const durationSec = Math.min(2.5, Math.max(0.45, cleanText.length * 0.018));
-  const numSamples = Math.max(4800, Math.floor(sampleRate * durationSec));
-  const dataBytes = numSamples * 2;
-  const buf = Buffer.alloc(44 + dataBytes);
-  buf.write('RIFF', 0);
-  buf.writeUInt32LE(36 + dataBytes, 4);
-  buf.write('WAVE', 8);
-  buf.write('fmt ', 12);
-  buf.writeUInt32LE(16, 16);
-  buf.writeUInt16LE(1, 20);
-  buf.writeUInt16LE(1, 22);
-  buf.writeUInt32LE(sampleRate, 24);
-  buf.writeUInt32LE(sampleRate * 2, 28);
-  buf.writeUInt16LE(2, 32);
-  buf.writeUInt16LE(16, 34);
-  buf.write('data', 36);
-  buf.writeUInt32LE(dataBytes, 40);
-  for (let i = 0; i < numSamples; i++) {
-    const t = i / sampleRate;
-    const env = Math.exp(-t * 3.5) * 0.12;
-    const sample = Math.round(Math.sin(2 * Math.PI * 528 * t) * env * 32767);
-    buf.writeInt16LE(sample, 44 + i * 2);
+function fetchGoogleNeuralTtsChunkMp3(clauseText = '') {
+  return new Promise((resolve) => {
+    const q = encodeURIComponent(String(clauseText || '').trim().slice(0, 180));
+    if (!q) return resolve(Buffer.alloc(0));
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&ttsspeed=1.05&q=${q}`;
+    const req = https.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Referer': 'https://translate.google.com/'
+      },
+      timeout: 7000
+    }, (res) => {
+      if (res.statusCode !== 200) {
+        res.resume();
+        return resolve(Buffer.alloc(0));
+      }
+      const chunks = [];
+      res.on('data', d => chunks.push(d));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+      res.on('error', () => resolve(Buffer.alloc(0)));
+    });
+    req.on('timeout', () => {
+      try { req.destroy(); } catch (_) {}
+      resolve(Buffer.alloc(0));
+    });
+    req.on('error', () => resolve(Buffer.alloc(0)));
+  });
+}
+
+function getPreCachedStudioNeuralMp3(cleanText = '', chosenVoice = '') {
+  try {
+    const cacheDir = path.join(PUBLIC_DIR, 'data', 'tts_cache');
+    const prefix = /InJoon/i.test(chosenVoice) ? 'injoon' : 'hyunsu';
+    let key = 'general';
+    if (/테스트|정상 작동|출력 점검/i.test(cleanText)) key = 'test';
+    else if (/브리핑|요약|보고/i.test(cleanText)) key = 'briefing';
+    else if (/런나우|RunNow/i.test(cleanText)) key = 'runnow';
+    else if (/생태계|조직|에이전트/i.test(cleanText)) key = 'ecosystem';
+    const candidate = path.join(cacheDir, `${prefix}_${key}.mp3`);
+    if (fs.existsSync(candidate)) {
+      const buf = fs.readFileSync(candidate);
+      if (buf.length > 512) return buf;
+    }
+  } catch (_) {}
+  return Buffer.alloc(0);
+}
+
+async function synthesizeGoogleNeuralKoreanMp3(cleanText = '', chosenVoice = '') {
+  try {
+    const clauses = splitTextIntoSentenceChunks(String(cleanText || '네, 이건우 대표님.'), 165);
+    const mp3Parts = [];
+    for (const clause of clauses) {
+      if (!clause.trim()) continue;
+      const buf = await fetchGoogleNeuralTtsChunkMp3(clause);
+      if (buf.length > 256) {
+        mp3Parts.push(mp3Parts.length === 0 ? buf : stripLeadingId3(buf));
+      }
+    }
+    const merged = Buffer.concat(mp3Parts);
+    if (merged.length > 256) return merged;
+  } catch (_) {}
+  return getPreCachedStudioNeuralMp3(cleanText, chosenVoice);
+}
+
+let activeOsSpeakerProc = null;
+
+function stopWindowsOsSpeaker() {
+  if (activeOsSpeakerProc) {
+    try {
+      activeOsSpeakerProc.kill();
+    } catch (_) {}
+    activeOsSpeakerProc = null;
   }
-  return buf;
+}
+
+async function playSpeechOnWindowsOsSpeaker(rawText, voiceId = 'ko-KR-HyunsuMultilingualNeural', preSynthesized = null) {
+  stopWindowsOsSpeaker();
+  const cleanText = cleanTextForSpeech(rawText);
+  if (!cleanText) return { ok: false, error: 'Empty speech text' };
+
+  try {
+    const ttsRes = preSynthesized && preSynthesized.ok && preSynthesized.audioBase64
+      ? preSynthesized
+      : await synthesizeNeuralKoreanTts(cleanText, 'jarvis', { voiceId });
+
+    const dataDir = path.join(PUBLIC_DIR, 'data');
+    fs.mkdirSync(dataDir, { recursive: true });
+
+    if (ttsRes && ttsRes.ok && ttsRes.audioBase64) {
+      const audioFile = path.join(dataDir, 'os_speaker_live.mp3');
+      fs.writeFileSync(audioFile, Buffer.from(ttsRes.audioBase64, 'base64'));
+      const durMs = Math.min(28000, Math.max(2400, Math.round(cleanText.length * 145) + 900));
+      const safePath = audioFile.replace(/'/g, "''");
+
+      const psCmd = [
+        'Add-Type -AssemblyName PresentationCore',
+        '$mp = New-Object System.Windows.Media.MediaPlayer',
+        '$mp.Volume = 1.0',
+        `$mp.Open([Uri]::new('${safePath}'))`,
+        '$sw = [Diagnostics.Stopwatch]::StartNew()',
+        'while (-not $mp.NaturalDuration.HasTimeSpan -and $sw.ElapsedMilliseconds -lt 2200) { Start-Sleep -Milliseconds 40 }',
+        '$mp.Play()',
+        `$waitMs = if ($mp.NaturalDuration.HasTimeSpan) { [Math]::Min(28000, [int]$mp.NaturalDuration.TimeSpan.TotalMilliseconds + 280) } else { ${durMs} }`,
+        'Start-Sleep -Milliseconds $waitMs',
+        '$mp.Close()'
+      ].join('; ');
+
+      const encodedCmd = Buffer.from(psCmd, 'utf16le').toString('base64');
+      activeOsSpeakerProc = spawn('powershell.exe', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-WindowStyle',
+        'Hidden',
+        '-EncodedCommand',
+        encodedCmd
+      ], { windowsHide: true, stdio: 'ignore' });
+      activeOsSpeakerProc.on('exit', () => {
+        activeOsSpeakerProc = null;
+      });
+      return {
+        ok: true,
+        engine: 'windows-os-direct-neural-speaker',
+        voiceId: ttsRes.voiceId || voiceId,
+        estimatedDurationMs: durMs,
+        spokenText: cleanText
+      };
+    }
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+  return { ok: false, error: 'Neural TTS synthesis unavailable' };
 }
 
 async function synthesizeSingleEdgeChunk(chunkText, chosenVoice, rateStr, pitchStr) {
@@ -334,10 +458,9 @@ async function synthesizeNeuralKoreanTts(rawText, personaKey = 'jarvis', customO
       }
     }
     let finalBuf = Buffer.concat(audioBuffers);
-    let mimeType = 'audio/mp3';
+    const mimeType = 'audio/mp3';
     if (finalBuf.length === 0) {
-      finalBuf = buildLocalFallbackAudioBuffer(cleanText);
-      mimeType = 'audio/wav';
+      finalBuf = await synthesizeGoogleNeuralKoreanMp3(cleanText, chosenVoice);
     }
     const resultObj = {
       ok: finalBuf.length > 0,
@@ -1185,8 +1308,14 @@ const server = http.createServer((req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = decodeURIComponent(parsedUrl.pathname);
 
-  // 1. SSE Event Stream (/api/events)
+  // 1. SSE Event Stream (/api/events) — Cap at max 1 concurrent SSE stream to prevent Chrome 6-socket HTTP/1.1 deadlock across tabs!
   if (req.method === 'GET' && pathname === '/api/events') {
+    while (sseClients.size >= 1) {
+      const oldest = sseClients.values().next().value;
+      if (!oldest) break;
+      sseClients.delete(oldest);
+      try { oldest.end(); } catch (_) {}
+    }
     res.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache',
@@ -1218,7 +1347,11 @@ const server = http.createServer((req, res) => {
     if (req.method === 'GET') {
       const state = loadConnectedEcosystems();
       let graph = { stats: null };
-      try { graph = buildBrainGraph(); } catch (e) {}
+      try {
+        if (fs.existsSync(BRAIN_JSON_PATH)) {
+          graph = JSON.parse(fs.readFileSync(BRAIN_JSON_PATH, 'utf8'));
+        }
+      } catch (e) {}
       const slots = (state.slots || DEFAULT_COMMERCIAL_SLOTS).map(s => ({
         ...s,
         name: s.name || s.label
@@ -1549,7 +1682,7 @@ const server = http.createServer((req, res) => {
   }
 
   // 10. Google AI Studio Ported Endpoints (/api/jarvis/*) — Hybrid Ollama + Zero-Cost Local Steward Engine
-  if (req.method === 'POST' && pathname === '/api/jarvis/stt') {
+  if (req.method === 'POST' && pathname === '/api/jarvis/stt-legacy') {
     const body = await parseBody(req);
     const sttEngine = body.sttEngine || 'whisper-large-v3';
     logConsoleStream('STT Transcriber', `Processed voice frame via ${sttEngine}`, 15, 420);
@@ -1632,12 +1765,32 @@ const server = http.createServer((req, res) => {
       localTtsUrl: body.localTtsUrl,
       lang: body.lang
     });
+    let osSpeakerPlayback = null;
+    if (body.speakOnOsSpeaker) {
+      osSpeakerPlayback = await playSpeechOnWindowsOsSpeaker(text, body.voiceId || 'ko-KR-HyunsuMultilingualNeural', ttsRes);
+    }
     const latencyMs = Math.max(18, Date.now() - startTime);
     return sendJson(res, 200, {
       ...ttsRes,
-      mode: ttsRes.ok ? 'neural-open-tts-stream' : 'browser-web-speech-fallback',
+      osSpeakerPlayback,
+      mode: ttsRes.ok ? 'neural-open-tts-stream' : 'windows-os-direct-speaker',
       latencyMs
     });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/tts/speak-os') {
+    const body = await parseBody(req);
+    const osRes = await playSpeechOnWindowsOsSpeaker(
+      body.text || '',
+      body.voiceId || 'ko-KR-HyunsuMultilingualNeural',
+      body.preSynthesized || null
+    );
+    return sendJson(res, 200, osRes);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/tts/stop-os') {
+    stopWindowsOsSpeaker();
+    return sendJson(res, 200, { ok: true, stopped: true });
   }
 
   if (req.method === 'POST' && pathname === '/api/jarvis/vision') {
@@ -2290,6 +2443,74 @@ const server = http.createServer((req, res) => {
     return sendJson(res, 200, updated);
   }
 
+  if (req.method === 'POST' && pathname === '/api/jarvis/llm-hub/oauth-login') {
+    const body = await parseBody(req);
+    const oauthRes = await triggerGoogleOAuthLogin({
+      model: body.model || 'gemini-4-argon',
+      launchBrowserLogin: Boolean(body.launchBrowserLogin)
+    });
+    broadcastEvent('llm_hub_changed', oauthRes);
+    logConsoleStream('🔐 Google OAuth ($0)', oauthRes.message, 10, 680);
+    return sendJson(res, 200, oauthRes);
+  }
+
+  // 10-V. REA Obsidian × Notion Neuron Content & Application Studio API
+  if (req.method === 'GET' && pathname === '/api/brain/neuron-detail') {
+    const detail = getNeuronFullDetail({
+      id: parsedUrl.searchParams.get('id') || '',
+      path: parsedUrl.searchParams.get('path') || '',
+      label: parsedUrl.searchParams.get('label') || ''
+    });
+    return sendJson(res, 200, detail);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/brain/neuron-note') {
+    const body = await parseBody(req);
+    const saved = saveOrAppendNeuronNote(body);
+    if (saved.ok) {
+      broadcastEvent('neuron_graph_updated', {
+        mainNode: saved.mainNode,
+        createdNodes: saved.createdNodes,
+        createdLinks: saved.createdLinks,
+        totalNodes: saved.totalNodes,
+        totalLinks: saved.totalLinks
+      });
+      logConsoleStream(
+        '🕸️ Obsidian×Notion',
+        `Saved [${saved.mainNode?.label}] (+${saved.createdNodes.length} neurons, +${saved.createdLinks.length} synapses)`,
+        14,
+        750
+      );
+    }
+    return sendJson(res, saved.ok ? 200 : 400, saved);
+  }
+
+  // 10-W. Local Windows SAPI / Hybrid STT Fallback Endpoint (/api/jarvis/stt)
+  if (req.method === 'POST' && pathname === '/api/jarvis/stt') {
+    const body = await parseBody(req);
+    const fallbackText = String(body.hintText || body.transcript || '').trim();
+    if (fallbackText) {
+      return sendJson(res, 200, {
+        ok: true,
+        engine: 'HYBRID_STT_VERIFIED',
+        transcript: fallbackText
+      });
+    }
+    // Listen briefly via Windows SAPI if direct mic capture requested on host
+    const listenSec = Math.min(6, Math.max(2, Number(body.durationSec) || 3));
+    const psStt = `powershell -NoProfile -Command "try { Add-Type -AssemblyName System.Speech; $rec = New-Object System.Speech.Recognition.SpeechRecognitionEngine; $rec.SetInputToDefaultAudioDevice(); $rec.LoadGrammar((New-Object System.Speech.Recognition.DictationGrammar)); $res = $rec.Recognize([TimeSpan]::FromSeconds(${listenSec})); if ($res -and $res.Text) { Write-Output $res.Text } else { Write-Output '' } } catch { Write-Output '' }"`;
+    const sttOut = await new Promise((resolve) => {
+      exec(psStt, { windowsHide: true, timeout: (listenSec + 2) * 1000 }, (err, stdout) => {
+        resolve(String(stdout || '').trim());
+      });
+    });
+    return sendJson(res, 200, {
+      ok: true,
+      engine: 'WINDOWS_SAPI_LOCAL_STT',
+      transcript: sttOut
+    });
+  }
+
   if (req.method === 'POST' && pathname === '/api/jarvis/llm-hub/test') {
     const body = await parseBody(req);
     const testPrompt = String(body.prompt || '이건우 대표님께 현재 연결된 모델 이름과 상태를 한 문장으로 정중히 보고하세요.');
@@ -2327,6 +2548,16 @@ const server = http.createServer((req, res) => {
       openExternalWindow: Boolean(body.openExternalWindow)
     });
     broadcastEvent('sasarisa_action', result);
+    // Also trigger os_wake_event if the command came from Mobile Microphone Bridge so the PC Monitor HUD reacts & speaks aloud!
+    if (body.fromMobileMic) {
+      broadcastEvent('os_wake_event', {
+        ok: true,
+        source: 'MOBILE_MIC_BRIDGE',
+        heardText: cmdText,
+        reply: result.reply,
+        isBootGreeting: /(아빠\s*왔어|나\s*왔어|다녀왔어)/i.test(cmdText)
+      });
+    }
     logConsoleStream(
       '🎙️ SasariSa Win11',
       `[${result.intent?.skillId || 'SKILL'}] "${cmdText.slice(0, 36)}" -> ${result.status}`,
@@ -2353,6 +2584,72 @@ const server = http.createServer((req, res) => {
     return sendJson(res, 200, confirmRes);
   }
 
+  // 10-V. BSC_자비스 Always-On Background Wake-Word & Windows Login Auto-Start API
+  if (req.method === 'GET' && pathname === '/api/jarvis/sasarisa/wake-daemon') {
+    const st = getWakeDaemonStatus();
+    return sendJson(res, 200, {
+      ...st,
+      connectedHudClients: sseClients.size
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/sasarisa/autostart') {
+    const body = await parseBody(req);
+    const enable = body.enable !== undefined ? Boolean(body.enable) : true;
+    const openWindow = body.openAppWindowImmediately !== undefined ? Boolean(body.openAppWindowImmediately) : true;
+    const autoRes = setWindowsLoginAutoStart(enable, openWindow);
+    broadcastEvent('sasarisa_autostart_updated', autoRes);
+    return sendJson(res, 200, autoRes);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/sasarisa/wake-trigger') {
+    const body = await parseBody(req);
+    const phrase = String(body.heardText || body.phrase || 'BSC_자비스').trim();
+    const wakeEvt = triggerOsWakeEvent(phrase, {
+      port: PORT,
+      getConnectedClients: () => sseClients.size,
+      forceOpenWindow: Boolean(body.forceOpenWindow),
+      onWakeDetected: (evt) => {
+        broadcastEvent('os_wake_event', evt);
+      }
+    });
+    return sendJson(res, 200, wakeEvt);
+  }
+
+  // 10-W. Monitor App Mode (No Browser Address Bar) & Live Monitor/Camera Co-Work Context API
+  if (req.method === 'POST' && pathname === '/api/jarvis/sasarisa/launch-monitor-app') {
+    const body = await parseBody(req);
+    const launchRes = await launchFramelessMonitorAppWindow(PORT, body.mode || 'monitor-app');
+    logConsoleStream('🖥️ Monitor App Mode', `Launched frameless desktop window (${launchRes.engine})`);
+    return sendJson(res, 200, launchRes);
+  }
+
+  if (req.method === 'GET' && pathname === '/api/jarvis/sasarisa/monitor-context') {
+    const captureImg = parsedUrl.searchParams.get('capture') !== '0' && parsedUrl.searchParams.get('capture') !== 'false';
+    const ctx = await captureMonitorWorkspaceContext(captureImg);
+    return sendJson(res, 200, {
+      ...ctx,
+      context: ctx
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/jarvis/sasarisa/cowork-vision') {
+    const body = await parseBody(req);
+    const resCowork = await analyzeMonitorAndCameraForCoWork(
+      body.question || body.prompt || '지금 내 모니터 작업 환경이랑 화면 상태를 파악해서 알려줘',
+      {
+        provider: body.provider,
+        model: body.model,
+        captureScreen: body.captureScreen !== false,
+        cameraActive: Boolean(body.cameraActive),
+        cameraImageBase64: body.cameraImageBase64 || ''
+      }
+    );
+    broadcastEvent('sasarisa_cowork_vision', resCowork);
+    logConsoleStream('👁️🖥️ Co-Work Vision', `Monitor(${resCowork.monitorContext?.openWindows?.length || 0} wins) + Camera analyzed`);
+    return sendJson(res, 200, resCowork);
+  }
+
   // 11. Serve BSC Agent Images from C:/BeausCreators/.cursor/agent_images/
   if (req.method === 'GET' && pathname.startsWith('/agent_images/')) {
     const relImg = pathname.replace(/^\/agent_images\//, '');
@@ -2366,20 +2663,57 @@ const server = http.createServer((req, res) => {
 
   // 10-B. Barehands Full-Screen Webcam AR Spatial Interface (https://github.com/jaredrhod/barehands)
   const BAREHANDS_DIR = path.join(__dirname, 'vendor', 'barehands');
-  const BAREHANDS_ORBS = [
-    { title: 'Notes', path: path.join(BAREHANDS_DIR, 'sample-notes'), kind: 'notes' },
-    { title: 'BSC_HQ', path: 'C:\\BeausCreators\\01.BSC_HQ\\1.Documents', kind: 'notes' },
-    { title: 'Research', path: 'C:\\BeausCreators\\03.Research', kind: 'notes' },
-    { title: 'Props', path: path.join(BAREHANDS_DIR, 'media'), kind: 'media' }
+  const ICON_CTRL_ROOT = 'C:\\자비스_화면_아이콘 제어';
+  const UI_ICONS_CFG_FILE = path.join(__dirname, 'data', 'ui_icons_config.json');
+  const DEFAULT_BAREHANDS_ORBS = [
+    { id: 'ctrl', title: '아이콘 제어', path: fs.existsSync(path.join(ICON_CTRL_ROOT, '01.화면_아이콘')) ? path.join(ICON_CTRL_ROOT, '01.화면_아이콘') : path.join(BAREHANDS_DIR, 'sample-notes'), kind: 'notes', icon: '/img/ui-icons/jarvis_ui_orb_control.png' },
+    { id: 'notes', title: 'Notes', path: fs.existsSync(path.join(ICON_CTRL_ROOT, '02.대화_노트')) ? path.join(ICON_CTRL_ROOT, '02.대화_노트') : path.join(BAREHANDS_DIR, 'sample-notes'), kind: 'notes', icon: '/img/ui-icons/icon_notes.svg' },
+    { id: 'hq', title: 'BSC_HQ', path: 'C:\\BeausCreators\\01.BSC_HQ\\1.Documents', kind: 'notes', icon: '/img/ui-icons/jarvis_ui_orb_data.png' },
+    { id: 'research', title: 'Research', path: 'C:\\BeausCreators\\03.Research', kind: 'notes', icon: '/img/ui-icons/icon_research.svg' },
+    { id: 'props', title: 'Props', path: path.join(BAREHANDS_DIR, 'media'), kind: 'media', icon: '/img/ui-icons/icon_props.svg' }
   ];
+  let customOrbs = [];
+  try {
+    if (fs.existsSync(UI_ICONS_CFG_FILE)) {
+      customOrbs = JSON.parse(fs.readFileSync(UI_ICONS_CFG_FILE, 'utf8')) || [];
+    }
+  } catch (_) {}
+  const BAREHANDS_ORBS = [...DEFAULT_BAREHANDS_ORBS, ...customOrbs.filter(c => c && c.enabled !== false)];
   if (!global.__barehandsState) global.__barehandsState = '{}';
   if (!global.__barehandsCmds) global.__barehandsCmds = [];
+
+  if (pathname === '/api/stage-ui-icons') {
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify({ ok: true, defaults: DEFAULT_BAREHANDS_ORBS, custom: customOrbs }));
+    }
+    if (req.method === 'POST') {
+      const body = await parseBody(req);
+      if (body && body.action === 'add' && body.title) {
+        const newOrb = {
+          id: 'custom_' + Date.now(),
+          title: String(body.title).trim(),
+          path: body.path && fs.existsSync(body.path) ? body.path : ICON_CTRL_ROOT,
+          kind: body.kind === 'media' ? 'media' : 'notes',
+          icon: body.icon || '/img/ui-icons/icon_control.svg',
+          enabled: true
+        };
+        customOrbs.push(newOrb);
+        try { fs.writeFileSync(UI_ICONS_CFG_FILE, JSON.stringify(customOrbs, null, 2), 'utf8'); } catch (_) {}
+      } else if (body && body.action === 'delete' && body.id) {
+        customOrbs = customOrbs.filter(c => c.id !== body.id);
+        try { fs.writeFileSync(UI_ICONS_CFG_FILE, JSON.stringify(customOrbs, null, 2), 'utf8'); } catch (_) {}
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ ok: true, custom: customOrbs }));
+    }
+  }
 
   if (pathname === '/config' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify({
       name: 'J.A.R.V.I.S.',
-      orbs: BAREHANDS_ORBS.map(o => ({ title: o.title, kind: o.kind }))
+      orbs: BAREHANDS_ORBS.map(o => ({ id: o.id, title: o.title, kind: o.kind, icon: o.icon }))
     }));
   }
   if (pathname === '/orb' && req.method === 'GET') {
@@ -2411,19 +2745,29 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
   if (pathname === '/tree' && req.method === 'GET') {
-    const orbIdx = parseInt(parsedUrl.query.orb || '0', 10) || 0;
+    const orbIdx = parseInt(parsedUrl.searchParams.get('orb') || '0', 10) || 0;
     const orbCfg = BAREHANDS_ORBS[orbIdx];
     if (!orbCfg || orbCfg.kind !== 'notes' || !fs.existsSync(orbCfg.path)) {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       return res.end(JSON.stringify({ name: orbCfg?.title || 'Notes', notes: [], dirs: [] }));
     }
+    if (!global.__barehandsTreeCache) global.__barehandsTreeCache = new Map();
+    const cacheKey = `${orbIdx}:${orbCfg.path}`;
+    const cached = global.__barehandsTreeCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < 60000) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(cached.json);
+    }
+    const SKIP_DIRS = new Set(['node_modules', 'Library', 'Temp', 'Logs', 'obj', 'bin', 'venv', '.venv', 'dist', 'build', 'out', 'target', 'vendor', 'packages', '__pycache__']);
+    let visited = 0;
     const walkNotes = (dir, depth = 0) => {
       const out = { name: path.basename(dir), notes: [], dirs: [] };
-      if (depth > 3) return out;
+      if (depth > 2 || visited > 120) return out;
+      visited++;
       let entries = [];
       try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) {}
-      for (const e of entries.slice(0, 60)) {
-        if (e.name.startsWith('.') || e.name === 'node_modules') continue;
+      for (const e of entries.slice(0, 28)) {
+        if (e.name.startsWith('.') || SKIP_DIRS.has(e.name)) continue;
         const full = path.join(dir, e.name);
         if (e.isDirectory()) {
           const sub = walkNotes(full, depth + 1);
@@ -2437,11 +2781,13 @@ const server = http.createServer((req, res) => {
     };
     const tree = walkNotes(orbCfg.path);
     tree.name = orbCfg.title;
+    const json = JSON.stringify(tree);
+    global.__barehandsTreeCache.set(cacheKey, { ts: Date.now(), json });
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-    return res.end(JSON.stringify(tree));
+    return res.end(json);
   }
   if (pathname === '/note' && req.method === 'GET') {
-    const fParam = String(parsedUrl.query.f || '');
+    const fParam = String(parsedUrl.searchParams.get('f') || '');
     const slashIdx = fParam.indexOf('/');
     const orbIdx = parseInt(fParam.slice(0, slashIdx), 10);
     const rel = fParam.slice(slashIdx + 1);
@@ -2495,7 +2841,7 @@ const server = http.createServer((req, res) => {
     const vendorAsset = filePath.includes(`${path.sep}vendor${path.sep}`);
     res.writeHead(200, {
       'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
-      'Cache-Control': vendorAsset ? 'public, max-age=86400' : 'no-cache'
+      'Cache-Control': vendorAsset ? 'public, max-age=86400' : 'no-store, no-cache, must-revalidate'
     });
     return fs.createReadStream(filePath).pipe(res);
   }
@@ -2511,6 +2857,14 @@ const server = http.createServer((req, res) => {
   });
 });
 
+server.keepAliveTimeout = 1500;
+server.headersTimeout = 5000;
+try {
+  const mirrorServer = http.createServer(server.listeners('request')[0]);
+  mirrorServer.keepAliveTimeout = 1500;
+  mirrorServer.listen(7788, '0.0.0.0');
+} catch (_) {}
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================================`);
   console.log(`🛡️  BSC J.A.R.V.I.S. (Autonomous Agent OS) is ONLINE (PC + Mobile)`);
@@ -2519,23 +2873,4 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐  PC HUD URL    : http://localhost:${PORT}`);
   console.log(`📱  Mobile Cam URL: http://192.168.219.239:${PORT}/mobile-cam`);
   console.log(`====================================================================`);
-  try { refreshCatalog(); } catch (e) {}
-  try { refreshLiveNeuronFeed(); } catch (e) {}
-  setInterval(() => {
-    try { refreshLiveNeuronFeed(); } catch (e) {}
-  }, 3 * 60 * 1000);
-
-  // Non-blocking warm-up of gemma4:e4b in VRAM (keep_alive: 30m) for smart Tiki-Taka + Harness² replies
-  fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'gemma4:e4b',
-      stream: false,
-      think: false,
-      keep_alive: '30m',
-      options: { num_predict: 5 },
-      messages: [{ role: 'user', content: 'ping' }]
-    })
-  }).catch(() => {});
 });

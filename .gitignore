@@ -10,3 +10,7 @@ research/repos/
 .DS_Store
 Thumbs.db
 .firebase/
+public/data/multi-llm-hub-state.json
+public/data/os_speaker_live.*
+public/data/sapi_fallback_tts.wav
+public/data/ide_backups/

@@ -1,15 +1,15 @@
 {
-  "updatedAt": "2026-10-26T07:01:35.790Z",
-  "totalAnalyzedMarkdownFiles": 330,
+  "updatedAt": "2026-10-27T09:08:21.167Z",
+  "totalAnalyzedMarkdownFiles": 329,
   "fullDiskInventory": {
-    "totalDirsOnDisk": 8705,
-    "totalAllFilesOnDisk": 24314,
-    "totalMdFilesOnDisk": 5834,
-    "totalCodeFilesOnDisk": 9048,
+    "totalDirsOnDisk": 8732,
+    "totalAllFilesOnDisk": 24523,
+    "totalMdFilesOnDisk": 5886,
+    "totalCodeFilesOnDisk": 9088,
     "totalOfficeDocsOnDisk": 459,
-    "totalOtherAssetsOnDisk": 8973,
-    "remainingUnextractedFiles": 23717,
-    "remainingUnextractedMdFiles": 5504
+    "totalOtherAssetsOnDisk": 9090,
+    "remainingUnextractedFiles": 23925,
+    "remainingUnextractedMdFiles": 5557
   },
   "entries": [
     {
@@ -2258,21 +2258,6 @@
     {
       "slotId": "slot_company_branch",
       "slotLabel": "🚀 회사_Branch (02.BSC_Branch)",
-      "fileName": "teardown_report.md",
-      "filePath": "C:/BeausCreators/02.BSC_Branch/projects/01.게임/2.5D/game_16_bsc_tycoon_metaverse/docs/teardown_report.md",
-      "title": "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clea",
-      "headings": [
-        "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clean-Room Bui",
-        "1. 구현 체크리스트 (checklist.md 통합)"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "프로젝트 경로: C:\\BeausCreators\\02.BSCBranch\\projects\\01.게임\\2.5D\\game16bsctycoonmetaverse · 본사 REA 블루프린트 정본: C:\\BeausCreators\\01.BSCHQ\\6.KnowledgeIndex\\10.REATechBlueprints\\REA2026-10-26ZepGatherTownTycoonMetaver · Owner: 거누 (CTO), 시안 (CDO), 유나 (",
-      "sizeKb": 2
-    },
-    {
-      "slotId": "slot_company_branch",
-      "slotLabel": "🚀 회사_Branch (02.BSC_Branch)",
       "fileName": "STATUS.md",
       "filePath": "C:/BeausCreators/02.BSC_Branch/sandbox/01.APP_test/STATUS.md",
       "title": "STATUS — ARCHIVE",
@@ -3930,113 +3915,6 @@
     {
       "slotId": "slot_custom_mvjj5foi_1ll",
       "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "README.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/holo/README.md",
-      "title": "holo/",
-      "headings": [
-        "holo/"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "The same model files render as the blue hologram wireframe here. The folder IS the render law.",
-      "sizeKb": 1
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "README.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/misc/README.md",
-      "title": "misc/",
-      "headings": [
-        "misc/"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "Images land here. Stage with board.sh as misc/<file>, or tap the ring, then the Props orb.",
-      "sizeKb": 1
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "README.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/media/models/README.md",
-      "title": "models/",
-      "headings": [
-        "models/"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "3D models (.glb/.gltf) render REAL here: full textures. Parted models can EXPLODE.",
-      "sizeKb": 1
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "Make It Yours.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Make It Yours.md",
-      "title": "Make It Yours",
-      "headings": [
-        "Make It Yours",
-        "The config (barehands.json)",
-        "Ideas people have asked for"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "Everything here is a starting point. The whole system is one HTML page, one small Python server, and one config file. No · name: what the ring says. Your assistant's name, in lights. · port: where the server listens (default 8794).",
-      "sizeKb": 1
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "Props and Models.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Props and Models.md",
-      "title": "Props and Models",
-      "headings": [
-        "Props and Models",
-        "The folders are the render law",
-        "Where to get models"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "The media/ folder is the airlock: the only place the board will ever stage a file from. That's a safety feature: your AI · media/misc/: images. Stage as framed glass cards. · media/fx/: transparent props. Render NAKED (no frame, no chrome),",
-      "sizeKb": 1
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "Streaming and Recording.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Field Guide/Streaming and Recording.md",
-      "title": "Streaming and Recording (advanced)",
-      "headings": [
-        "Streaming and Recording (advanced)",
-        "The two-page split",
-        "The knobs (URL parameters on the render page)"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "For everyday use you only need the tracker page: full screen, camera on, done. But barehands was born on camera, and it  · One scene, two views: · The tracker (stage.html) owns your camera and physics. This is YOUR monitor.",
-      "sizeKb": 2
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
-      "fileName": "The Gestures.md",
-      "filePath": "C:/BeausCreators/03.Research/Jarvis_Reference/barehands/sample-notes/Getting Started/The Gestures.md",
-      "title": "The Gestures",
-      "headings": [
-        "The Gestures",
-        "The basics",
-        "The theatrical ones",
-        "Keys"
-      ],
-      "tags": [],
-      "wikiLinks": [],
-      "summary": "Every gesture is a movement, not a pose. These were tuned on a real human hand over many, many rounds; trust them. · TAP (a quick pinch, no travel) opens a closed thing, closes an open thing. Cards open into notes. Notes close at their t · ",
-      "sizeKb": 1
-    },
-    {
-      "slotId": "slot_custom_mvjj5foi_1ll",
-      "slotLabel": "🔬 03.Research (R&D 연구소)",
       "fileName": "BSC_Browser_Platform_Chrome_and_Dedicated_Browser_Planning_2026-08-26.md",
       "filePath": "C:/BeausCreators/03.Research/notes/2026-08-26_기획참고/BSC_Browser_Platform_Chrome_and_Dedicated_Browser_Planning_2026-08-26.md",
       "title": "BSC Browser Platform",
@@ -4058,6 +3936,136 @@
       "wikiLinks": [],
       "summary": "작성 기준일: 2026-08-26 · 목표: 공통 Agent Core를 기반으로 Chrome용 BSC Agent와 회사 전용 독립 BSC Browser를 동시에 운영하는 Browser Execution OS 구축 · Chrome용 BSC Agent Extension과 회사 전용 BSC Dedicated Browser를 둘 다 만든다.",
       "sizeKb": 7
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/REA_2026-10-26_game_16_bsc_tycoon_metaverse.md",
+      "title": "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기",
+      "headings": [
+        "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기술 분석 및 BSC",
+        "1. Stage 1 — 물리적 표면 및 기술 스택 분포 (Physical Surface Census)",
+        "2. Stage 2 — 핵심 아키텍처 패턴 및 심볼 역추적 (AST / Structural Deconstruction)",
+        "3. Stage 3 — 법무(엘렌) · 보안(수호) 감사 및 방어 기술 (Defensive Adaptation)",
+        "4. Stage 4 — BSC 클린룸 재구축 및 Google Harness² 연동 지침"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "분석 일시: 2026-10-26T07:01:41.343Z · 분석 대상 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse · 실측 물리 지표: 파일 6개 | 용량 82,194 bytes | 코드/문서 1,906 lines",
+      "sizeKb": 3
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "BSC_2027_BM_및_프로덕트_수익화_마스터플랜.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/BSC_2027_BM_및_프로덕트_수익화_마스터플랜.md",
+      "title": "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (CEO 승인 정본)",
+      "headings": [
+        "🏛️ BSC 2027 기업용 비즈니스 & 멀티 프로덕트 수익화 마스터플랜 (CEO 승인 정본)",
+        "1. 다중 에이전트 워룸 라운드테이블 (War Room Roundtable)",
+        "2. 전사 보유 자산 실측 인벤토리 (Implemented vs. Planned Split)",
+        "3. 2027년 중반기 수익화 시뮬레이션 및 가격(Pricing) 설계",
+        "3-1. 프로덕트별 기준 단가안 (초안 — 추후 단계별 조정 가능)",
+        "3-2. 2027년 중반기 월 매출 시나리오 매트릭스 (월 1,000만 원 / 5,000만 원 / 1억 원)",
+        "4. 5대 핵심 영역별 상세 구현 스펙 (Component Specifications)",
+        "Component 1. 타이쿤메타버스플랫폼 (BSC Tycoon Metaverse Platform)",
+        "Component 2. 10대 OS 연결 스토어 & 에이전트 구매 + @맞춤형 제작 시스템",
+        "Component 3. 게임 BM 상세 설계",
+        "Component 4. 앱 · 웹 5대 버티컬 라인업",
+        "5. 분기별 실행 로드맵 (2026 Q4 ~ 2027 Q3)"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "승인 일자: 2026-10-26 · 승인자: 이건우 대표님 (CEO, BeausCreators) · 수립 및 총괄: 수석비서 소하(soha), 비서실장 태준(taejun), CFO 도현(dohyun), BI 다인(dain), CTO 거누(geonu), 수석디자이너 시안(sian), 유니티코어 제이(jay), 게임개",
+      "sizeKb": 25
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_2026-10-26_Zep_GatherTown_Tycoon_Metaverse.md",
+      "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 ",
+      "headings": [
+        "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 역공학 기술 해부 및 BSC 타이쿤 메타",
+        "1. Stage 1 — 4분할 증거 추적 (4-Split Evidence Provenance)",
+        "1-1. Observations (관측된 물리적·기능적 팩트)",
+        "1-2. Derivations (수학적·구조적 파생 공식)",
+        "1-3. Inferences (BSC 타이쿤 메타버스 확장을 위한 아키텍처 추론)",
+        "1-4. Unknowns & Limitations (미확인 영역 및 현재 한계점 분리)",
+        "2. Stage 2 — BSC 클린룸 재구축 모듈 경계 설계 (<= 500 Lines Guard 준수)"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "분석 일시: 2026-10-26T15:52:00+09:00 · 분석 대상: ZEP (zep.us / ZEP Map Editor & ZEP Script SDK) 및 Gather.town (gather.town / Spatial Tile Engine & Mapmaker) · 재구축 타겟 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse (및",
+      "sizeKb": 7
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "REA_2026-10-27_Zep_GatherTown_Collider_And_Layer_Separation.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_2026-10-27_Zep_GatherTown_Collider_And_Layer_Separation.md",
+      "title": "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 레이어 분리(책상·의자",
+      "headings": [
+        "🔬 [REA Clean-Room Blueprint] ZEP & Gather.town 레이어 분리(책상·의자·캐릭터) 및 타일",
+        "1. Stage 1 — 문제 진단 및 4분할 증거 추적 (4-Split Evidence Provenance)",
+        "1-1. 기존 프로토타입의 구조적 결함 원인 (Root Cause Analysis)",
+        "1-2. Observations (ZEP & Gather.town 관측 팩트)",
+        "1-3. Derivations (수학적·알고리즘 파생 공식)",
+        "1-4. Inferences & Unknowns"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "분석 일시: 2026-10-27T12:43:30+09:00 · 분석 대상: ZEP (zep.us Map Editor / Tile Collider / Layer Occlusion) 및 Gather.town (gather.town Mapmaker / Impassable Tile / · 적용 대상: C:\\BeausCreators\\03.Research\\ZepGatherTownMetaverseReference\\prototype 및 An",
+      "sizeKb": 5
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "REA_CleanRoom_Blueprint_game_16_bsc_tycoon_metaverse.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/REA_CleanRoom_Blueprint_game_16_bsc_tycoon_metaverse.md",
+      "title": "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기",
+      "headings": [
+        "🔬 [REA Clean-Room Blueprint] game16bsctycoonmetaverse 역공학 기술 분석 및 BSC",
+        "1. Stage 1 — 물리적 표면 및 기술 스택 분포 (Physical Surface Census)",
+        "2. Stage 2 — 핵심 아키텍처 패턴 및 심볼 역추적 (AST / Structural Deconstruction)",
+        "3. Stage 3 — 법무(엘렌) · 보안(수호) 감사 및 방어 기술 (Defensive Adaptation)",
+        "4. Stage 4 — BSC 클린룸 재구축 및 Google Harness² 연동 지침"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "분석 일시: 2026-10-26T07:01:41.343Z · 분석 대상 경로: C:/BeausCreators/02.BSCBranch/projects/01.게임/2.5D/game16bsctycoonmetaverse · 실측 물리 지표: 파일 6개 | 용량 82,194 bytes | 코드/문서 1,906 lines",
+      "sizeKb": 3
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "teardown_report.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/teardown_report.md",
+      "title": "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clea",
+      "headings": [
+        "🏢 [Spoke Docs] BSC 타이쿤 메타버스 플랫폼 (ZEP & Gather.town REA Clean-Room Bui",
+        "1. 구현 체크리스트 (checklist.md 통합)"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "프로젝트 경로: C:\\BeausCreators\\02.BSCBranch\\projects\\01.게임\\2.5D\\game16bsctycoonmetaverse · 본사 REA 블루프린트 정본: C:\\BeausCreators\\01.BSCHQ\\6.KnowledgeIndex\\10.REATechBlueprints\\REA2026-10-26ZepGatherTownTycoonMetaver · Owner: 거누 (CTO), 시안 (CDO), 유나 (",
+      "sizeKb": 2
+    },
+    {
+      "slotId": "slot_custom_mvjj5foi_1ll",
+      "slotLabel": "🔬 03.Research (R&D 연구소)",
+      "fileName": "WorkLog.md",
+      "filePath": "C:/BeausCreators/03.Research/Zep_GatherTown_Metaverse_Reference/prototype/docs/WorkLog.md",
+      "title": "ZepGatherTownREATycoonMetaverse Project WorkLog (Spoke Mirro",
+      "headings": [
+        "ZepGatherTownREATycoonMetaverse Project WorkLog (Spoke Mirror)",
+        "16:03 - [geonu] Work Completed (ZepGatherTownREATycoonMetaverse)"
+      ],
+      "tags": [],
+      "wikiLinks": [],
+      "summary": "Summary: REA(Reverse Engineer Anything) 4분할 증거 분석을 통해 ZEP(5-Layer Tilemap, ScriptMap 오브젝트 배치/이동/제거, 프라이빗 존) 및 Gather.tow · Physical Metrics: Measured 7/7 files | 89,152 bytes | 1,968 lines · Report Evidence: C:\\BeausCreators\\01.BSCHQ\\6.Know",
+      "sizeKb": 2
     },
     {
       "slotId": "slot_custom_mvjj5foi_1ll",
@@ -5753,12 +5761,15 @@
         "[2026-10-21 Phase 5] 답변 정직성 수리",
         "[2026-10-21 Phase 6] 턴 성능과 자비스 재귀",
         "[2026-10-22] 올라마 & LM Studio & RunNow 자율 모델 라우터 · Antigravity IDE 2.0 ",
-        "[2026-10-26] SasariSa (mvcompany8500-web/sasarisa) REA Windows 11 역공학 "
+        "[2026-10-26] SasariSa (mvcompany8500-web/sasarisa) REA Windows 11 역공학 ",
+        "[2026-10-27 10:35] 사사리사(SasariSa) Voice-First 무겹침 HUD · Google Gemini "
       ],
       "tags": [],
-      "wikiLinks": [],
+      "wikiLinks": [
+        "위키링크"
+      ],
       "summary": "1. Google AI Studio (C:\\Users\\USER\\antigravity\\Jarvis-Open-AI-Assistant) 22개 전체 컴포넌트 & 18대 스튜디오 100% 통합: · 상단 통합 워크스페이스 바(#unified-workspace-bar) 및 부팅 시 AISTUDIOHUB 자동 소환으로 두 시스템이 한 화면에서 즉시 작동하도록 완성. · MAPSREASTUDIO에 WIKI(JarvisKnowledgeWik",
-      "sizeKb": 8
+      "sizeKb": 9
     },
     {
       "slotId": "slot_custom_mvjj5m79_f8q",
@@ -6054,32 +6065,19 @@
       "tags": [],
       "wikiLinks": [],
       "summary": "대표님: 거누야, 지금 자비스랑 ADE, IDE가 어떻게 실시간으로 연결되어 있고 반응형 디자인은 어떻게 바뀌었는지 자연스럽게 설명해줘. · 재호: 대표님, 지금 저희 시스템은 ADE(C:\\BeausCreators\\01.BSCHQ)와 Antigravity IDE(c:\\BSCJavisOS)를 통해 실시간으로 연결되어 모든 작업의 맥락을 공유하고 있습니다.  · 유나: 유나도 이 연결을 통해 프론트엔드 구현 단계에서 시각적 변화에",
-      "sizeKb": 39
+      "sizeKb": 84
     },
     {
       "slotId": "slot_custom_mvjj5m79_f8q",
       "slotLabel": "🤖 BSC_Javis_OS (자비스 & 볼트)",
       "fileName": "Live_Neuron_Digest.md",
       "filePath": "C:/BSC_Javis_OS/vault/Live_Neuron_Digest.md",
-      "title": "뉴런 홈 실시간 요약",
-      "headings": [
-        "뉴런 홈 실시간 요약",
-        "2026-10-22T07:04:13.693Z",
-        "2026-10-22T07:04:56.702Z",
-        "2026-10-22T07:05:15.861Z",
-        "2026-10-22T07:08:17.243Z",
-        "2026-10-22T07:11:16.174Z",
-        "2026-10-22T07:14:16.182Z",
-        "2026-10-22T07:17:15.927Z",
-        "2026-10-22T07:20:15.934Z",
-        "2026-10-22T07:23:15.939Z",
-        "2026-10-22T07:26:18.539Z",
-        "2026-10-22T07:27:59.288Z"
-      ],
+      "title": "Live_Neuron_Digest.md",
+      "headings": [],
       "tags": [],
       "wikiLinks": [],
-      "summary": "원본 문서는 수정하지 않고, 최근 바뀐 제목만 적는다. · Warehouse: ⚡ 전사 토큰 최적화 및 프롬프트 캐싱 운영 표준 지침서 (SOP) · ⚡ BSC 전사 지식·스킬 초경량 최적화 아키텍처 헌장 (Lean-Knowledge Protocol) · Proceed —  · BeausCreators:",
-      "sizeKb": 336
+      "summary": "대용량 파일 (1109KB)",
+      "sizeKb": 1109
     },
     {
       "slotId": "slot_custom_mvjj5m79_f8q",
@@ -6088,14 +6086,15 @@
       "filePath": "C:/BSC_Javis_OS/vault/REA_SasariSa_Windows_Blueprint.md",
       "title": "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Window",
       "headings": [
-        "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Windows 11 Nativ",
-        "1. macOS ➔ Windows 11 6대 핵심 모듈 1:1 매핑",
-        "2. 되돌릴 수 없는 작업(Irreversible Actions) 2중 안전장치"
+        "🔬 [REA Clean-Room Blueprint] SasariSa (사사리사) macOS ➔ Windows 11 Voice",
+        "1. 핵심 아키텍처 매핑"
       ],
       "tags": [],
-      "wikiLinks": [],
+      "wikiLinks": [
+        "위키링크"
+      ],
       "summary": "원본 GitHub: https://github.com/mvcompany8500-web/sasarisa · 원본 시연 영상: https://youtube.com/watch?v=muY9-sCxZlg · 역공학 엔진: BSC REA 4-Stage Clean-Room Analyzer (Invoke-ReaAnalyzer.js)",
-      "sizeKb": 3
+      "sizeKb": 2
     },
     {
       "slotId": "slot_custom_mvjj5m79_f8q",

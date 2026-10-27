@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 240" width="420" height="240">
+    <rect width="420" height="240" rx="18" fill="#081c18" stroke="#10b981" stroke-width="2"/>
+    <rect x="16" y="16" width="388" height="36" rx="8" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.4)"/>
+    <text x="32" y="39" fill="#6ee7b7" font-family="monospace" font-size="14" font-weight="bold">📁 C:\자비스_화면_아이콘 제어 — DIRECTORY HUB</text>
+    <rect x="24" y="68" width="180" height="68" rx="10" fill="rgba(16,185,129,0.12)" stroke="#34d399"/>
+    <text x="114" y="96" fill="#a7f3d0" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">01.화면_아이콘</text>
+    <text x="114" y="118" fill="#6ee7b7" font-family="sans-serif" font-size="11" text-anchor="middle">공간 제어 가이드 · 매뉴얼</text>
+    <rect x="216" y="68" width="180" height="68" rx="10" fill="rgba(0,240,255,0.12)" stroke="#00f0ff"/>
+    <text x="306" y="96" fill="#bae6fd" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">02.대화_노트</text>
+    <text x="306" y="118" fill="#67e8f9" font-family="sans-serif" font-size="11" text-anchor="middle">대화방 작업 기록 · 노트</text>
+    <rect x="24" y="150" width="372" height="66" rx="10" fill="rgba(251,191,36,0.12)" stroke="#fbbf24"/>
+    <text x="210" y="180" fill="#fde68a" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">03.UI_이미지_에셋 (신규 생성 완료)</text>
+    <text x="210" y="200" fill="#fef08a" font-family="sans-serif" font-size="11.5" text-anchor="middle">아이콘 오브 및 홀로그램 UI 카드 이미지 정본 보관소</text>
+  </svg>

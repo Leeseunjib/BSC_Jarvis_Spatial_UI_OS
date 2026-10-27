@@ -33,7 +33,12 @@ const {
   buildLiveIdeAndProjectPromptContext,
   inspectLocalPathAndProject
 } = require('./ide-project-live-sync');
-const { loadHubState, chatWithUnifiedLlm } = require('./multi-llm-provider-hub');
+const {
+  loadHubState,
+  chatWithUnifiedLlm,
+  VOICE_FIRST_IDENTITY_DIRECTIVE,
+  sanitizeVoiceDenialHallucination
+} = require('./multi-llm-provider-hub');
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -366,7 +371,8 @@ async function listInstalledOllamaModels() {
 
 function recordDeterministicJarvisTurn(userMessage, replyText) {
   ensureDirs();
-  const text = String(replyText || '').replace(/\*\*/g, '').trim();
+  const text = sanitizeVoiceDenialHallucination(String(replyText || '').replace(/\*\*/g, '').trim(), userMessage);
+
   const stamp = Date.now();
   appendChatMessages([
     {
@@ -426,9 +432,9 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
       '[핵심 팩트 — 자비스 × BSC 통합 시스템]: ① 메인 채널은 **오직 자비스(J.A.R.V.I.S.) 단독 음성·1:1 티키타카**(문장 끝까지 100% 완독 TTS + `gemma4:e4b` + Google Harness² 재귀 엔진), ② 타 에이전트(소하·태준·거누·재호·유나·우진)와의 협업은 별도의 **『🏢 BeausCreators 에이전트 의논·회의·보고서 전용 창』**에서 수행, ③ **PC/모바일 카메라 21관절 손동작(HOLO Air-Touch)**, **Co-Vision 6종 문서화**, **REA 유니티/바이너리 역공학**이 실시간 가동됩니다.'
     );
   }
-  if (/사사리사|sasarisa|mvcompany8500|말로\s*컴퓨터|음성\s*비서|멀티\s*llm|lm\s*studio|엘엠\s*스튜디오/i.test(userMessage)) {
+  if (/사사리사|sasarisa|mvcompany8500|말로\s*컴퓨터|음성\s*비서|멀티\s*llm|lm\s*studio|엘엠\s*스튜디오|아르곤|argon|google\s*cli|구글\s*cli|oauth/i.test(userMessage)) {
     domainFacts.push(
-      '[핵심 팩트 — 사사리사(SasariSa) REA Windows 11 에디션 & 4대 멀티 LLM 허브]: ① macOS 전용 오픈소스 AI 비서 `mvcompany8500-web/sasarisa`를 REA 4단계 클린룸 역공학으로 Windows 11 네이티브 환경(음악 재생, 쇼핑 검색, 카카오톡/메일 2중 안전 승인, 음성 코딩, Windows 앱 제어)에 완벽 이식했으며, ② **OpenAI GPT + Google Gemini + 로컬 LM Studio(:1234) + 로컬 Ollama(:11434)** 4대 LLM을 자유롭게 연결해 사용할 수 있습니다.'
+      '[핵심 팩트 — 사사리사(SasariSa) Windows 11 에디션 & Google CLI / Gemini 4 Argon (OAuth $0 추가과금)]: ① macOS 전용 오픈소스 AI 비서 `mvcompany8500-web/sasarisa`를 REA 클린룸 역공학으로 Windows 11 네이티브 환경(음성 중심 미니멀 UI, CLI/MCP 음성 직결, 2중 안전 승인)에 완벽 이식했으며, ② Google AI Ultra 계정의 **OAuth 로그인 모드**를 통해 추가 API 과금 $0(0원)으로 **Gemini 4 Argon (`gemini-4-argon`, 1M 컨텍스트)** 및 Google CLI(`agy`/`gemini`)를 사용할 수 있습니다.'
     );
   }
 
@@ -470,6 +476,8 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
   const systemPrompt = [
     `당신은 이건우 대표님(BeausCreators CEO)의 유일한 전담 AI 시스템인 **J.A.R.V.I.S.(자비스)**입니다.`,
     `성격 및 말투: ${primary.vibe}`,
+    '',
+    VOICE_FIRST_IDENTITY_DIRECTIVE,
     '',
     '[Harness² 최상위 자비스 1:1 티키타카 대화 규칙 — 절대 엄수]',
     '1. [자비스 단독 정체성] 당신은 다른 에이전트가 아닌 오직 **자비스(J.A.R.V.I.S.)**로서 대표님과 1:1로 대화합니다. 마크다운 별표(`**`)나 불필요한 기호를 쓰지 말고 깔끔한 구어체 문장으로만 말하세요(음성 TTS가 끝까지 매끄럽게 읽을 수 있도록).',
@@ -700,6 +708,8 @@ async function generateNaturalAgentConversation(userMessage, contextState = {}) 
       primaryText = `네 대표님, 현재 자비스 시스템에는 7대 지식생태계(전체 23,595개 파일 · 650개 뉴런 · 755개 시냅스)가 실시간 연결되어 있습니다. 찾으시는 프로젝트명이나 문서 키워드를 말씀해 주시면 즉시 열람하고 브리핑해 드리겠습니다.`;
     }
   }
+
+  primaryText = sanitizeVoiceDenialHallucination(primaryText, userMessage);
 
   const stamp = Date.now();
   appendChatMessages([

@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "capturedAt": "오후 6:18:50",
+  "foregroundTitle": "BSC_자비스 워크스페이스",
+  "foregroundProcess": "msedge",
+  "resolution": "1920x1080",
+  "screenWidth": 1920,
+  "screenHeight": 1080,
+  "openWindowCount": 2,
+  "openWindows": [
+    {
+      "process": "Code",
+      "ProcessName": "Code",
+      "title": "BSC_Javis_OS - Antigravity IDE",
+      "Title": "BSC_Javis_OS - Antigravity IDE",
+      "pid": 1001
+    },
+    {
+      "process": "node",
+      "ProcessName": "node",
+      "title": "BSC_자비스 Server :7777",
+      "Title": "BSC_자비스 Server :7777",
+      "pid": 1002
+    }
+  ],
+  "screenshotUrl": null,
+  "screenshotBytes": 0,
+  "cameraSnapUrl": null
+}
